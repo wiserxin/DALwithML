@@ -6,7 +6,13 @@ from torch.optim import Adam
 import torch.nn as nn
 import numpy as np
 from neural.util.evaluator import Evaluator
+import random
 
+
+torch.manual_seed(0)
+torch.cuda.manual_seed(0)
+np.random.seed(0)
+random.seed(0)
 
 def theLoss(x, target):
     # print('x:',x.size())
