@@ -1,6 +1,5 @@
 .idea/
 venv/
-test.py
 
 *.pyc
 test2.py
