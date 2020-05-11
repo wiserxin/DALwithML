@@ -148,7 +148,7 @@ class Evaluator(object):
     # np.argpartition : O(n)
 
         (y_pred, y_true) = args
-        pred_topk_index = np.argpartition(-y_pred, self.top_k)[:self.top_k][:self.top_k] # 不分先后的选出排名靠前者
+        pred_topk_index = np.argpartition(-y_pred.data(), self.top_k)[:self.top_k][:self.top_k] # 不分先后的选出排名靠前者
         pred_topk_index = sorted(pred_topk_index, key=lambda i: y_pred[i], reverse=True) # 分先后的选出来
         print('better:',pred_topk_index)
         pos_index = set([k for k, v in enumerate(y_true) if v == 1])
