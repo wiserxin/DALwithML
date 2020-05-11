@@ -7,7 +7,6 @@ import torch.nn as nn
 import numpy as np
 from neural.util.evaluator import Evaluator
 
-device = torch.device("cuda:1" )
 
 def theLoss(x, target):
     # print('x:',x.size())
