@@ -120,11 +120,13 @@ class Evaluator(object):
             return 0.
         return self.dcg_at_k(r, k) / dcg_max
 
-    def get_result(self, args):
+    def get_result_ori(self, args):
     # args --> (y_pred, y_true)
+    # 比较慢
 
         (y_pred, y_true) = args
         pred_topk_index = sorted(range(len(y_pred)), key=lambda i: y_pred[i], reverse=True)[:self.top_k]
+        print("ori:",pred_topk_index)
         pos_index = set([k for k, v in enumerate(y_true) if v == 1])
 
         r = [1 if k in pos_index else 0 for k in pred_topk_index[:self.top_k]]
@@ -139,6 +141,31 @@ class Evaluator(object):
 
         ndcg_5 = self.ndcg_at_k(r, 5)
         return np.array([ndcg_5])
+
+
+    def get_result(self, args):
+    # args --> (y_pred, y_true)
+    # np.argpartition : O(n)
+
+        (y_pred, y_true) = args
+        pred_topk_index = np.argpartition(-y_pred, self.top_k)[:self.top_k][:self.top_k] # 不分先后的选出排名靠前者
+        pred_topk_index = sorted(pred_topk_index, key=lambda i: y_pred[i], reverse=True) # 分先后的选出来
+        print('better:',pred_topk_index)
+        pos_index = set([k for k, v in enumerate(y_true) if v == 1])
+
+        r = [1 if k in pos_index else 0 for k in pred_topk_index[:self.top_k]]
+
+        # p_1 = self.precision_at_k(r, 1)
+        # p_3 = self.precision_at_k(r, 3)
+        # p_5 = self.precision_at_k(r, 5)
+        # ndcg_1 = self.ndcg_at_k(r, 1)
+        # ndcg_3 = self.ndcg_at_k(r, 3)
+        # ndcg_5 = self.ndcg_at_k(r, 5)
+        # return np.array([p_1, p_3, p_5, ndcg_1, ndcg_3, ndcg_5])
+
+        ndcg_5 = self.ndcg_at_k(r, 5)
+        return np.array([ndcg_5])
+
 
     def evaluate(self, model, dataset, best_result = 0.0, model_name='CNN', multi_progress_num= 4):
         # dataset --> [X, Y, Y_o]

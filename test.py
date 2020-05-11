@@ -43,7 +43,7 @@ now_eval  = 0.0
 
 tr_batch_size = 256
 
-for epoch in range(20):
+for epoch in range(40):
     torch.cuda.empty_cache()
 
     nr_trn_num = X_trn.shape[0]
@@ -78,7 +78,7 @@ for epoch in range(20):
                       end="")
 
     print('')
-    if  not (epoch%5):
+    if  not ( (epoch+1) % 4):
         best_eval, now_eval, save = evaluator.evaluate(model, data['test'], best_eval, )
         print("\rEpoch: {} Loss:{:.5f} Best_NDCG5:{:.5f} NDCG5:{:.5f}\n".format(epoch, model_loss, best_eval, now_eval))
     torch.cuda.empty_cache()
