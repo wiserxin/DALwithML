@@ -172,7 +172,7 @@ class Evaluator(object):
             # results.extend(list(pool_result_map))
 
             # 非多线程 evaluate
-            results.extend(list(map(self.get_result, list(Y_pred), list(Y_batch))))
+            results.extend(list(map(self.get_result, zip(list(Y_pred), list(Y_batch)) )))
 
             print("\rEvaluating: {}/{} ({:.1f}%)".format(i,batch_num,i*100/batch_num), end=' ')
 
