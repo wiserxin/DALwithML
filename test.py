@@ -41,7 +41,7 @@ model = CNN(  word_vocab_size = 30000
             )
 model = nn.DataParallel(model).cuda()
 
-optimizer = Adam(model.parameters(), lr=0.0001)
+optimizer = Adam(model.parameters(), lr=0.001)
 
 evaluator = Evaluator("CNN")
 best_eval = 0.0

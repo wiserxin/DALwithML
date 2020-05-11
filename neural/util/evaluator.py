@@ -120,7 +120,7 @@ class Evaluator(object):
             return 0.
         return self.dcg_at_k(r, k) / dcg_max
 
-    def get_result_ori(self, args):
+    def get_result(self, args):
     # args --> (y_pred, y_true)
     # 比较慢
 
@@ -143,7 +143,7 @@ class Evaluator(object):
         return np.array([ndcg_5])
 
 
-    def get_result(self, args):
+    def get_result_new(self, args):
     # args --> (y_pred, y_true)
     # np.argpartition : O(n)
 
