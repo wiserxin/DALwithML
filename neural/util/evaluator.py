@@ -120,7 +120,7 @@ class Evaluator(object):
             return 0.
         return self.dcg_at_k(r, k) / dcg_max
 
-    def get_result(self, args):
+    def get_result_ori(self, args):
     # args --> (y_pred, y_true)
     # 比较慢
 
@@ -143,14 +143,14 @@ class Evaluator(object):
         return np.array([ndcg_5])
 
 
-    def get_result_new(self, args):
+    def get_result(self, args):
     # args --> (y_pred, y_true)
     # np.argpartition : O(n)
 
         (y_pred, y_true) = args
         y_pred = y_pred.data
-        pred_topk_index = np.argpartition(y_pred, -self.top_k)[-self.top_k:][:self.top_k] # 不分先后的选出排名靠前者
-        pred_topk_index = sorted(pred_topk_index, key=lambda i: y_pred[i], reverse=True) # 分先后的选出来
+        pred_topk_index = np.argpartition(y_pred, -self.top_k)[-self.top_k:] # 不分先后的选出排名靠前者
+        pred_topk_index = sorted([j for j in pred_topk_index], key=lambda i: y_pred[i], reverse=True) # 分先后的选出来
         # print('better:',pred_topk_index)
         pos_index = set([k for k, v in enumerate(y_true) if v == 1])
 
