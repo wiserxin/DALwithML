@@ -56,31 +56,31 @@ class CNN(nn.Module):
         return output#loss
 
 
-    def predict(self, docs, scoreonly=False, usecuda=True, encoder_only = False):
-
-        docs_embedded = self.embedding(docs)
-
-        docs_features = self.docs_encoder(docs_embedded)
-
-        #2019-5-11
-        if encoder_only:
-            return docs_features.data.cpu().numpy(),
-
-        features = self.dropout(docs_features)
-        output = self.linear(features)
-
-        scores = torch.max(F.sigmoid(output, dim =1), dim=1)[0].data.cpu().numpy()
-        if scoreonly:
-            return scores
-
-        prediction = torch.max(output, dim=1)[1].data.cpu().numpy().tolist()
-        return scores, prediction
+    # def predict(self, docs, scoreonly=False, usecuda=True, encoder_only = False):
+    #
+    #     docs_embedded = self.embedding(docs)
+    #
+    #     docs_features = self.docs_encoder(docs_embedded)
+    #
+    #     #2019-5-11
+    #     if encoder_only:
+    #         return docs_features.data.cpu().numpy(),
+    #
+    #     features = self.dropout(docs_features)
+    #     output = self.linear(features)
+    #
+    #     scores = torch.max(F.sigmoid(output, dim =1), dim=1)[0].data.cpu().numpy()
+    #     if scoreonly:
+    #         return scores
+    #
+    #     prediction = torch.max(output, dim=1)[1].data.cpu().numpy().tolist()
+    #     return scores, prediction
 
     def predict_score(self, docs):
-        # 更改 激活函数 为 sigmoid , 同时应更改 loss 为 BCELoss
+
         docs_embedded = self.embedding(docs)
         docs_features = self.docs_encoder(docs_embedded)
 
         features = self.dropout(docs_features)
         output = self.linear(features)
-        return F.sigmoid(output, dim=1)
+        return F.softmax(output, dim=1)
