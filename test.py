@@ -41,7 +41,7 @@ model = CNN(  word_vocab_size = 30000
             )
 model = nn.DataParallel(model).cuda()
 
-optimizer = Adam(model.parameters(), lr=0.001)
+optimizer = Adam(model.parameters(), lr=0.0001)
 
 evaluator = Evaluator("CNN")
 best_eval = 0.0
@@ -85,7 +85,7 @@ for epoch in range(40):
 
     print('')
     if  not ( (epoch+1) % 4):
-        best_eval, now_eval, save = evaluator.evaluate(model, data['train'], best_eval, )
+        best_eval, now_eval, save = evaluator.evaluate(model, data['test'], best_eval, )
         print("\rEpoch: {} Loss: {:.5f} Best_NDCG5: {:.5f} NDCG5: {:.5f}\n".format(epoch, model_loss, best_eval, now_eval))
     torch.cuda.empty_cache()
 
