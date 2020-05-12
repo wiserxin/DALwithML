@@ -49,7 +49,7 @@ now_eval  = 0.0
 
 tr_batch_size = 256
 
-for epoch in range(40):
+for epoch in range(80):
     torch.cuda.empty_cache()
 
     nr_trn_num = X_trn.shape[0]
