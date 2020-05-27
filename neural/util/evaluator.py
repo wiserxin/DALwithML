@@ -224,7 +224,7 @@ class Evaluator(object):
         results = []
 
         for i,batch_data in enumerate(batchs):
-            batch_data = batch_data['dat_numpy']
+            batch_data = batch_data['data_numpy']
             X_batch = batch_data[0]
             Y_batch = batch_data[1]
 
