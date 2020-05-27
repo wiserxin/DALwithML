@@ -97,7 +97,7 @@ class Trainer(object):
 
                 if save:
                     print('Saving Best Weights')
-                    torch.save(self.model, os.path.join(checkpoint_path, self._model_name, 'modelweights'))
+                    torch.save(self.model, os.path.join(checkpoint_path, 'modelweights'))
 
                 sys.stdout.flush()
 
