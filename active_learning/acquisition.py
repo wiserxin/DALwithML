@@ -64,7 +64,8 @@ class Acquisition(object):
         pt = 0
         _delt_arr = []
 
-        for data in data_batches:
+        for iter_batch,data in enumerate(data_batches):
+            print('\rDAL acquire batch {}/{}'.format(iter_batch,len(data_batches)),end='')
 
             batch_data_numpy  = data['data_numpy']
             batch_data_points = data['data_points']
