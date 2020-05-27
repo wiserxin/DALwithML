@@ -28,7 +28,7 @@ class Acquisition(object):
         self.cal_Aleatoric_uncertainty = cal_Aleatoric_uncertainty
         self.submodular_k = submodular_k
 
-    def get_random(self, acquire_num, returned=False):
+    def get_random(self, data, acquire_num, returned=False):
 
         random_indices = self.npr.permutation(self.document_num)
 
