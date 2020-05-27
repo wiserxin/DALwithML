@@ -27,7 +27,7 @@ class Trainer(object):
 
     ##############################################################################
     ################# training only by supervised learning        ################
-    def train_supervisedLearning(self, num_epochs, train_data, val_data, learning_rate, checkpoint_folder='.',
+    def train_supervisedLearning(self, num_epochs, train_data, val_data, learning_rate, checkpoint_path='.',
                      plot_every=2, batch_size=50):
 
         losses = []
@@ -93,7 +93,7 @@ class Trainer(object):
 
                 if save:
                     print('Saving Best Weights')
-                    torch.save(self.model, os.path.join(self.model_name, checkpoint_folder, 'modelweights'))
+                    torch.save(self.model, os.path.join(checkpoint_path, self._model_name, 'modelweights'))
 
                 sys.stdout.flush()
 
