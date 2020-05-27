@@ -93,7 +93,7 @@ class Acquisition(object):
                 elif model_name == 'CNN':
                     output = model(X)
 
-                score = F.sigmoid(output).data.cpu().numpy().tolist()
+                score = torch.sigmoid(output).data.cpu().numpy().tolist()
                 score_arr.append(score)
 
                 # evidence level , using confidence stratgy
@@ -149,7 +149,7 @@ class Acquisition(object):
                 _delt_arr.append(obj)
                 pt += 1
         print()
-        
+
         _delt_arr = sorted(_delt_arr, key=lambda o: o["el"], reverse=True)
 
         cur_indices = set()
