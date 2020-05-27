@@ -94,7 +94,7 @@ from multiprocessing import Pool
 
 
 class Evaluator(object):
-    def __init__(self,  model_name, usecuda=True, top_k=50, batch_size=128, cuda_device=0):
+    def __init__(self, result_path, model_name, usecuda=True, top_k=50, batch_size=128, cuda_device=0):
 
         self.model_name = model_name
         self.usecuda = usecuda

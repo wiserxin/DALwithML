@@ -29,13 +29,13 @@ def parse_args():
     parser.add_argument('--sampling_batch_size', type=int, default=500, help='')
     parser.add_argument('--with_sim_feature', type=bool, default=True, help='whether use sim_feature in deep model')
     parser.add_argument('--word_embedding_dim', type=int, default=300, help='')
-    parser.add_argument('--pretrained_word_embedding', default="../../../../home/zyc/datasets/answer_selection/YahooCQA/pretrained-word-embedding/glove.6B.300d.txt", help='')
+    parser.add_argument('--pretrained_word_embedding', default="../../datasets/rcv2/glove.6B.300d.txt", help='')
     parser.add_argument('--dropout', type=float, default=0.5, help='')
     parser.add_argument('--word_hidden_dim', type=int, default=75, help='')
     parser.add_argument('--learning_rate', type=float, default=0.001, help='')
     parser.add_argument('--target_size', type=int, default=2, help='')
     parser.add_argument('--word_out_channels', type=int, default=200, help='')
-    parser.add_argument('--result_path', default="result/YahooCQA/",help='')
+    parser.add_argument('--result_path', default="result/rcv2/",help='')
     parser.add_argument('--device', type=int, default=[0], help='')
     parser.add_argument('--cal_Aleatoric_uncertainty', type=bool, default=False, help='')
     parser.add_argument('--sampling_number', type=int, default=1, help='')
@@ -229,6 +229,7 @@ def main(args):
             model.cuda(args.device[0])
 
             trainer = Trainer(model,
+                              args.result_path,
                               model_name,
                               answer_count=args.answer_count,
                               cuda_device=args.device[0],
