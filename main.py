@@ -34,6 +34,7 @@ def parse_args():
     parser.add_argument('--word_hidden_dim', type=int, default=75, help='')
     parser.add_argument('--learning_rate', type=float, default=0.001, help='')
     parser.add_argument('--target_size', type=int, default=17, help='rcv2:17 ')
+    parser.add_argument('--top_k', type=int, default=15, help='rcv2:15 , eurLex:50')
     parser.add_argument('--word_out_channels', type=int, default=200, help='')
     parser.add_argument('--result_path', default="result/rcv2/",help='')
     parser.add_argument('--device', type=int, default=[0], help='')
@@ -142,6 +143,12 @@ def main(args):
 
         train_data = data['train_points']
         val_data = data['test_points']
+
+        # too small the valdata amount so ...
+        if len(val_data) < 100000:
+            val_data.extend(train_data[-100000:])
+            train_data = train_data[:-100000]
+
         #word embedding
         word_embeds = data['embed'] if args.use_pretrained_word_embedding else None
 
@@ -232,6 +239,7 @@ def main(args):
                               args.result_path,
                               model_name,
                               cuda_device=args.device[0],
+                              top_k= args.top_k
                               )
 
             test_performance = trainer.train_supervisedLearning(args.num_epochs,
