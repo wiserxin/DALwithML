@@ -263,12 +263,12 @@ def main(args):
             # else:
             #     updateLineChart(str(test_performance), sample_method, max=max_performance)
 
-        #     method_result.append(test_performance)
-        #
-        # print("acquire_method: {}，sub_acquire_method: {}, warm_start_random_seed{}"
-        #       .format(acquire_method, sub_acquire_method, warm_start_random_seed))
-        # print(method_result)
-        # allMethods_results.append(method_result)
+            method_result.append(test_performance)
+
+        print("acquire_method: {}，sub_acquire_method: {}, warm_start_random_seed{}"
+              .format(acquire_method, sub_acquire_method, warm_start_random_seed))
+        print(method_result)
+        allMethods_results.append(method_result)
         shutil.rmtree(checkpoint_path)
 
 if __name__ == "__main__":
