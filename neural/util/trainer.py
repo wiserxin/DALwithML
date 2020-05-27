@@ -14,7 +14,7 @@ import torch.nn as nn
 class Trainer(object):
 
     def __init__(self, model, result_path, model_name,
-                 eval_every=1, usecuda=True, answer_count = 5, cuda_device = 0):
+                 eval_every=1, usecuda=True, cuda_device = 0):
         self.model = model
         self.eval_every = eval_every
         self.model_name = os.path.join(result_path, model_name)
@@ -22,8 +22,7 @@ class Trainer(object):
         self.usecuda = usecuda
         self.lossfunc = nn.MultiLabelSoftMarginLoss()
         self.cuda_device = cuda_device
-        self.evaluator = Evaluator(result_path, model_name,
-                                   answer_count = answer_count, cuda_device = self.cuda_device).evaluate
+        self.evaluator = Evaluator(result_path, model_name,cuda_device = self.cuda_device).evaluate
 
 
     ##############################################################################
