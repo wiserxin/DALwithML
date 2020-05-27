@@ -153,7 +153,6 @@ def main(args):
 
         acquisition_function = Acquisition(train_data,
                                             seed=warm_start_random_seed,
-                                            answer_count=args.answer_count,
                                             cuda_device=args.device[0],
                                             batch_size=args.sampling_batch_size,
                                             cal_Aleatoric_uncertainty=args.cal_Aleatoric_uncertainty,
