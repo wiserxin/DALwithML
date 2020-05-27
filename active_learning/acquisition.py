@@ -59,6 +59,7 @@ class Acquisition(object):
         # id that not in train_index
         new_datapoints = [j for j in range(len(dataset)) if j not in list(self.train_index)]
 
+        print('DAL: preparing batch data',end='')
         data_batches = create_batches(new_dataset, batch_size=self.batch_size, order='no')
 
         pt = 0
@@ -92,7 +93,7 @@ class Acquisition(object):
                 elif model_name == 'CNN':
                     output = model(X)
 
-                score = F.sigmoid(output, dim=1).data.cpu().numpy().tolist()
+                score = F.sigmoid(output).data.cpu().numpy().tolist()
                 score_arr.append(score)
 
                 # evidence level , using confidence stratgy
@@ -147,7 +148,8 @@ class Acquisition(object):
 
                 _delt_arr.append(obj)
                 pt += 1
-
+        print()
+        
         _delt_arr = sorted(_delt_arr, key=lambda o: o["el"], reverse=True)
 
         cur_indices = set()
