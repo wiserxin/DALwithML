@@ -155,7 +155,6 @@ def main(args):
                                             seed=warm_start_random_seed,
                                             cuda_device=args.device[0],
                                             batch_size=args.sampling_batch_size,
-                                            cal_Aleatoric_uncertainty=args.cal_Aleatoric_uncertainty,
                                             submodular_k=config["submodular_k"])
 
         checkpoint_path = os.path.join(args.result_path, 'active_checkpoint', config["group_name"], sample_method)
@@ -218,15 +217,14 @@ def main(args):
                                    pretrained=word_embeds,
                                    with_sim_features=args.with_sim_feature,
                                    cuda_device=args.device[0],
-                                   cal_Aleatoric_uncertainty=args.cal_Aleatoric_uncertainty)
+                                   )
             if model_name == 'CNN':
                     model = CNN(word_vocab_size,
                                 args.word_embedding_dim,
                                 args.word_out_channels,
                                 args.target_size,
                                 pretrained=word_embeds,
-                                cuda_device=args.device[0],
-                                cal_Aleatoric_uncertainty=args.cal_Aleatoric_uncertainty)
+                                cuda_device=args.device[0],)
 
             model.cuda(args.device[0])
 
@@ -234,7 +232,6 @@ def main(args):
                               model_name,
                               answer_count=args.answer_count,
                               cuda_device=args.device[0],
-                              cal_Aleatoric_uncertainty=args.cal_Aleatoric_uncertainty,
                               sampling_number=args.sampling_number)
 
             test_performance = trainer.train_supervisedLearning(args.num_epochs,
