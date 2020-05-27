@@ -63,6 +63,10 @@ class Trainer(object):
                 elif self._model_name in ['CNN']:
                     output = self.model(X, usecuda=self.usecuda)
 
+                print('output:',output.size(),'\n',output)
+                print('Y:',Y.size(),'\n',Y)
+                assert False
+
                 loss = self.lossfunc(output, Y )
                 lossD += loss.item() / len(Y_o)
 
