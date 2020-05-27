@@ -137,7 +137,7 @@ def create_batches(dataset, batch_size, order='no'):
         batch_data = {'data_points':batch_data,
                       'data_numpy' :(   np.vstack( [i[0] for i in batch_data] ), # X
                                         np.vstack([i[1].A.astype(int) for i in batch_data]), #Y
-                                        [i[3] for i in batch_data]  )
+                                        [i[2] for i in batch_data]  )
                       }
         batches.append(batch_data)
 
