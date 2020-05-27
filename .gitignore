@@ -3,3 +3,5 @@ venv/
 
 *.pyc
 test2.py
+*.ipynb
+active_learning/unsupervised.py

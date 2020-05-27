@@ -125,7 +125,9 @@ class Loader(object):
         return {'train': (X_trn, Y_trn, Y_trn_o),
                 'test' : (X_tst, Y_tst, Y_tst_o),
                'vocab' : (vocabulary, vocabulary_inv, vocabulary_count),
-                'embed': load_word2vec(datapath ,'glove', vocabulary_inv, 300)
+                'embed': load_word2vec(datapath ,'glove', vocabulary_inv, 300),
+                'train_points': [(X_trn[i], Y_trn[i], Y_trn_o[i])  for i in range(len(Y_trn_o))],
+                'test_points' : [(X_tst[i], Y_tst[i], Y_tst_o[i])  for i in range(len(Y_tst_o))]
                 }
 
 

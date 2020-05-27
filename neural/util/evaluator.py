@@ -171,6 +171,7 @@ class Evaluator(object):
 
 
     def evaluate(self, model, dataset, best_result = 0.0, model_name='CNN', multi_progress_num= 4):
+        # for data - matrix
         # dataset --> [X, Y, Y_o]
         # X --> np.ndarray
         # for example:  Y[0]-->[0,1,1,0]  Y_o[0]-->[1,2]
@@ -216,3 +217,42 @@ class Evaluator(object):
 
         return best_result, tst_result, save
 
+    def evaluate_for_datapoints(self, model, dataset, best_result = 0.0, model_name='CNN', multi_progress_num= 4):
+
+        model.train(False)
+        batchs = create_batches(dataset,self.batch_size)
+        results = []
+
+        for i,batch_data in enumerate(batchs):
+            batch_data = batch_data['dat_numpy']
+            X_batch = batch_data[0]
+            Y_batch = batch_data[1]
+
+            X_batch = torch.from_numpy(X_batch).long()
+            X_batch = X_batch.cuda() if self.usecuda else X_batch
+            Y_batch = Variable(torch.from_numpy(Y_batch).int())
+
+            Y_pred = model(X_batch).cpu()
+            if Y_pred.shape[1] >= Y_batch.shape[1]:
+                Y_pred = Y_pred[:, :Y_batch.shape[1]]
+
+            # 使用多线程 evaluate , 有 BUG
+            # pool = Pool(multi_progress_num)
+            # pool_result_map = pool.map(self.get_result, zip(list(Y_pred.detach().numpy()), list(Y_batch.detach().numpy())))
+            # pool.terminate()
+            # results.extend(list(pool_result_map))
+
+            # 非多线程 evaluate
+            results.extend(list(map(self.get_result, zip(list(Y_pred), list(Y_batch)))))
+
+            print("\rEvaluating: {}/{} ({:.1f}%)".format(i, len(batchs), i * 100 / len(batchs)), end=' ')
+
+        results = np.array(list(results))
+        tst_result = list(np.mean(results, 0))[0]
+
+        save = tst_result > best_result
+        best_result = tst_result if tst_result > best_result else best_result
+
+        model.train(True)
+
+        return best_result, tst_result, save

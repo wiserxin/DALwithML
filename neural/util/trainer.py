@@ -21,20 +21,20 @@ class Trainer(object):
         self._model_name = model_name
         self.usecuda = usecuda
         self.tagset_size = len(tag_to_id)
-        self.lossfunc = nn.CrossEntropyLoss()
+        self.lossfunc = nn.MultiLabelSoftMarginLoss()
         self.cuda_device = cuda_device
         self.evaluator = Evaluator(result_path, model_name,
-                                   answer_count = answer_count, cuda_device = self.cuda_device).evaluate_rank
+                                   answer_count = answer_count, cuda_device = self.cuda_device).evaluate
 
 
     ##############################################################################
     ################# training only by supervised learning        ################
-    def train_supervisedLearning(self, num_epochs, train_data, val_data, test_data, learning_rate, checkpoint_folder='.',
+    def train_supervisedLearning(self, num_epochs, train_data, val_data, learning_rate, checkpoint_folder='.',
                      plot_every=2, batch_size=50):
 
         losses = []
         lossD = 0.0
-        best_test_mrr = -1.0
+        best_test_ndcg5 = 0.0
 
 
         self.model.train(True)
@@ -48,36 +48,34 @@ class Trainer(object):
 
             train_batches = create_batches(train_data, batch_size=batch_size, order='random')
 
-            for i, index in enumerate(np.random.permutation(len(train_batches))):
+            for i, batch_data in enumerate(np.random.permutation(train_batches)):
 
-                data = train_batches[index]
+                batch_data = batch_data['data_numpy']
                 self.model.zero_grad()
 
-                words_q = data['words_q']
-                words_a = data['words_a']
-                tags = data['tags']
+                X , Y, Y_o = batch_data
 
-                words_q = Variable(torch.LongTensor(words_q)).cuda(self.cuda_device)
-                words_a = Variable(torch.LongTensor(words_a)).cuda(self.cuda_device)
-                tags = Variable(torch.LongTensor(tags)).cuda(self.cuda_device)
+                X = Variable(torch.from_numpy(X).long()).cuda(self.cuda_device)
+                Y = Variable(torch.from_numpy(Y).float()).cuda(self.cuda_device)
 
-                wordslen_q = data['wordslen_q']
-                wordslen_a = data['wordslen_a']
 
                 if self._model_name in ['BiLSTM']:
-                    output = self.model(words_q, words_a, tags, wordslen_q, wordslen_a, usecuda=self.usecuda)
+                    # output = self.model(words_q, words_a, tags, wordslen_q, wordslen_a, usecuda=self.usecuda)
+                    pass
                 elif self._model_name in ['CNN']:
-                    output = self.model(words_q, words_a, tags, usecuda=self.usecuda)
+                    output = self.model(X, usecuda=self.usecuda)
 
-                loss = self.lossfunc(output, tags)
-                lossD += loss.item() / len(wordslen_q)
+                loss = self.lossfunc(output, Y )
+                lossD += loss.item() / len(Y_o)
 
                 loss.backward()
                 nn.utils.clip_grad_norm_(self.model.parameters(), 5.0)
                 optimizer.step()
 
                 count += 1
-                batch_count += len(wordslen_q)
+                batch_count += len(Y_o)
+
+                torch.cuda.empty_cache()
 
                 if count % plot_every == 0:
                     lossD /= plot_every
@@ -90,10 +88,10 @@ class Trainer(object):
             ####################################### Validation ###########################################
             if epoch % self.eval_every == 0:
 
-                best_test_mrr, new_test_mrr, save = self.evaluator(self.model, val_data, best_test_mrr, model_name = self._model_name)
+                best_test_ndcg5, new_test_ndcg5, save = self.evaluator(self.model, val_data, best_test_ndcg5, model_name = self._model_name)
 
                 print('*'*50)
-                print("Validation：best_mrr：%f new_mrr:%f " % (best_test_mrr, new_test_mrr))
+                print("Validation：best：%f   new: %f " % (best_test_ndcg5, new_test_ndcg5))
 
                 if save:
                     print('Saving Best Weights')
@@ -103,10 +101,11 @@ class Trainer(object):
 
             print('Epoch %d Complete: Time Taken %d' % (epoch, time.time() - t))
 
-        _, test_mrr, _ = self.evaluator(torch.load(os.path.join(self.model_name, checkpoint_folder, 'modelweights')),
-                                        test_data,
-                                        model_name=self._model_name)
+        # 需要注释掉？
+        # _, test_mrr, _ = self.evaluator(torch.load(os.path.join(self.model_name, checkpoint_folder, 'modelweights')),
+        #                                 test_data,
+        #                                 model_name=self._model_name)
 
-        return test_mrr
+        return best_test_ndcg5
 
 

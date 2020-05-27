@@ -110,75 +110,36 @@ def pad_seq(seq, max_length, PAD_token=0):
     return seq
 
 
-def create_batches(dataset, batch_size, order, labeled_tag=False):
-
-    newdata = copy.deepcopy(dataset)
+def create_batches(dataset, batch_size, order='no'):
+# dataset should be n*datapoints
+# one datapoint is
+# [
+#  [] # X   --> 单词的索引        | type: ndarray |  size: 1* 500
+#  [] # Y   --> vector of 0,1    | type: csr_matrix
+#  [] # Y_o --> labels, such as [1,2,3] for one x
+# ]
+    dataset = copy.deepcopy(dataset)
     if order == 'sort':
-        newdata.sort(key=lambda x: len(x['words']))
+        # newdata.sort(key=lambda x: len(x['words']))
+        assert('not finished this function')
 
     elif order == 'random':
-        random.shuffle(newdata)
+        random.shuffle(dataset)
 
+    else: #不改变原始顺序
+        pass
 
-    newdata = np.array(newdata)
     batches = []
     num_batches = np.ceil(len(dataset) / float(batch_size)).astype('int')
 
     for i in range(num_batches):
-
-        batch_data = newdata[(i * batch_size):min(len(dataset), (i + 1) * batch_size)]
-
-        words_seqs_q = [itm['words_q'] for itm in batch_data]
-        words_seqs_a = [itm['words_a'] for itm in batch_data]
-        target_seqs = [itm['tag'] for itm in batch_data]
-
-        if 'weight' in batch_data[0]:
-            weight_seqs = [itm['weight'] for itm in batch_data]
-
-        else:
-            weight_seqs = [1 for itm in batch_data]
-
-        str_words_seqs_q = [itm['str_words_q'] for itm in batch_data]
-        str_words_seqs_a = [itm['str_words_a'] for itm in batch_data]
-        labeled = None
-        if labeled_tag:
-            labeled = [itm['labeled'] for itm in batch_data]
-
-        '''
-        words_seqs = [#单词的索引
-            [2,1],
-            [5,6,9]
-        ]
-        target_seqs = [0,1]#标签的id
-        str_words_seqs = [
-            ['hello','world'],
-            ['good','morning','dear']
-        ]
-        zip(words_seqs, target_seqs, str_words_seqs, range(len(words_seqs)))
-        =>
-        [
-          ([2,1],11,['hello','world'],0)
-          ([5,6,9],22,['good','morning','dear'],1)
-        ]
-        '''
-
-        sort_info = range(len(words_seqs_q))
-
-        words_lengths_q = np.array([len(s) for s in words_seqs_q])
-        words_lengths_a = np.array([len(s) for s in words_seqs_a])
-        words_padded_q = np.array([pad_seq(s, np.max(words_lengths_q)) for s in words_seqs_q])
-        words_padded_a = np.array([pad_seq(s, np.max(words_lengths_a)) for s in words_seqs_a])
-        words_mask_q = (words_padded_q != 0).astype('int')
-        words_mask_a = (words_padded_a != 0).astype('int')
-
-        outputdict = {'words_q': words_padded_q,'words_a': words_padded_a,
-                      'tags': target_seqs,'weight':weight_seqs, 'labeled': labeled,
-                      'wordslen_q': words_lengths_q,'wordslen_a': words_lengths_a,
-                      'tagsmask_q': words_mask_q,'tagsmask_a': words_mask_a,
-                      'str_words_q': str_words_seqs_q,'str_words_a': str_words_seqs_a,
-                      'sort_info': sort_info}
-
-        batches.append(outputdict)
+        batch_data = dataset[(i * batch_size):min(len(dataset), (i + 1) * batch_size)]
+        batch_data = {'data_points':batch_data,
+                      'data_numpy' :(   np.vstack( [i[0] for i in batch_data] ), # X
+                                        np.vstack([i[1].A.astype(int) for i in batch_data]), #Y
+                                        [i[3] for i in batch_data]  )
+                      }
+        batches.append(batch_data)
 
     return batches
 
