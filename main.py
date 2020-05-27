@@ -231,7 +231,6 @@ def main(args):
             trainer = Trainer(model,
                               args.result_path,
                               model_name,
-                              answer_count=args.answer_count,
                               cuda_device=args.device[0],
                               )
 
