@@ -172,27 +172,29 @@ class Evaluator(object):
 
     def evaluate(self, model, dataset, best_result = 0.0, model_name='CNN', multi_progress_num= 4):
         # for data - matrix
-        # dataset --> [(X, Y, Y_o), ... , ( , , )]
+        # dataset --> [X, Y, Y_o]
         # X --> np.ndarray
         # for example:  Y[0]-->[0,1,1,0]  Y_o[0]-->[1,2]
 
 
         model.train(False)
-
+        X = dataset[0]
+        Y = dataset[1]
+        Y_o = dataset[2]
         results = []
-        train_batches = create_batches(dataset, batch_size=self.batch_size, order='no')
 
-        for i, batch_data in enumerate(train_batches):
-            batch_data = batch_data['data_numpy']
-            X_batch, Y_batch, _ = batch_data
-            X_batch = Variable(torch.from_numpy(X_batch).long())
-            X_batch = X_batch.cuda(self.cuda_device) if self.usecuda else X_batch
-
-            Y_batch = Variable(torch.from_numpy(Y_batch).int())
+        batch_num = np.ceil(X.shape[0] / self.batch_size).astype('int')
+        for i in range(0,batch_num):
+            id_begin = i*batch_num
+            id_end   = min(((i+1)*batch_num),X.shape[0])
+            X_batch  = torch.from_numpy(X[id_begin:id_end]).long()
+            X_batch  = X_batch.cuda() if self.usecuda else X_batch
+            Y_batch  = Y[id_begin:id_end]
+            Y_batch  = Variable(torch.from_numpy(Y_batch.A.astype(int)).int())
 
             Y_pred   = model(X_batch).cpu()
-            if Y_pred.shape[1] >= Y_batch.shape[1]:
-                Y_pred = Y_pred[:, :Y_batch.shape[1]]
+            if Y_pred.shape[1] >= Y.shape[1]:
+                Y_pred = Y_pred[:, :Y.shape[1]]
 
             # 使用多线程 evaluate , 有 BUG
             # pool = Pool(multi_progress_num)
@@ -203,7 +205,7 @@ class Evaluator(object):
             # 非多线程 evaluate
             results.extend(list(map(self.get_result, zip(list(Y_pred), list(Y_batch)) )))
 
-            print("\rEvaluating: {}/{} ({:.1f}%)".format(i,len(train_batches),i*100/len(train_batches)), end=' ')
+            print("\rEvaluating: {}/{} ({:.1f}%)".format(i,batch_num,i*100/batch_num), end=' ')
 
         results = np.array(list(results))
         tst_result = list(np.mean(results, 0))[0]
