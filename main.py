@@ -114,12 +114,12 @@ def main(args):
 
         ####################################### initial setting ###########################################
         data_path = config["data_path"]
-        model_name = config["model_name"] if "model_name" in config else 'BiLSTM'
+        model_name = config["model_name"] if "model_name" in config else 'CNN'
         num_acquisitions_round = config["num_acquisitions_round"]
         acquire_method = config["acquire_method"]
         sub_acquire_method = config["sub_acquire_method"]
-        init_question_num = config["init_question_num"] if "init_question_num" in config else 160 # number of initial training samples
-        acquire_question_num_per_round = config["acquire_question_num_per_round"] if "acquire_question_num_per_round" in config else 20 #Number of samples collected per round
+        init_question_num = config["init_question_num"] if "init_question_num" in config else 800 # number of initial training samples
+        acquire_question_num_per_round = config["acquire_question_num_per_round"] if "acquire_question_num_per_round" in config else 100 #Number of samples collected per round
         warm_start_random_seed = config["warm_start_random_seed"]  # the random seed for selecting the initial training set
         sample_method = config["sample_method"]
 
@@ -138,36 +138,18 @@ def main(args):
         if not os.path.exists(os.path.join(args.result_path, model_name, 'active_checkpoint', acquire_method)):
             os.makedirs(os.path.join(args.result_path, model_name, 'active_checkpoint', acquire_method))
 
-        #### If the data is not compiled, compile; otherwise load directly
-        if (os.path.exists(os.path.join(data_path, 'mappings.pkl')) and
-            os.path.exists(os.path.join(data_path, 'train.pkl')) and
-            os.path.exists(os.path.join(data_path, 'val.pkl')) and
-            os.path.exists(os.path.join(data_path, 'test.pkl'))
-        ):
-            mappings = pkl.load(open(os.path.join(data_path, 'mappings.pkl'), 'rb'))
-            train_data = pkl.load(open(os.path.join(data_path, 'train.pkl'), 'rb'))
-            val_data = pkl.load(open(os.path.join(data_path, 'val.pkl'), 'rb'))
-            test_data = pkl.load(open(os.path.join(data_path, 'test.pkl'), 'rb'))
-        else:
-            train_data, val_data, test_data, mappings = loader.load_yahoo(data_path,
-                                                                args.pretrained_word_embedding,
-                                                                args.word_embedding_dim,
-                                                                args.answer_count)
-            pkl.dump(train_data, open(os.path.join(data_path, 'train.pkl'), 'wb'))
-            pkl.dump(val_data, open(os.path.join(data_path, 'val.pkl'), 'wb'))
-            pkl.dump(test_data, open(os.path.join(data_path, 'test.pkl'), 'wb'))
-            pkl.dump(mappings, open(os.path.join(data_path, 'mappings.pkl'), 'wb'))
+        data = loader.load_rcv2(data_path)
 
+        train_data = data['train_points']
+        val_data = data['test_points']
         #word embedding
-        word_to_id = mappings['word_to_id']
-        tag_to_id = mappings['tag_to_id']
-        word_embeds = mappings['word_embeds'] if args.use_pretrained_word_embedding else None
+        word_embeds = data['embed'] if args.use_pretrained_word_embedding else None
 
-        word_vocab_size = len(word_to_id)
+        word_vocab_size = len(data['vocab'][1])
 
         print(' The total amount of training data：%d\n' %len(train_data),   # Total number of training samples (number of question answer pair)
               'The total amount of val data：%d\n' %len(val_data),
-              'The total amount of test data：%d' %len(test_data))
+              'The total amount of test data：%d' %len(val_data))
 
         acquisition_function = Acquisition(train_data,
                                             seed=warm_start_random_seed,
@@ -251,7 +233,6 @@ def main(args):
 
             trainer = Trainer(model,
                               model_name,
-                              tag_to_id,
                               answer_count=args.answer_count,
                               cuda_device=args.device[0],
                               cal_Aleatoric_uncertainty=args.cal_Aleatoric_uncertainty,
@@ -260,7 +241,6 @@ def main(args):
             test_performance = trainer.train_supervisedLearning(args.num_epochs,
                                                                 labeled_train_data,
                                                                 val_data,
-                                                                test_data,
                                                                 args.learning_rate,
                                                                 checkpoint_path=checkpoint_path,
                                                                 batch_size=args.batch_size

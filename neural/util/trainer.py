@@ -13,14 +13,13 @@ import torch.nn as nn
 
 class Trainer(object):
 
-    def __init__(self, model, result_path, model_name, tag_to_id,
+    def __init__(self, model, result_path, model_name,
                  eval_every=1, usecuda=True, answer_count = 5, cuda_device = 0):
         self.model = model
         self.eval_every = eval_every
         self.model_name = os.path.join(result_path, model_name)
         self._model_name = model_name
         self.usecuda = usecuda
-        self.tagset_size = len(tag_to_id)
         self.lossfunc = nn.MultiLabelSoftMarginLoss()
         self.cuda_device = cuda_device
         self.evaluator = Evaluator(result_path, model_name,
