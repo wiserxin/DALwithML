@@ -33,7 +33,7 @@ def parse_args():
     parser.add_argument('--dropout', type=float, default=0.5, help='')
     parser.add_argument('--word_hidden_dim', type=int, default=75, help='')
     parser.add_argument('--learning_rate', type=float, default=0.001, help='')
-    parser.add_argument('--target_size', type=int, default=2, help='')
+    parser.add_argument('--target_size', type=int, default=17, help='rcv2:17 ')
     parser.add_argument('--word_out_channels', type=int, default=200, help='')
     parser.add_argument('--result_path', default="result/rcv2/",help='')
     parser.add_argument('--device', type=int, default=[0], help='')
