@@ -25,8 +25,8 @@ def parse_args():
     parser.add_argument('--answer_count', type=int, default=5, help='the amount of answer for each quesiton')
     parser.add_argument('--num_epochs', type=int, default=12, help='training epoch')
     parser.add_argument('--use_pretrained_word_embedding', type=bool, default=True, help='')
-    parser.add_argument('--batch_size', type=int, default=25, help='')
-    parser.add_argument('--sampling_batch_size', type=int, default=500, help='')
+    parser.add_argument('--batch_size', type=int, default=512, help='')
+    parser.add_argument('--sampling_batch_size', type=int, default=2048, help='')
     parser.add_argument('--with_sim_feature', type=bool, default=True, help='whether use sim_feature in deep model')
     parser.add_argument('--word_embedding_dim', type=int, default=300, help='')
     parser.add_argument('--pretrained_word_embedding', default="../../datasets/rcv2/glove.6B.300d.txt", help='')
@@ -81,8 +81,8 @@ def main(args):
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 52,
-            "init_question_num": 800,
-            "acquire_question_num_per_round": 100,
+            "init_question_num": 1024,
+            "acquire_question_num_per_round": 256,
             "warm_start_random_seed": 0,
             "sample_method": "No-Deterministic+DAL_submodular2+0",
         },
@@ -145,9 +145,9 @@ def main(args):
         val_data = data['test_points']
 
         # too small the valdata amount so ...
-        if len(val_data) < 100000:
-            val_data.extend(train_data[-100000:])
-            train_data = train_data[:-100000]
+        # if len(val_data) < 100000:
+        #     val_data.extend(train_data[-100000:])
+        #     train_data = train_data[:-100000]
 
         #word embedding
         word_embeds = data['embed'] if args.use_pretrained_word_embedding else None

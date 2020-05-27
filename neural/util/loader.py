@@ -164,7 +164,7 @@ class Loader(object):
             row_idx, col_idx, val_idx = [], [], []
             for i in range(len(labels)):
                 l_list = list(set(labels[i]))  # remove duplicate cateories to avoid double count
-                for y,_ in enumerate(l_list):
+                for y in l_list:
                     row_idx.append(i)
                     col_idx.append(y)
                     val_idx.append(1)
@@ -203,8 +203,9 @@ class Loader(object):
             # x = np.array([[vocabulary[word] if word in vocabulary else len(vocabulary) for word in sentence] for sentence in sentences])
             return x
 
-        # [{'text':"...", 'catgy':['','',...] },]
+        # [{'text':"...", 'catgy':['cat1','cat2',...] },]
         file_names = ['train_texts.txt','train_labels.txt','test_texts.txt','test_labels.txt']
+        label2id = {}
 
         counter = 0
         train = []
@@ -222,7 +223,10 @@ class Loader(object):
                     else:
                         # print(counter)
                         counter += 1
-                        train.append({'text':text, 'catgy':labels})
+                        for i in labels:
+                            if i not in label2id.keys():
+                                label2id[i] = len(label2id)
+                        train.append({'text':text, 'catgy':[ label2id[i] for i in labels ]})
 
 
         test = []
@@ -238,8 +242,14 @@ class Loader(object):
                     if text=='' and labels==[]:
                         break
                     else:
-                        test.append({'text':text, 'catgy':labels})
+                        for i in labels:
+                            if i not in label2id.keys():
+                                label2id[i] = len(label2id)
+                        test.append({'text':text, 'catgy':[ label2id[i] for i in labels ]})
 
+
+        # build catgy map from      str to id
+        # and transform it
 
         trn_sents, Y_trn, Y_trn_o = load_data_and_labels(train)
         tst_sents, Y_tst, Y_tst_o = load_data_and_labels(test)
