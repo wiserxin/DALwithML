@@ -173,22 +173,22 @@ class Acquisition(object):
             return dataset_pool, sample_q_indices
 
 
-    def obtain_data(self, data, model_path=None, model_name=None, acquire_questions_num=2,
+    def obtain_data(self, data, model_path=None, model_name=None, acquire_num=2,
                     method='random', sub_method='', unsupervised_method='', round = 0):
 
         print("sampling method：" + sub_method)
 
         if model_path == "":
             print("First round of sampling")
-            self.get_random(data, acquire_questions_num)
+            self.get_random(data, acquire_num)
         else:
             if method == 'random':
-                self.get_random(data, acquire_questions_num)
+                self.get_random(data, acquire_num)
             elif method == 'dete':
                 assert 'not progressed ...'
             elif method == 'no-dete': # Bayesian neural network based method
                 if sub_method == 'DAL':
-                    self.get_DAL(data, model_path, acquire_questions_num, model_name=model_name)
+                    self.get_DAL(data, model_path, acquire_num, model_name=model_name)
                 else:
                     assert 'not progressed'
             else:

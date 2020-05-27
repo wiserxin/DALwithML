@@ -71,17 +71,17 @@ def main(args):
 
 
         {
-            "model_name": "BiLSTM",
+            "model_name": "CNN",
             "group_name": "[4.30-?]BiLSTM+FD+MRR+320+320",
             "max_performance": 0.80,
-            "data_path": "../../../../home/zyc/datasets/answer_selection/YahooCQA/data/data-FD",
+            "data_path": "../../datasets/rcv2/",
             "acquire_method": "no-dete",
             "sub_acquire_method": "DAL",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
-            "num_acquisitions_round": 24,
-            "init_question_num": 64,
-            "acquire_question_num_per_round": 64,
+            "num_acquisitions_round": 52,
+            "init_question_num": 800,
+            "acquire_question_num_per_round": 100,
             "warm_start_random_seed": 0,
             "sample_method": "No-Deterministic+DAL_submodular2+0",
         },
@@ -182,7 +182,7 @@ def main(args):
             acquisition_function.obtain_data(train_data,
                                              model_path=m_p,
                                              model_name=model_name,
-                                             acquire_questions_num=acq,
+                                             acquire_num=acq,
                                              method=a_m,
                                              sub_method=sub_acquire_method,
                                              unsupervised_method=config["unsupervised_method"],
@@ -251,12 +251,12 @@ def main(args):
             print('*' * 50)
 
             #--------------------------Send data for a visual web page------------------------------
-            max_performance = config["max_performance"] if "max_performance" in config else 0
-
-            if "group_name" in config:
-                updateLineChart(str(test_performance), sample_method, gp_name=config["group_name"], max=max_performance)
-            else:
-                updateLineChart(str(test_performance), sample_method, max=max_performance)
+            # max_performance = config["max_performance"] if "max_performance" in config else 0
+            #
+            # if "group_name" in config:
+            #     updateLineChart(str(test_performance), sample_method, gp_name=config["group_name"], max=max_performance)
+            # else:
+            #     updateLineChart(str(test_performance), sample_method, max=max_performance)
 
         #     method_result.append(test_performance)
         #
