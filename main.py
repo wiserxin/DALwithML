@@ -232,7 +232,7 @@ def main(args):
                               model_name,
                               answer_count=args.answer_count,
                               cuda_device=args.device[0],
-                              sampling_number=args.sampling_number)
+                              )
 
             test_performance = trainer.train_supervisedLearning(args.num_epochs,
                                                                 labeled_train_data,
