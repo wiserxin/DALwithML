@@ -157,7 +157,7 @@ class Loader(object):
             string = re.sub(r"\s{2,}", " ", string)
             return string.strip().lower()
 
-        def load_data_and_labels(data):
+        def load_data_and_labels(data,label2id):
             x_text = [doc['text'] for doc in data]
             x_text = [s.split(" ") for s in x_text]
             labels = [doc['catgy'] for doc in data]
@@ -168,9 +168,12 @@ class Loader(object):
                     row_idx.append(i)
                     col_idx.append(y)
                     val_idx.append(1)
-            m = max(row_idx) + 1
-            n = max(col_idx) + 1
+            # m = max(row_idx) + 1
+            # n = max(col_idx) + 1
+            m = len(data)
+            n = len(label2id)
             Y = sp.csr_matrix((val_idx, (row_idx, col_idx)), shape=(m, n))
+            print('Y shape : {} * {}'.format(m,n))
             return [x_text, Y, labels]
 
         def pad_sentences(sentences, padding_word="<PAD/>", max_length=300):
@@ -251,8 +254,8 @@ class Loader(object):
         # build catgy map from      str to id
         # and transform it
 
-        trn_sents, Y_trn, Y_trn_o = load_data_and_labels(train)
-        tst_sents, Y_tst, Y_tst_o = load_data_and_labels(test)
+        trn_sents, Y_trn, Y_trn_o = load_data_and_labels(train,label2id)
+        tst_sents, Y_tst, Y_tst_o = load_data_and_labels(test,label2id)
 
         # trn_sents_len = [len(i) for i in trn_sents]
         # tst_sents_len = [len(i) for i in tst_sents]
