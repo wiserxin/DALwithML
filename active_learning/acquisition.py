@@ -157,9 +157,16 @@ class Acquisition(object):
         i = 0
 
         while len(cur_indices) < acquire_document_num:
-            sample_q_indices.add(new_datapoints[_delt_arr[i]["id"]])
-            i += 1
-
+            try:
+                sample_q_indices.add(new_datapoints[_delt_arr[i]["id"]])
+                i += 1
+            except:
+                print(i)
+                print(type(new_datapoints),len(new_datapoints))
+                print(new_datapoints[:10])
+                print(_delt_arr[i])
+                assert False
+                
         if not returned:
             print("Active")
             self.train_index.update(cur_indices)

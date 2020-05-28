@@ -73,7 +73,7 @@ def main(args):
 
         {
             "model_name": "CNN",
-            "group_name": "[4.30-?]BiLSTM+FD+MRR+320+320",
+            "group_name": "[4.30- ]BiLSTM+FD+MRR+320+320",
             "max_performance": 0.80,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "no-dete",
@@ -144,7 +144,7 @@ def main(args):
         train_data = data['train_points']
         val_data = data['test_points']
 
-        train_data = train_data[:50000]
+        train_data = train_data[:5000]
         # too small the valdata amount so ...
         # if len(val_data) < 100000:
         #     val_data.extend(train_data[-100000:])
