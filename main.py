@@ -146,9 +146,9 @@ def main(args):
 
         train_data = train_data[:20000]
         # too small the valdata amount so ...
-        # if len(val_data) < 100000:
-        #     val_data.extend(train_data[-100000:])
-        #     train_data = train_data[:-100000]
+        if len(val_data) < 100000:
+            val_data.extend(train_data[-5000:])
+            train_data = train_data[:-5000]
 
         #word embedding
         word_embeds = data['embed'] if args.use_pretrained_word_embedding else None
