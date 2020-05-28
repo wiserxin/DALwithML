@@ -32,7 +32,7 @@ def parse_args():
     parser.add_argument('--pretrained_word_embedding', default="../../datasets/rcv2/glove.6B.300d.txt", help='')
     parser.add_argument('--dropout', type=float, default=0.5, help='')
     parser.add_argument('--word_hidden_dim', type=int, default=75, help='')
-    parser.add_argument('--learning_rate', type=float, default=0.001, help='')
+    parser.add_argument('--learning_rate', type=float, default=1e-4, help='')
     parser.add_argument('--target_size', type=int, default=103, help='rcv2:103 ')
     parser.add_argument('--top_k', type=int, default=40, help='rcv2:40 , eurLex:100')
     parser.add_argument('--word_out_channels', type=int, default=200, help='')
@@ -77,31 +77,31 @@ def main(args):
             "max_performance": 0.80,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "random",
-            "sub_acquire_method": "DAL",
+            "sub_acquire_method": "random",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
-            "num_acquisitions_round": 5,
+            "num_acquisitions_round": 32,
             "init_question_num": 1024,
             "acquire_question_num_per_round": 128,
             "warm_start_random_seed": 0,
             "sample_method": "No-Deterministic+DAL_submodular2+0",
         },
 
-        # {
-        #     "model_name": "CNN",
-        #     "group_name": "[4.30- ]BiLSTM+FD+MRR+320+320",
-        #     "max_performance": 0.80,
-        #     "data_path": "../../datasets/rcv2/",
-        #     "acquire_method": "no-dete",
-        #     "sub_acquire_method": "DAL",
-        #     "unsupervised_method": 'submodular',
-        #     "submodular_k": 2,
-        #     "num_acquisitions_round": 5,
-        #     "init_question_num": 1024,
-        #     "acquire_question_num_per_round": 128,
-        #     "warm_start_random_seed": 0,
-        #     "sample_method": "No-Deterministic+DAL_submodular2+0",
-        # },
+        {
+            "model_name": "CNN",
+            "group_name": "[4.30- ]BiLSTM+FD+MRR+320+320",
+            "max_performance": 0.80,
+            "data_path": "../../datasets/rcv2/",
+            "acquire_method": "no-dete",
+            "sub_acquire_method": "DAL",
+            "unsupervised_method": 'submodular',
+            "submodular_k": 2,
+            "num_acquisitions_round": 32,
+            "init_question_num": 1024,
+            "acquire_question_num_per_round": 128,
+            "warm_start_random_seed": 0,
+            "sample_method": "No-Deterministic+DAL_submodular2+0",
+        },
 
 
 
@@ -270,6 +270,12 @@ def main(args):
         print("acquire_method: {}，sub_acquire_method: {}, warm_start_random_seed{}"
               .format(acquire_method, sub_acquire_method, warm_start_random_seed))
         print(method_result)
+        with open('result.txt','a') as f:
+            print("acquire_method: {}，sub_acquire_method: {}, warm_start_random_seed{}"
+                  .format(acquire_method, sub_acquire_method, warm_start_random_seed),
+                  file=f )
+            print(method_result, file=f )
+
         allMethods_results.append(method_result)
         shutil.rmtree(checkpoint_path)
 
