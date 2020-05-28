@@ -76,7 +76,7 @@ def main(args):
             "group_name": "[4.30- ]BiLSTM+FD+MRR+320+320",
             "max_performance": 0.80,
             "data_path": "../../datasets/rcv2/",
-            "acquire_method": "no-dete",
+            "acquire_method": "random",
             "sub_acquire_method": "DAL",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
@@ -87,23 +87,25 @@ def main(args):
             "sample_method": "No-Deterministic+DAL_submodular2+0",
         },
 
-
-
         # {
-        #     "model_name": "BiLSTM",
-        #     "group_name": "[tkde]BiLSTM+FD+MRR+80+80",
+        #     "model_name": "CNN",
+        #     "group_name": "[4.30- ]BiLSTM+FD+MRR+320+320",
         #     "max_performance": 0.80,
-        #     "data_path": "../../../../home/zyc/datasets/answer_selection/YahooCQA/data/data-FD",
+        #     "data_path": "../../datasets/rcv2/",
         #     "acquire_method": "no-dete",
         #     "sub_acquire_method": "DAL",
         #     "unsupervised_method": 'submodular',
-        #     "submodular_k": 1.5,
-        #     "num_acquisitions_round": 95,
-        #     "init_question_num": 16,
-        #     "acquire_question_num_per_round": 16,
+        #     "submodular_k": 2,
+        #     "num_acquisitions_round": 5,
+        #     "init_question_num": 1024,
+        #     "acquire_question_num_per_round": 128,
         #     "warm_start_random_seed": 0,
-        #     "sample_method": "No-Deterministic+DAL_submodular1.5+0",
+        #     "sample_method": "No-Deterministic+DAL_submodular2+0",
         # },
+
+
+
+
 
     ]
 
