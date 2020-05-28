@@ -34,7 +34,7 @@ def parse_args():
     parser.add_argument('--word_hidden_dim', type=int, default=75, help='')
     parser.add_argument('--learning_rate', type=float, default=0.001, help='')
     parser.add_argument('--target_size', type=int, default=103, help='rcv2:103 ')
-    parser.add_argument('--top_k', type=int, default=15, help='rcv2:15 , eurLex:50')
+    parser.add_argument('--top_k', type=int, default=40, help='rcv2:40 , eurLex:100')
     parser.add_argument('--word_out_channels', type=int, default=200, help='')
     parser.add_argument('--result_path', default="result/rcv2/",help='')
     parser.add_argument('--device', type=int, default=[0], help='')

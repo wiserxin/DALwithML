@@ -153,12 +153,11 @@ class Acquisition(object):
         _delt_arr = sorted(_delt_arr, key=lambda o: o["el"], reverse=True)
 
         cur_indices = set()
-        sample_q_indices = set()
         i = 0
 
         while len(cur_indices) < acquire_document_num:
             try:
-                sample_q_indices.add(new_datapoints[_delt_arr[i]["id"]])
+                cur_indices.add(new_datapoints[_delt_arr[i]["id"]])
                 i += 1
             except:
                 print(acquire_document_num)
@@ -181,7 +180,7 @@ class Acquisition(object):
                 item["index"] = sorted_cur_indices[m]
                 dataset_pool.append(item)
 
-            return dataset_pool, sample_q_indices
+            return dataset_pool, cur_indices
 
 
     def obtain_data(self, data, model_path=None, model_name=None, acquire_num=2,
