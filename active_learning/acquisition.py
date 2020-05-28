@@ -161,12 +161,13 @@ class Acquisition(object):
                 sample_q_indices.add(new_datapoints[_delt_arr[i]["id"]])
                 i += 1
             except:
+                print(acquire_document_num)
                 print(i)
                 print(type(new_datapoints),len(new_datapoints))
                 print(new_datapoints[:10])
                 print(_delt_arr[i])
                 assert False
-                
+
         if not returned:
             print("Active")
             self.train_index.update(cur_indices)
