@@ -80,7 +80,7 @@ def main(args):
             "sub_acquire_method": "DAL",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
-            "num_acquisitions_round": 52,
+            "num_acquisitions_round": 5,
             "init_question_num": 1024,
             "acquire_question_num_per_round": 128,
             "warm_start_random_seed": 0,
@@ -144,7 +144,7 @@ def main(args):
         train_data = data['train_points']
         val_data = data['test_points']
 
-        train_data = train_data[:5000]
+        train_data = train_data[:20000]
         # too small the valdata amount so ...
         # if len(val_data) < 100000:
         #     val_data.extend(train_data[-100000:])
