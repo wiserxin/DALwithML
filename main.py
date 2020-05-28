@@ -250,6 +250,10 @@ def main(args):
             #     updateLineChart(str(test_performance), sample_method, max=max_performance)
 
             method_result.append(test_performance)
+            with open('result.txt', 'a') as f:
+                print("acq round {} : \t {}"
+                      .format(i,test_performance),
+                      file=f)
 
         print("acquire_method: {}，sub_acquire_method: {}, warm_start_random_seed{}"
               .format(acquire_method, sub_acquire_method, warm_start_random_seed))
@@ -258,7 +262,7 @@ def main(args):
             print("acquire_method: {}，sub_acquire_method: {}, warm_start_random_seed{}"
                   .format(acquire_method, sub_acquire_method, warm_start_random_seed),
                   file=f )
-            print(method_result, file=f )
+            # print(method_result, file=f )
 
         allMethods_results.append(method_result)
         shutil.rmtree(checkpoint_path)
