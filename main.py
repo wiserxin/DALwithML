@@ -54,38 +54,22 @@ def main(args):
         # acquire_method(sub_acquire_method): random(""), no-dete("DAL","BALD"), dete("coreset","entropy",...)
         # "../../datasets/answer_selection/YahooCQA/data/data-FD/"
 
+
         # {
-        #     "model_name": "BiLSTM",
-        #     "group_name": "[4.27-?]BiLSTM+FD+MRR+160+160",
+        #     "model_name": "CNN",
+        #     "group_name": "[4.30- ]BiLSTM+FD+MRR+320+320",
         #     "max_performance": 0.80,
-        #     "data_path": "../../../../home/zyc/datasets/answer_selection/YahooCQA/data/data-FD",
-        #     "acquire_method": "no-dete",
-        #     "sub_acquire_method": "DAL",
+        #     "data_path": "../../datasets/rcv2/",
+        #     "acquire_method": "random",
+        #     "sub_acquire_method": "random",
         #     "unsupervised_method": 'submodular',
-        #     "submodular_k": 1.1,
-        #     "num_acquisitions_round": 49,
-        #     "init_question_num": 32,
-        #     "acquire_question_num_per_round": 32,
+        #     "submodular_k": 2,
+        #     "num_acquisitions_round": 32,
+        #     "init_question_num": 1024,
+        #     "acquire_question_num_per_round": 128,
         #     "warm_start_random_seed": 0,
-        #     "sample_method": "No-Deterministic+DAL_submodular1.1+0",
+        #     "sample_method": "No-Deterministic+DAL_submodular2+0",
         # },
-
-
-        {
-            "model_name": "CNN",
-            "group_name": "[4.30- ]BiLSTM+FD+MRR+320+320",
-            "max_performance": 0.80,
-            "data_path": "../../datasets/rcv2/",
-            "acquire_method": "random",
-            "sub_acquire_method": "random",
-            "unsupervised_method": 'submodular',
-            "submodular_k": 2,
-            "num_acquisitions_round": 32,
-            "init_question_num": 1024,
-            "acquire_question_num_per_round": 128,
-            "warm_start_random_seed": 0,
-            "sample_method": "No-Deterministic+DAL_submodular2+0",
-        },
 
         {
             "model_name": "CNN",
