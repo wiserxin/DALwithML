@@ -50,10 +50,10 @@ trainer = Trainer(model,
                   top_k=40
                   )
 
-test_performance = trainer.train_supervisedLearning(40,
+test_performance = trainer.train_supervisedLearning(15,
                                                     train_data,
                                                     val_data,
-                                                    0.0005,
+                                                    0.001,
                                                     checkpoint_path=r'./result',
                                                     batch_size=512
                                                     )
