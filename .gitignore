@@ -4,3 +4,4 @@ venv/
 *.pyc
 test2.py
 *.ipynb
+*.xlsx
