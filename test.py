@@ -46,7 +46,7 @@ model = nn.DataParallel(model).cuda()
 
 trainer = Trainer(model,
                   r'./result',
-                  CNN,
+                  "CNN",
                   top_k=40
                   )
 
