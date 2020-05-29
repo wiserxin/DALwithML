@@ -150,8 +150,8 @@ class Acquisition(object):
                 pt += 1
         print()
 
-        # _delt_arr = sorted(_delt_arr, key=lambda o: o["el"], reverse=True) # 从大到小排序
-        _delt_arr = sorted(_delt_arr, key=lambda o: o["el"], reverse=False)  # 从小到大排序 测试效果如何
+        _delt_arr = sorted(_delt_arr, key=lambda o: o["el"], reverse=True) # 从大到小排序
+        # _delt_arr = sorted(_delt_arr, key=lambda o: o["el"], reverse=False)  # 从小到大排序 测试效果如何
 
         cur_indices = set()
         i = 0

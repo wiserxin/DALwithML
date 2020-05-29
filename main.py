@@ -55,29 +55,13 @@ def main(args):
         # "../../datasets/answer_selection/YahooCQA/data/data-FD/"
 
 
-        # {
-        #     "model_name": "CNN",
-        #     "group_name": "[4.30- ]BiLSTM+FD+MRR+320+320",
-        #     "max_performance": 0.80,
-        #     "data_path": "../../datasets/rcv2/",
-        #     "acquire_method": "random",
-        #     "sub_acquire_method": "random",
-        #     "unsupervised_method": 'submodular',
-        #     "submodular_k": 2,
-        #     "num_acquisitions_round": 32,
-        #     "init_question_num": 1024,
-        #     "acquire_question_num_per_round": 128,
-        #     "warm_start_random_seed": 0,
-        #     "sample_method": "No-Deterministic+DAL_submodular2+0",
-        # },
-
         {
             "model_name": "CNN",
             "group_name": "[4.30- ]BiLSTM+FD+MRR+320+320",
             "max_performance": 0.80,
             "data_path": "../../datasets/rcv2/",
-            "acquire_method": "no-dete",
-            "sub_acquire_method": "DAL",
+            "acquire_method": "random",
+            "sub_acquire_method": "random",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 32,
@@ -86,6 +70,22 @@ def main(args):
             "warm_start_random_seed": 0,
             "sample_method": "No-Deterministic+DAL_submodular2+0",
         },
+
+        # {
+        #     "model_name": "CNN",
+        #     "group_name": "[4.30- ]BiLSTM+FD+MRR+320+320",
+        #     "max_performance": 0.80,
+        #     "data_path": "../../datasets/rcv2/",
+        #     "acquire_method": "no-dete",
+        #     "sub_acquire_method": "DAL",
+        #     "unsupervised_method": 'submodular',
+        #     "submodular_k": 2,
+        #     "num_acquisitions_round": 32,
+        #     "init_question_num": 1024,
+        #     "acquire_question_num_per_round": 128,
+        #     "warm_start_random_seed": 0,
+        #     "sample_method": "No-Deterministic+DAL_submodular2+0",
+        # },
 
 
 
@@ -262,7 +262,7 @@ def main(args):
             print("acquire_method: {}，sub_acquire_method: {}, warm_start_random_seed{}"
                   .format(acquire_method, sub_acquire_method, warm_start_random_seed),
                   file=f )
-            # print(method_result, file=f )
+            print(method_result, file=f )
 
         allMethods_results.append(method_result)
         shutil.rmtree(checkpoint_path)
