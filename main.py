@@ -23,7 +23,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='command for the first train')
 
     parser.add_argument('--answer_count', type=int, default=5, help='the amount of answer for each quesiton')
-    parser.add_argument('--num_epochs', type=int, default=12, help='training epoch')
+    parser.add_argument('--num_epochs', type=int, default=15, help='training epoch')
     parser.add_argument('--use_pretrained_word_embedding', type=bool, default=True, help='')
     parser.add_argument('--batch_size', type=int, default=1024, help='')
     parser.add_argument('--sampling_batch_size', type=int, default=2048, help='')
@@ -32,7 +32,7 @@ def parse_args():
     parser.add_argument('--pretrained_word_embedding', default="../../datasets/rcv2/glove.6B.300d.txt", help='')
     parser.add_argument('--dropout', type=float, default=0.5, help='')
     parser.add_argument('--word_hidden_dim', type=int, default=75, help='')
-    parser.add_argument('--learning_rate', type=float, default=1e-4, help='')
+    parser.add_argument('--learning_rate', type=float, default=1e-3, help='')
     parser.add_argument('--target_size', type=int, default=103, help='rcv2:103 ')
     parser.add_argument('--top_k', type=int, default=40, help='rcv2:40 , eurLex:100')
     parser.add_argument('--word_out_channels', type=int, default=200, help='')
@@ -67,7 +67,7 @@ def main(args):
             "init_question_num": 4000,
             "acquire_question_num_per_round": 800,
             "warm_start_random_seed": 0,
-            "sample_method": "Random+0+800*10",
+            "sample_method": "Random+15-0+800*10",
         },{
             "model_name": "CNN",
             "group_name": "[mlabs]CNN+DAL+num_find",
@@ -81,7 +81,7 @@ def main(args):
             "init_question_num": 4000,
             "acquire_question_num_per_round": 800,
             "warm_start_random_seed": 16,
-            "sample_method": "Random+16+800*10",
+            "sample_method": "Random+15-16+800*10",
         },{
             "model_name": "CNN",
             "group_name": "[mlabs]CNN+DAL+num_find",
@@ -95,7 +95,7 @@ def main(args):
             "init_question_num": 4000,
             "acquire_question_num_per_round": 800,
             "warm_start_random_seed": 32,
-            "sample_method": "Random+32+800*10",
+            "sample_method": "Random+15-32+800*10",
         },
 
         {
@@ -111,7 +111,7 @@ def main(args):
             "init_question_num": 4000,
             "acquire_question_num_per_round": 800,
             "warm_start_random_seed": 0,
-            "sample_method": "No-Deterministic+DAL+0+800*10",
+            "sample_method": "No-Deterministic+DAL-15+0+800*10",
         },{
             "model_name": "CNN",
             "group_name": "[mlabs]CNN+DAL+num_find",
@@ -125,7 +125,7 @@ def main(args):
             "init_question_num": 4000,
             "acquire_question_num_per_round": 800,
             "warm_start_random_seed": 16,
-            "sample_method": "No-Deterministic+DAL+16+800*10",
+            "sample_method": "No-Deterministic+DAL-15+16+800*10",
         },{
             "model_name": "CNN",
             "group_name": "[mlabs]CNN+DAL+num_find",
@@ -139,7 +139,7 @@ def main(args):
             "init_question_num": 4000,
             "acquire_question_num_per_round": 800,
             "warm_start_random_seed": 32,
-            "sample_method": "No-Deterministic+DAL+32+800*10",
+            "sample_method": "No-Deterministic+DAL-15+32+800*10",
         },
 
 
