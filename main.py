@@ -54,37 +54,92 @@ def main(args):
         # acquire_method(sub_acquire_method): random(""), no-dete("DAL","BALD"), dete("coreset","entropy",...)
         # "../../datasets/answer_selection/YahooCQA/data/data-FD/"
 
-
         {
             "model_name": "CNN",
-            "group_name": "[4.30- ]BiLSTM+FD+MRR+320+320",
+            "group_name": "[mlabs]CNN+DAL+num_find",
             "max_performance": 0.80,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "random",
             "sub_acquire_method": "random",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
-            "num_acquisitions_round": 20,
-            "init_question_num": 4000,
-            "acquire_question_num_per_round": 400,
+            "num_acquisitions_round": 10,
+            "init_question_num": 800,
+            "acquire_question_num_per_round": 800,
             "warm_start_random_seed": 0,
-            "sample_method": "No-Deterministic+DAL_submodular2+0",
+            "sample_method": "Random 800+800*10",
+        },{
+            "model_name": "CNN",
+            "group_name": "[mlabs]CNN+DAL+num_find",
+            "max_performance": 0.80,
+            "data_path": "../../datasets/rcv2/",
+            "acquire_method": "random",
+            "sub_acquire_method": "random",
+            "unsupervised_method": 'submodular',
+            "submodular_k": 2,
+            "num_acquisitions_round": 10,
+            "init_question_num": 800,
+            "acquire_question_num_per_round": 800,
+            "warm_start_random_seed": 16,
+            "sample_method": "Random 800+800*10",
+        },{
+            "model_name": "CNN",
+            "group_name": "[mlabs]CNN+DAL+num_find",
+            "max_performance": 0.80,
+            "data_path": "../../datasets/rcv2/",
+            "acquire_method": "random",
+            "sub_acquire_method": "random",
+            "unsupervised_method": 'submodular',
+            "submodular_k": 2,
+            "num_acquisitions_round": 10,
+            "init_question_num": 800,
+            "acquire_question_num_per_round": 800,
+            "warm_start_random_seed": 32,
+            "sample_method": "Random 800+800*10",
         },
 
         {
             "model_name": "CNN",
-            "group_name": "[4.30- ]BiLSTM+FD+MRR+320+320",
+            "group_name": "[mlabs]CNN+DAL+num_find",
             "max_performance": 0.80,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "no-dete",
             "sub_acquire_method": "DAL",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
-            "num_acquisitions_round": 20,
-            "init_question_num": 4000,
-            "acquire_question_num_per_round": 400,
+            "num_acquisitions_round": 10,
+            "init_question_num": 800,
+            "acquire_question_num_per_round": 800,
             "warm_start_random_seed": 0,
-            "sample_method": "No-Deterministic+DAL_submodular2+0",
+            "sample_method": "DAL 800+800*10",
+        },{
+            "model_name": "CNN",
+            "group_name": "[mlabs]CNN+DAL+num_find",
+            "max_performance": 0.80,
+            "data_path": "../../datasets/rcv2/",
+            "acquire_method": "no-dete",
+            "sub_acquire_method": "DAL",
+            "unsupervised_method": 'submodular',
+            "submodular_k": 2,
+            "num_acquisitions_round": 10,
+            "init_question_num": 800,
+            "acquire_question_num_per_round": 800,
+            "warm_start_random_seed": 16,
+            "sample_method": "DAL 800+800*10",
+        },{
+            "model_name": "CNN",
+            "group_name": "[mlabs]CNN+DAL+num_find",
+            "max_performance": 0.80,
+            "data_path": "../../datasets/rcv2/",
+            "acquire_method": "no-dete",
+            "sub_acquire_method": "DAL",
+            "unsupervised_method": 'submodular',
+            "submodular_k": 2,
+            "num_acquisitions_round": 10,
+            "init_question_num": 800,
+            "acquire_question_num_per_round": 800,
+            "warm_start_random_seed": 32,
+            "sample_method": "DAL 800+800*10",
         },
 
 
@@ -132,9 +187,9 @@ def main(args):
 
         train_data = train_data[:20000]
         # too small the valdata amount so ...
-        if len(val_data) < 100000:
-            val_data.extend(train_data[-5000:])
-            train_data = train_data[:-5000]
+        if len(val_data) < 2000:
+            val_data.extend(train_data[-2000:])
+            train_data = train_data[:-2000]
 
         #word embedding
         word_embeds = data['embed'] if args.use_pretrained_word_embedding else None
@@ -242,12 +297,12 @@ def main(args):
             print('*' * 50)
 
             #--------------------------Send data for a visual web page------------------------------
-            # max_performance = config["max_performance"] if "max_performance" in config else 0
-            #
-            # if "group_name" in config:
-            #     updateLineChart(str(test_performance), sample_method, gp_name=config["group_name"], max=max_performance)
-            # else:
-            #     updateLineChart(str(test_performance), sample_method, max=max_performance)
+            max_performance = config["max_performance"] if "max_performance" in config else 0
+
+            if "group_name" in config:
+                updateLineChart(str(test_performance), sample_method, gp_name=config["group_name"], max=max_performance)
+            else:
+                updateLineChart(str(test_performance), sample_method, max=max_performance)
 
             method_result.append(test_performance)
             with open('result.txt', 'a') as f:
