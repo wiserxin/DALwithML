@@ -25,7 +25,7 @@ def parse_args():
     parser.add_argument('--answer_count', type=int, default=5, help='the amount of answer for each quesiton')
     parser.add_argument('--num_epochs', type=int, default=12, help='training epoch')
     parser.add_argument('--use_pretrained_word_embedding', type=bool, default=True, help='')
-    parser.add_argument('--batch_size', type=int, default=512, help='')
+    parser.add_argument('--batch_size', type=int, default=1024, help='')
     parser.add_argument('--sampling_batch_size', type=int, default=2048, help='')
     parser.add_argument('--with_sim_feature', type=bool, default=True, help='whether use sim_feature in deep model')
     parser.add_argument('--word_embedding_dim', type=int, default=300, help='')
