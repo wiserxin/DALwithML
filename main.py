@@ -126,7 +126,7 @@ def main(args):
         #     "acquire_question_num_per_round": 200,
         #     "warm_start_random_seed": 16,
         #     "sample_method": "No-Deterministic+DAL+16+800*10",
-        # },{
+        },{
             "model_name": "CNN",
             "group_name": "[mlabs]CNN+DAL+1e4trn",
             "max_performance": 0.80,
