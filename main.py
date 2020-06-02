@@ -111,7 +111,7 @@ def main(args):
             "init_question_num": 800,
             "acquire_question_num_per_round": 800,
             "warm_start_random_seed": 0,
-            "sample_method": "no-dete+DAL+0+800*10",
+            "sample_method": "No-Deterministic+DAL+0+800*10",
         },{
             "model_name": "CNN",
             "group_name": "[mlabs]CNN+DAL+num_find",
@@ -125,7 +125,7 @@ def main(args):
             "init_question_num": 800,
             "acquire_question_num_per_round": 800,
             "warm_start_random_seed": 16,
-            "sample_method": "no-dete+DAL+16+800*10",
+            "sample_method": "No-Deterministic+DAL+16+800*10",
         },{
             "model_name": "CNN",
             "group_name": "[mlabs]CNN+DAL+num_find",
@@ -139,7 +139,7 @@ def main(args):
             "init_question_num": 800,
             "acquire_question_num_per_round": 800,
             "warm_start_random_seed": 32,
-            "sample_method": "no-dete+DAL+32+800*10",
+            "sample_method": "No-Deterministic+DAL+32+800*10",
         },
 
 
