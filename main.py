@@ -54,49 +54,49 @@ def main(args):
         # acquire_method(sub_acquire_method): random(""), no-dete("DAL","BALD"), dete("coreset","entropy",...)
         # "../../datasets/answer_selection/YahooCQA/data/data-FD/"
 
-        # {
-        #     "model_name": "CNN",
-        #     "group_name": "[mlabs]CNN+DAL+num_find",
-        #     "max_performance": 0.80,
-        #     "data_path": "../../datasets/rcv2/",
-        #     "acquire_method": "random",
-        #     "sub_acquire_method": "",
-        #     "unsupervised_method": 'submodular',
-        #     "submodular_k": 2,
-        #     "num_acquisitions_round": 10,
-        #     "init_question_num": 800,
-        #     "acquire_question_num_per_round": 800,
-        #     "warm_start_random_seed": 0,
-        #     "sample_method": "Random+0+800*10",
-        # },{
-        #     "model_name": "CNN",
-        #     "group_name": "[mlabs]CNN+DAL+num_find",
-        #     "max_performance": 0.80,
-        #     "data_path": "../../datasets/rcv2/",
-        #     "acquire_method": "random",
-        #     "sub_acquire_method": "",
-        #     "unsupervised_method": 'submodular',
-        #     "submodular_k": 2,
-        #     "num_acquisitions_round": 10,
-        #     "init_question_num": 800,
-        #     "acquire_question_num_per_round": 800,
-        #     "warm_start_random_seed": 16,
-        #     "sample_method": "Random+16+800*10",
-        # },{
-        #     "model_name": "CNN",
-        #     "group_name": "[mlabs]CNN+DAL+num_find",
-        #     "max_performance": 0.80,
-        #     "data_path": "../../datasets/rcv2/",
-        #     "acquire_method": "random",
-        #     "sub_acquire_method": "",
-        #     "unsupervised_method": 'submodular',
-        #     "submodular_k": 2,
-        #     "num_acquisitions_round": 10,
-        #     "init_question_num": 800,
-        #     "acquire_question_num_per_round": 800,
-        #     "warm_start_random_seed": 32,
-        #     "sample_method": "Random+32+800*10",
-        # },
+        {
+            "model_name": "CNN",
+            "group_name": "[mlabs]CNN+DAL+num_find",
+            "max_performance": 0.80,
+            "data_path": "../../datasets/rcv2/",
+            "acquire_method": "random",
+            "sub_acquire_method": "",
+            "unsupervised_method": 'submodular',
+            "submodular_k": 2,
+            "num_acquisitions_round": 10,
+            "init_question_num": 4000,
+            "acquire_question_num_per_round": 800,
+            "warm_start_random_seed": 0,
+            "sample_method": "Random+0+800*10",
+        },{
+            "model_name": "CNN",
+            "group_name": "[mlabs]CNN+DAL+num_find",
+            "max_performance": 0.80,
+            "data_path": "../../datasets/rcv2/",
+            "acquire_method": "random",
+            "sub_acquire_method": "",
+            "unsupervised_method": 'submodular',
+            "submodular_k": 2,
+            "num_acquisitions_round": 10,
+            "init_question_num": 4000,
+            "acquire_question_num_per_round": 800,
+            "warm_start_random_seed": 16,
+            "sample_method": "Random+16+800*10",
+        },{
+            "model_name": "CNN",
+            "group_name": "[mlabs]CNN+DAL+num_find",
+            "max_performance": 0.80,
+            "data_path": "../../datasets/rcv2/",
+            "acquire_method": "random",
+            "sub_acquire_method": "",
+            "unsupervised_method": 'submodular',
+            "submodular_k": 2,
+            "num_acquisitions_round": 10,
+            "init_question_num": 4000,
+            "acquire_question_num_per_round": 800,
+            "warm_start_random_seed": 32,
+            "sample_method": "Random+32+800*10",
+        },
 
         {
             "model_name": "CNN",
@@ -108,7 +108,7 @@ def main(args):
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 10,
-            "init_question_num": 800,
+            "init_question_num": 4000,
             "acquire_question_num_per_round": 800,
             "warm_start_random_seed": 0,
             "sample_method": "No-Deterministic+DAL+0+800*10",
@@ -122,7 +122,7 @@ def main(args):
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 10,
-            "init_question_num": 800,
+            "init_question_num": 4000,
             "acquire_question_num_per_round": 800,
             "warm_start_random_seed": 16,
             "sample_method": "No-Deterministic+DAL+16+800*10",
@@ -136,7 +136,7 @@ def main(args):
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 10,
-            "init_question_num": 800,
+            "init_question_num": 4000,
             "acquire_question_num_per_round": 800,
             "warm_start_random_seed": 32,
             "sample_method": "No-Deterministic+DAL+32+800*10",
@@ -185,11 +185,8 @@ def main(args):
         train_data = data['train_points']
         val_data = data['test_points']
 
-        train_data = train_data[:20000]
-        # too small the valdata amount so ...
-        if len(val_data) < 2000:
-            val_data.extend(train_data[-2000:])
-            train_data = train_data[:-2000]
+        train_data  = train_data[:30000]
+        val_data    = val_data[-3000:]
 
         #word embedding
         word_embeds = data['embed'] if args.use_pretrained_word_embedding else None
