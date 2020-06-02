@@ -2,4 +2,4 @@
 
 rm result.txt
 git pull
-CUDA_VISIBLE_DEVICES=1 python main.py --learning_rate=0.001
+CUDA_VISIBLE_DEVICES=1 python main.py --learning_rate=4e-3

@@ -53,6 +53,51 @@ def main(args):
         # The config for a task:
         # acquire_method(sub_acquire_method): random(""), no-dete("DAL","BALD"), dete("coreset","entropy",...)
         # "../../datasets/answer_selection/YahooCQA/data/data-FD/"
+
+        {
+            "model_name": "CNN",
+            "group_name": "[mlabs]CNN+DAL+num_find",
+            "max_performance": 0.80,
+            "data_path": "../../datasets/rcv2/",
+            "acquire_method": "random",
+            "sub_acquire_method": "",
+            "unsupervised_method": 'submodular',
+            "submodular_k": 2,
+            "num_acquisitions_round": 10,
+            "init_question_num": 4000,
+            "acquire_question_num_per_round": 800,
+            "warm_start_random_seed": 0,
+            "sample_method": "Random+4e-3-0+800*10",
+        },{
+            "model_name": "CNN",
+            "group_name": "[mlabs]CNN+DAL+num_find",
+            "max_performance": 0.80,
+            "data_path": "../../datasets/rcv2/",
+            "acquire_method": "random",
+            "sub_acquire_method": "",
+            "unsupervised_method": 'submodular',
+            "submodular_k": 2,
+            "num_acquisitions_round": 10,
+            "init_question_num": 4000,
+            "acquire_question_num_per_round": 800,
+            "warm_start_random_seed": 16,
+            "sample_method": "Random+4e-3-16+800*10",
+        },{
+            "model_name": "CNN",
+            "group_name": "[mlabs]CNN+DAL+num_find",
+            "max_performance": 0.80,
+            "data_path": "../../datasets/rcv2/",
+            "acquire_method": "random",
+            "sub_acquire_method": "",
+            "unsupervised_method": 'submodular',
+            "submodular_k": 2,
+            "num_acquisitions_round": 10,
+            "init_question_num": 4000,
+            "acquire_question_num_per_round": 800,
+            "warm_start_random_seed": 32,
+            "sample_method": "Random+4e-3-32+800*10",
+        },
+
         {
             "model_name": "CNN",
             "group_name": "[mlabs]CNN+DAL+num_find",
@@ -66,41 +111,8 @@ def main(args):
             "init_question_num": 4000,
             "acquire_question_num_per_round": 800,
             "warm_start_random_seed": 0,
-            "sample_method": "No-Deterministic+DAL-20+0+800*10",
-        },
-        {
-
-            "model_name": "CNN",
-            "group_name": "[mlabs]CNN+DAL+num_find",
-            "max_performance": 0.80,
-            "data_path": "../../datasets/rcv2/",
-            "acquire_method": "random",
-            "sub_acquire_method": "",
-            "unsupervised_method": 'submodular',
-            "submodular_k": 2,
-            "num_acquisitions_round": 10,
-            "init_question_num": 4000,
-            "acquire_question_num_per_round": 800,
-            "warm_start_random_seed": 16,
-            "sample_method": "Random+20-16+800*10",
+            "sample_method": "No-Deterministic+DAL-4e-3+0+800*10",
         },{
-            "model_name": "CNN",
-            "group_name": "[mlabs]CNN+DAL+num_find",
-            "max_performance": 0.80,
-            "data_path": "../../datasets/rcv2/",
-            "acquire_method": "random",
-            "sub_acquire_method": "",
-            "unsupervised_method": 'submodular',
-            "submodular_k": 2,
-            "num_acquisitions_round": 10,
-            "init_question_num": 4000,
-            "acquire_question_num_per_round": 800,
-            "warm_start_random_seed": 32,
-            "sample_method": "Random+20-32+800*10",
-        },
-
-
-        {
             "model_name": "CNN",
             "group_name": "[mlabs]CNN+DAL+num_find",
             "max_performance": 0.80,
@@ -113,7 +125,7 @@ def main(args):
             "init_question_num": 4000,
             "acquire_question_num_per_round": 800,
             "warm_start_random_seed": 16,
-            "sample_method": "No-Deterministic+DAL-20+16+800*10",
+            "sample_method": "No-Deterministic+DAL-4e-3+16+800*10",
         },{
             "model_name": "CNN",
             "group_name": "[mlabs]CNN+DAL+num_find",
@@ -127,7 +139,7 @@ def main(args):
             "init_question_num": 4000,
             "acquire_question_num_per_round": 800,
             "warm_start_random_seed": 32,
-            "sample_method": "No-Deterministic+DAL-20+32+800*10",
+            "sample_method": "No-Deterministic+DAL-4e-3+32+800*10",
         },
 
 
