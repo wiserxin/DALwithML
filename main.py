@@ -23,7 +23,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='command for the first train')
 
     parser.add_argument('--answer_count', type=int, default=5, help='the amount of answer for each quesiton')
-    parser.add_argument('--num_epochs', type=int, default=15, help='training epoch')
+    parser.add_argument('--num_epochs', type=int, default=20, help='training epoch')
     parser.add_argument('--use_pretrained_word_embedding', type=bool, default=True, help='')
     parser.add_argument('--batch_size', type=int, default=1024, help='')
     parser.add_argument('--sampling_batch_size', type=int, default=2048, help='')
