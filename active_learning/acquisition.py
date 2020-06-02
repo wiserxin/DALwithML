@@ -100,6 +100,8 @@ class Acquisition(object):
                 # score_arr.append(torch.abs(score-0.5))
 
 
+            # print("score_arr:",len(score_arr),len(score_arr[0]),len(score_arr[0][0]))
+
             # new_score_seq = np.array(score_arr).transpose(0, 1).tolist()
             new_score_seq = []  # size: btach_size * nsample * nlabel
             for m in range(len(Y)):
@@ -107,6 +109,8 @@ class Acquisition(object):
                 for n in range(nsamp):
                     tp.append(score_arr[n][m])
                 new_score_seq.append(tp)
+
+            # print("new_score_seq:",len(new_score_seq),len(new_score_seq[0]),len(new_score_seq[0][0]))
 
             for index, item in enumerate(new_score_seq):
                 # shape: batch_size * labels * nsample
