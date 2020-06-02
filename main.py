@@ -186,7 +186,7 @@ def main(args):
         val_data = data['test_points']
 
         train_data  = train_data[:10000]
-        val_data    = val_data[:1000].extend(val_data[-1000:])
+        val_data    = val_data[:2000]
 
         #word embedding
         word_embeds = data['embed'] if args.use_pretrained_word_embedding else None
