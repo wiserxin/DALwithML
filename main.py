@@ -68,7 +68,7 @@ def main(args):
         #     "acquire_question_num_per_round": 200,
         #     "warm_start_random_seed": 0,
         #     "sample_method": "Random+0",
-        },{
+        # },{
             "model_name": "CNN",
             "group_name": "[mlabs]CNN+DAL+1e4trn",
             "max_performance": 0.80,
