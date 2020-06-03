@@ -111,7 +111,7 @@ def main(args):
             "init_question_num": 400,
             "acquire_question_num_per_round": 200,
             "warm_start_random_seed": 0,
-            "sample_method": "No-Deterministic+DALsoftmax+0",
+            "sample_method": "No-Deterministic+DALlogsig+0",
         },{
             "model_name": "CNN",
             "group_name": "[mlabs]CNN+DAL+1e4trn",
@@ -125,7 +125,7 @@ def main(args):
             "init_question_num": 400,
             "acquire_question_num_per_round": 200,
             "warm_start_random_seed": 16,
-            "sample_method": "No-Deterministic+DALsoftmax+16",
+            "sample_method": "No-Deterministic+DALlogsig+16",
         },{
             "model_name": "CNN",
             "group_name": "[mlabs]CNN+DAL+1e4trn",
@@ -139,7 +139,7 @@ def main(args):
             "init_question_num": 400,
             "acquire_question_num_per_round": 200,
             "warm_start_random_seed": 32,
-            "sample_method": "No-Deterministic+DALsoftmax+32",
+            "sample_method": "No-Deterministic+DALlogsig+32",
         },{
             "model_name": "CNN",
             "group_name": "[mlabs]CNN+DAL+1e4trn",
@@ -153,7 +153,7 @@ def main(args):
             "init_question_num": 400,
             "acquire_question_num_per_round": 200,
             "warm_start_random_seed": 64,
-            "sample_method": "No-Deterministic+DALsoftmax+64",
+            "sample_method": "No-Deterministic+DALlogsig+64",
         },
 
 
@@ -316,20 +316,20 @@ def main(args):
                 updateLineChart(str(test_performance), sample_method, max=max_performance)
 
             method_result.append(test_performance)
-            with open('result.txt', 'a') as f:
-                print("acq round {} : \t {}"
-                      .format(i,test_performance),
-                      file=f)
+            # with open('result.txt', 'a') as f:
+            #     print("acq round {} : \t {}"
+            #           .format(i,test_performance),
+            #           file=f)
 
         print("acquire_method: {}，sub_acquire_method: {}, warm_start_random_seed{}"
               .format(acquire_method, sub_acquire_method, warm_start_random_seed))
         print(method_result)
-        with open('result.txt','a') as f:
-            print("acquire_method: {}，sub_acquire_method: {}, warm_start_random_seed{}"
-                  .format(acquire_method, sub_acquire_method, warm_start_random_seed),
-                  file=f )
-            print(method_result, file=f )
-            print('', file=f)
+        # with open('result.txt','a') as f:
+        #     print("acquire_method: {}，sub_acquire_method: {}, warm_start_random_seed{}"
+        #           .format(acquire_method, sub_acquire_method, warm_start_random_seed),
+        #           file=f )
+        #     print(method_result, file=f )
+        #     print('', file=f)
 
         allMethods_results.append(method_result)
         shutil.rmtree(checkpoint_path)
