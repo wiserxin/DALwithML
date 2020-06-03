@@ -305,7 +305,7 @@ def main(args):
             trainer = Trainer(model,
                               args.result_path,
                               model_name,
-                              eval_begin=20,
+                              eval_begin=31,
                               cuda_device=args.device[0],
                               top_k= args.top_k
                               )
