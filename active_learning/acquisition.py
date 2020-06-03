@@ -144,8 +144,8 @@ class Acquisition(object):
 
                 obj = {}
                 obj["id"] = pt
-                # obj["el"] = np.mean(np.array(dList)) - np.mean(np.array(dList2))
-                obj["el"] = np.mean(np.array(dList)) #测试 一些
+                obj["el"] = np.mean(np.array(dList)) - np.mean(np.array(dList2))
+                # obj["el"] = np.mean(np.array(dList)) #测试 一些
 
                 if obj["el"] < 0:
                     print("elo error")
