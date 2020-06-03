@@ -95,7 +95,7 @@ class Acquisition(object):
 
                 # score = torch.sigmoid(output).data.cpu().numpy().tolist()
                 # score = torch.softmax(output,dim=1).data.cpu().numpy().tolist() # 测试softmax
-                score = torch.nn.LogSigmoid(output).data.cpu().numpy().tolist()
+                score = F.logsigmoid(output).data.cpu().numpy().tolist()
 
                 score_arr.append(score)
 

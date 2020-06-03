@@ -30,11 +30,10 @@ data = Loader.load_rcv2( datapath=rcv2_path, vocab_size=30000)
 train_data = data['train_points']
 val_data = data['test_points']
 
-train_data = train_data[:20000]
+train_data = train_data[:1000]
 # too small the valdata amount so ...
-if len(val_data) < 100000:
-    val_data.extend(train_data[-5000:])
-    train_data = train_data[:-5000]
+val_data = val_data[:2000]
+
 
 model = CNN(  word_vocab_size = 30000
             , word_embedding_dim = 300
@@ -50,7 +49,7 @@ trainer = Trainer(model,
                   top_k=40
                   )
 
-test_performance = trainer.train_supervisedLearning(15,
+test_performance = trainer.train_supervisedLearning(30,
                                                     train_data,
                                                     val_data,
                                                     0.001,
