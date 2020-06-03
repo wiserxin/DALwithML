@@ -30,7 +30,7 @@ data = Loader.load_rcv2( datapath=rcv2_path, vocab_size=30000)
 train_data = data['train_points']
 val_data = data['test_points']
 
-train_data = train_data[:1000]
+train_data = train_data[:3000]
 # too small the valdata amount so ...
 val_data = val_data[:2000]
 
@@ -49,7 +49,7 @@ trainer = Trainer(model,
                   top_k=40
                   )
 
-test_performance = trainer.train_supervisedLearning(30,
+test_performance = trainer.train_supervisedLearning(50,
                                                     train_data,
                                                     val_data,
                                                     0.001,

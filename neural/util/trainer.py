@@ -14,8 +14,9 @@ import torch.nn as nn
 class Trainer(object):
 
     def __init__(self, model, result_path, model_name,
-                 eval_every=1, top_k=15, usecuda=True, cuda_device = 0):
+                 eval_begin=1, eval_every=1, top_k=15, usecuda=True, cuda_device = 0):
         self.model = model
+        self.eval_begin = eval_begin
         self.eval_every = eval_every
         self.model_name = os.path.join(result_path, model_name)
         self._model_name = model_name
@@ -88,7 +89,7 @@ class Trainer(object):
                     lossD = 0.0
 
             ####################################### Validation ###########################################
-            if epoch % self.eval_every == 0:
+            if (epoch >= self.eval_begin) and (epoch % self.eval_every == 0):
 
                 best_test_ndcg5, new_test_ndcg5, save = self.evaluator(self.model, val_data, best_test_ndcg5, model_name = self._model_name)
 

@@ -93,9 +93,9 @@ class Acquisition(object):
                 elif model_name == 'CNN':
                     output = model(X)
 
-                # score = torch.sigmoid(output).data.cpu().numpy().tolist()
+                score = torch.sigmoid(output).data.cpu().numpy().tolist()
                 # score = torch.softmax(output,dim=1).data.cpu().numpy().tolist() # 测试softmax
-                score = F.logsigmoid(output).data.cpu().numpy().tolist()
+                # score = F.logsigmoid(output).data.cpu().numpy().tolist()
 
                 score_arr.append(score)
 

@@ -5,3 +5,4 @@ venv/
 test2.py
 *.ipynb
 *.xlsx
+result/modelweights
