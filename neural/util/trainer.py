@@ -52,7 +52,10 @@ class Trainer(object):
                 batch_data = batch_data['data_numpy']
                 self.model.zero_grad()
 
-                X , Y, Y_o = batch_data
+                # X , Y, Y_o, _ = batch_data
+                X = batch_data[0]
+                Y = batch_data[1]
+                Y_o = batch_data[2]
 
                 X = Variable(torch.from_numpy(X).long()).cuda(self.cuda_device)
                 Y = Variable(torch.from_numpy(Y).float()).cuda(self.cuda_device)

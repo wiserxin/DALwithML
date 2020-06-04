@@ -132,12 +132,14 @@ def create_batches(dataset, batch_size, order='no'):
     batches = []
     num_batches = np.ceil(len(dataset) / float(batch_size)).astype('int')
 
-    for i in range(num_batches):
-        batch_data = dataset[(i * batch_size):min(len(dataset), (i + 1) * batch_size)]
+    for k in range(num_batches):
+        batch_data = dataset[(k * batch_size):min(len(dataset), (k + 1) * batch_size)]
         batch_data = {'data_points':batch_data,
                       'data_numpy' :(   np.vstack( [i[0] for i in batch_data] ), # X
                                         np.vstack([i[1].A.astype(int) for i in batch_data]), #Y
-                                        [i[2] for i in batch_data]  )
+                                        [i[2] for i in batch_data]  , # labels for points
+                                        [i[3] for i in batch_data]  , # id for points
+                                        )
                       }
         batches.append(batch_data)
 

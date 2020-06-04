@@ -30,7 +30,7 @@ data = Loader.load_rcv2( datapath=rcv2_path, vocab_size=30000)
 train_data = data['train_points']
 val_data = data['test_points']
 
-train_data = train_data[:3000]
+train_data = train_data[:8000]
 # too small the valdata amount so ...
 val_data = val_data[:2000]
 
@@ -46,14 +46,15 @@ model = nn.DataParallel(model).cuda()
 trainer = Trainer(model,
                   r'./result',
                   "CNN",
-                  top_k=40
+                  top_k=40,
+                  eval_begin= 1
                   )
 
-test_performance = trainer.train_supervisedLearning(50,
+test_performance = trainer.train_supervisedLearning(40,
                                                     train_data,
                                                     val_data,
-                                                    0.001,
+                                                    0.004,
                                                     checkpoint_path=r'./result',
-                                                    batch_size=512
+                                                    batch_size=512,
                                                     )
 

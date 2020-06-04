@@ -278,8 +278,8 @@ class Loader(object):
                 'test' : (X_tst, Y_tst, Y_tst_o),
                'vocab' : (vocabulary, vocabulary_inv, vocabulary_count),
                 'embed': load_word2vec(datapath ,'glove', vocabulary_inv, 300),
-                'train_points': [(X_trn[i], Y_trn[i], Y_trn_o[i])  for i in range(len(Y_trn_o))],
-                'test_points' : [(X_tst[i], Y_tst[i], Y_tst_o[i])  for i in range(len(Y_tst_o))]
+                'train_points': [(X_trn[i], Y_trn[i], Y_trn_o[i], i)  for i in range(len(Y_trn_o))],
+                'test_points' : [(X_tst[i], Y_tst[i], Y_tst_o[i], i)  for i in range(len(Y_tst_o))]
                 }
         with open(os.path.join(datapath, 'rcv2Loaded.pkl'), 'wb') as f:
             pickle.dump(r,f)

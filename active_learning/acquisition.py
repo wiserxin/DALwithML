@@ -18,6 +18,7 @@ class Acquisition(object):
                  batch_size=1000,
                  cal_Aleatoric_uncertainty=False,
                  submodular_k=4):
+        self.train_data = train_data
         self.document_num = len(train_data)
         self.train_index = set()  #the index of the labeled samples
         self.pseudo_train_data = []
@@ -27,10 +28,32 @@ class Acquisition(object):
         self.batch_size = batch_size
         self.cal_Aleatoric_uncertainty = cal_Aleatoric_uncertainty
         self.submodular_k = submodular_k
+        for i in range(len(train_data)):
+            print(i,train_data[i][3])
+
+    def eval_acquire_rcv2_points(self,index_arry):
+        # 统计index中的label数量
+
+        def wanderDatalabels(datapoints):
+            Y = {}
+            for point in datapoints:
+                Y_o = point[2]
+                id = point[3]
+                for label in Y_o:
+                    if label in Y.keys():
+                        Y[label] += 1
+                    else:
+                        Y[label] = 1
+            return Y
+        theList = [self.train_data[i] for i in index_arry]
+        theDict = wanderDatalabels(theList)
+        result = [(theDict[i] if i in theDict.keys() else 0) for i in range(103)]
+        return result
 
     def get_random(self, data, acquire_num, returned=False):
 
         random_indices = self.npr.permutation(self.document_num)
+        # random_indices = range(self.document_num) # 测试专用 ，正式使用时应更改
 
         sample_indices = set()
         i = 0
@@ -40,6 +63,10 @@ class Acquisition(object):
             i += 1
         if not returned:
             self.train_index.update(sample_indices)
+            # print('now type1:type2 = {}:{}'.format(
+            #                     sum([1 if i<200 else 0 for i in self.train_index ]) ,
+            #                     sum([1 if i >= 200 else 0 for i in self.train_index]),
+            #       ))
         else:
             return sample_indices
 
@@ -177,9 +204,13 @@ class Acquisition(object):
                 assert False
 
         if not returned:
-            print("Active")
+            # print("DAL acquiring:",sorted(cur_indices))
             self.train_index.update(cur_indices)
-            print('time consuming： %d seconds:' % (time.time() - tm))
+            print('DAL time consuming： %d seconds:' % (time.time() - tm))
+            # print('now type1:type2 = {}:{}'.format(
+            #                     sum([1 if i<200 else 0 for i in self.train_index ]) ,
+            #                     sum([1 if i >= 200 else 0 for i in self.train_index]),
+            #       ))
         else:
             sorted_cur_indices = list(cur_indices)
             sorted_cur_indices.sort()
