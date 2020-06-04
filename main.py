@@ -57,7 +57,7 @@ def main(args):
         {
             "model_name": "CNN",
             "group_name": "[mlabs]CNN+DAL+1e4trn",
-            "max_performance": 0.80,
+            "max_performance": 0.90,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "random",
             "sub_acquire_method": "",
@@ -71,7 +71,7 @@ def main(args):
         }, {
             "model_name": "CNN",
             "group_name": "[mlabs]CNN+DAL+1e4trn",
-            "max_performance": 0.80,
+            "max_performance": 0.90,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "random",
             "sub_acquire_method": "",
@@ -85,7 +85,7 @@ def main(args):
         }, {
             "model_name": "CNN",
             "group_name": "[mlabs]CNN+DAL+1e4trn",
-            "max_performance": 0.80,
+            "max_performance": 0.90,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "random",
             "sub_acquire_method": "",
@@ -99,7 +99,7 @@ def main(args):
         },{
             "model_name": "CNN",
             "group_name": "[mlabs]CNN+DAL+1e4trn",
-            "max_performance": 0.80,
+            "max_performance": 0.90,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "random",
             "sub_acquire_method": "",
@@ -115,7 +115,7 @@ def main(args):
         {
             "model_name": "CNN",
             "group_name": "[mlabs]CNN+DAL+1e4trn",
-            "max_performance": 0.80,
+            "max_performance": 0.90,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "no-dete",
             "sub_acquire_method": "DAL",
@@ -129,7 +129,7 @@ def main(args):
         # },{
         #     "model_name": "CNN",
         #     "group_name": "[mlabs]CNN+DAL+1e4trn",
-        #     "max_performance": 0.80,
+        #     "max_performance": 0.90,
         #     "data_path": "../../datasets/rcv2/",
         #     "acquire_method": "no-dete",
         #     "sub_acquire_method": "DAL",
@@ -143,7 +143,7 @@ def main(args):
         # },{
         #     "model_name": "CNN",
         #     "group_name": "[mlabs]CNN+DAL+1e4trn",
-        #     "max_performance": 0.80,
+        #     "max_performance": 0.90,
         #     "data_path": "../../datasets/rcv2/",
         #     "acquire_method": "no-dete",
         #     "sub_acquire_method": "DAL",
@@ -157,7 +157,7 @@ def main(args):
         # },{
         #     "model_name": "CNN",
         #     "group_name": "[mlabs]CNN+DAL+1e4trn",
-        #     "max_performance": 0.80,
+        #     "max_performance": 0.90,
         #     "data_path": "../../datasets/rcv2/",
         #     "acquire_method": "no-dete",
         #     "sub_acquire_method": "DAL",
