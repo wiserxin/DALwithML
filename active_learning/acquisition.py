@@ -53,7 +53,7 @@ class Acquisition(object):
     def get_random(self, data, acquire_num, returned=False):
 
         random_indices = self.npr.permutation(self.document_num)
-        # random_indices = range(self.document_num) # 测试专用 ，正式使用时应更改
+        # random_indices = range(self.document_num) # 测试专用 ，正式使用时应注释掉
 
         sample_indices = set()
         i = 0
