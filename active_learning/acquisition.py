@@ -28,8 +28,8 @@ class Acquisition(object):
         self.batch_size = batch_size
         self.cal_Aleatoric_uncertainty = cal_Aleatoric_uncertainty
         self.submodular_k = submodular_k
-        for i in range(len(train_data)):
-            print(i,train_data[i][3])
+        # for i in range(len(train_data)):
+        #     print(i,train_data[i][3])
 
     def eval_acquire_rcv2_points(self,index_arry):
         # 统计index中的label数量
