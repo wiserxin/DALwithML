@@ -70,7 +70,7 @@ def main(args):
         #     "sample_method": "Random+KIM-0",
         # }, {
         #     "model_name": "CNN",
-        #     "group_name": "[mlabs]CNN+DAL+3e4trn",
+        #     "group_name": "[mlabs]CNN+DAL+1e4trn",
         #     "max_performance": 0.80,
         #     "data_path": "../../datasets/rcv2/",
         #     "acquire_method": "random",
@@ -84,7 +84,7 @@ def main(args):
         #     "sample_method": "Random+KIM-16",
         # }, {
         #     "model_name": "CNN",
-        #     "group_name": "[mlabs]CNN+DAL+3e4trn",
+        #     "group_name": "[mlabs]CNN+DAL+1e4trn",
         #     "max_performance": 0.80,
         #     "data_path": "../../datasets/rcv2/",
         #     "acquire_method": "random",
@@ -98,7 +98,7 @@ def main(args):
         #     "sample_method": "Random+KIM-32",
         # },{
         #     "model_name": "CNN",
-        #     "group_name": "[mlabs]CNN+DAL+3e4trn",
+        #     "group_name": "[mlabs]CNN+DAL+1e4trn",
         #     "max_performance": 0.80,
         #     "data_path": "../../datasets/rcv2/",
         #     "acquire_method": "random",
@@ -114,7 +114,7 @@ def main(args):
         #
         # {
         #     "model_name": "CNN",
-        #     "group_name": "[mlabs]CNN+DAL+3e4trn",
+        #     "group_name": "[mlabs]CNN+DAL+1e4trn",
         #     "max_performance": 0.80,
         #     "data_path": "../../datasets/rcv2/",
         #     "acquire_method": "no-dete",
@@ -128,7 +128,7 @@ def main(args):
         #     "sample_method": "No-Deterministic+DAL_KIM+0",
         # },{
             "model_name": "CNN",
-            "group_name": "[mlabs]CNN+DAL+3e4trn",
+            "group_name": "[mlabs]CNN+DAL+1e4trn",
             "max_performance": 0.80,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "no-dete",
@@ -142,7 +142,7 @@ def main(args):
             "sample_method": "No-Deterministic+DAL_KIM+16",
         },{
             "model_name": "CNN",
-            "group_name": "[mlabs]CNN+DAL+3e4trn",
+            "group_name": "[mlabs]CNN+DAL+1e4trn",
             "max_performance": 0.80,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "no-dete",
@@ -156,7 +156,7 @@ def main(args):
             "sample_method": "No-Deterministic+DAL_KIM+32",
         },{
             "model_name": "CNN",
-            "group_name": "[mlabs]CNN+DAL+3e4trn",
+            "group_name": "[mlabs]CNN+DAL+1e4trn",
             "max_performance": 0.80,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "no-dete",
