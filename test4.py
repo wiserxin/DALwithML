@@ -1,6 +1,9 @@
 # coding=utf-8
 
 # 小样本验证 有效性
+# trn 4000
+# val 400
+
 from __future__ import print_function
 import numpy as np
 import torch
