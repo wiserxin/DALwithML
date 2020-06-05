@@ -4,6 +4,11 @@
 # trn 4000
 # val 400
 
+# 20+20*10
+# DAL       [0.8987238627476777, 0.949969059788706,  0.888588184533404,  0.919548324470905,  0.9536223554667873, 0.9014829395335697, 0.9470992488170767, 0.9468548306624939, 0.9215527985288587, 0.9095490625791847]
+# random    [0.888270042681507,  0.9267544769481671, 0.9241058031401894, 0.9173488068180599, 0.9533149724568853, 0.9191373793412244, 0.9204125488955412, 0.9454286738987817, 0.9200644571350591, 0.9195753889083127]
+
+
 from __future__ import print_function
 import numpy as np
 import torch
@@ -67,9 +72,9 @@ def main(args):
          "sub_acquire_method": "DAL",
          "unsupervised_method": 'submodular',
          "submodular_k": 2,
-         "num_acquisitions_round": 10,
-         "init_question_num": 20,
-         "acquire_question_num_per_round": 20,
+         "num_acquisitions_round": 40,
+         "init_question_num": 40,
+         "acquire_question_num_per_round": 40,
          "warm_start_random_seed": 64,
          "sample_method": "No-Deterministic+DAL+64",
         },
@@ -83,9 +88,9 @@ def main(args):
             "sub_acquire_method": "random",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
-            "num_acquisitions_round": 10,
-            "init_question_num": 20,
-            "acquire_question_num_per_round": 20,
+            "num_acquisitions_round": 40,
+            "init_question_num": 40,
+            "acquire_question_num_per_round": 40,
             "warm_start_random_seed": 64,
             "sample_method": "No-Deterministic+random+64",
         },
