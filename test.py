@@ -30,7 +30,7 @@ data = Loader.load_rcv2( datapath=rcv2_path, vocab_size=30000)
 train_data = data['train_points']
 val_data = data['test_points']
 
-train_data = train_data[:8200]
+train_data = train_data[:8000]
 # too small the valdata amount so ...
 val_data = val_data[:2000]
 
