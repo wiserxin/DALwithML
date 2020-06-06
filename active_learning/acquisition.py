@@ -188,6 +188,10 @@ class Acquisition(object):
         _delt_arr = sorted(_delt_arr, key=lambda o: o["el"], reverse=True) # 从大到小排序
         # _delt_arr = sorted(_delt_arr, key=lambda o: o["el"], reverse=False)  # 从小到大排序 测试效果如何
 
+        with open( "DAL_dele_arr.txt" , 'a+' ) as f:
+            temp_delt_arr = [ i["el"] for i in _delt_arr ]
+            print( temp_delt_arr ,file=f)
+
         cur_indices = set()
         i = 0
 
