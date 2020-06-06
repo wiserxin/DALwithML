@@ -58,3 +58,4 @@ test_performance = trainer.train_supervisedLearning(60,
                                                     batch_size=2048,
                                                     )
 
+print(trainer.eval_value)

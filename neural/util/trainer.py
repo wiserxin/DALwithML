@@ -18,6 +18,7 @@ class Trainer(object):
         self.model = model
         self.eval_begin = eval_begin
         self.eval_every = eval_every
+        self.eval_value = []
         self.model_name = os.path.join(result_path, model_name)
         self._model_name = model_name
         self.usecuda = usecuda
@@ -95,6 +96,7 @@ class Trainer(object):
             if (epoch >= self.eval_begin) and (epoch % self.eval_every == 0):
 
                 best_test_ndcg5, new_test_ndcg5, save = self.evaluator(self.model, val_data, best_test_ndcg5, model_name = self._model_name)
+                self.eval_value.append(new_test_ndcg5)
 
                 print('*'*50)
                 print("Validation：best：%f   new: %f " % (best_test_ndcg5, new_test_ndcg5))
