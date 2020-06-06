@@ -28,6 +28,7 @@ class Acquisition(object):
         self.batch_size = batch_size
         self.cal_Aleatoric_uncertainty = cal_Aleatoric_uncertainty
         self.submodular_k = submodular_k
+        self.savedData = list()
         # for i in range(len(train_data)):
         #     print(i,train_data[i][3])
 
@@ -226,6 +227,9 @@ class Acquisition(object):
 
             return dataset_pool, cur_indices
 
+        self.savedData.append( { "added_index":cur_indices,
+                                 "index2id":{_index:p[3] for _index,p in enumerate(new_dataset)},
+                                 "_delt_arr":_delt_arr } )
 
     def obtain_data(self, data, model_path=None, model_name=None, acquire_num=2,
                     method='random', sub_method='', unsupervised_method='', round = 0):

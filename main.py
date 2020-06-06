@@ -166,8 +166,8 @@ def main(args):
             "num_acquisitions_round": 20,
             "init_question_num": 400,
             "acquire_question_num_per_round": 400,
-            "warm_start_random_seed": 128,
-            "sample_method": "No-Deterministic+DAL-400*20+128",
+            "warm_start_random_seed": 256,
+            "sample_method": "No-Deterministic+DAL-400*20+256",
         },
 
 
@@ -348,6 +348,8 @@ def main(args):
 
         allMethods_results.append(method_result)
         shutil.rmtree(checkpoint_path)
+        with open("DAL_detail.pkl",'wb') as f:
+            pkl.dump(acquisition_function.savedData, f)
 
 if __name__ == "__main__":
     args = parse_args()
