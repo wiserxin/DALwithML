@@ -54,7 +54,7 @@ test_performance = trainer.train_supervisedLearning(60,
                                                     train_data,
                                                     val_data,
                                                     0.004,
-                                                    checkpoint_path=r'./result',
+                                                    checkpoint_path=r'./result/test/',
                                                     batch_size=2048,
                                                     )
 
