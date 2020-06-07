@@ -325,26 +325,26 @@ def main(args):
             #--------------------------Send data for a visual web page------------------------------
             max_performance = config["max_performance"] if "max_performance" in config else 0
 
-            if "group_name" in config:
-                updateLineChart(str(test_performance), sample_method, gp_name=config["group_name"], max=max_performance)
-            else:
-                updateLineChart(str(test_performance), sample_method, max=max_performance)
+            # if "group_name" in config:
+            #     updateLineChart(str(test_performance), sample_method, gp_name=config["group_name"], max=max_performance)
+            # else:
+            #     updateLineChart(str(test_performance), sample_method, max=max_performance)
 
             method_result.append(test_performance)
-            # with open('result.txt', 'a') as f:
-            #     print("acq round {} : \t {}"
-            #           .format(i,test_performance),
-            #           file=f)
+            with open(os.path.join("result",sample_method+".txt"), 'a') as f:
+                print("acq round {} : \t {}"
+                      .format(i,test_performance),
+                      file=f)
 
         print("acquire_method: {}，sub_acquire_method: {}, warm_start_random_seed{}"
               .format(acquire_method, sub_acquire_method, warm_start_random_seed))
         print(method_result)
-        # with open('result.txt','a') as f:
-        #     print("acquire_method: {}，sub_acquire_method: {}, warm_start_random_seed{}"
-        #           .format(acquire_method, sub_acquire_method, warm_start_random_seed),
-        #           file=f )
-        #     print(method_result, file=f )
-        #     print('', file=f)
+        with open(os.path.join("result",sample_method+".txt"),'a') as f:
+            print("acquire_method: {},sub_acquire_method: {}, warm_start_random_seed{}"
+                  .format(acquire_method, sub_acquire_method, warm_start_random_seed),
+                  file=f )
+            print(method_result, file=f )
+            print('', file=f)
 
         allMethods_results.append(method_result)
         shutil.rmtree(checkpoint_path)
