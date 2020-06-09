@@ -8,3 +8,5 @@ test2.py
 result/modelweights
 test3.py
 DAL_dele_arr.txt
+*.swp
+*.pkl
