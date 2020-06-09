@@ -144,7 +144,7 @@ class Acquisition(object):
             # print("new_score_seq:",len(new_score_seq),len(new_score_seq[0]),len(new_score_seq[0][0]))
 
             for index, item in enumerate(new_score_seq):
-                # shape: batch_size * labels * nsample
+                # shape: batch_size * nsample * nlabel
 
 
                 def rankedList(rList):
@@ -153,8 +153,10 @@ class Acquisition(object):
                     discounts = np.log2(np.arange(len(rList)) + 2)
                     return np.sum(gain / discounts)
 
-                tp1 = item
-                item = np.transpose(np.array(item)).tolist()
+                tp1 = item # shape: nsample * nlabel
+                item = np.transpose(np.array(item)).tolist() # shape: labels * nsample
+
+
                 dList = []
                 for i in range(len(tp1)):
                     rL = sorted(tp1[i], reverse=True)
@@ -176,7 +178,10 @@ class Acquisition(object):
                 obj = {}
                 obj["id"] = pt
                 obj["el"] = np.mean(np.array(dList)) - np.mean(np.array(dList2))
-                # obj["el"] = np.mean(np.array(dList)) #测试 一些
+                # obj["el"] = np.mean(np.array(dList)) # 0 测试 一些
+                obj["el"] = obj["el"] * np.sum(item) # 1 测试增加labels维度是否有提升
+                                                     # 2 测试labels映射到{0,1}是否有提升
+                                                     # 3 测试labels不sigmoid性能如何
 
                 if obj["el"] < 0:
                     print("elo error")
