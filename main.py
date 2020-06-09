@@ -153,7 +153,7 @@ def main(args):
             "init_question_num": 400,
             "acquire_question_num_per_round": 400,
             "warm_start_random_seed": 64,
-            "sample_method": "No-Deterministic+MDAL2-400*20-800b+64",
+            "sample_method": "No-Deterministic+MDAL2.6-400*20-800b+64",
         },{
             "model_name": "CNN",
             "group_name": "[mlabs]KIM+DAL+1e4trn",
@@ -167,7 +167,7 @@ def main(args):
             "init_question_num": 400,
             "acquire_question_num_per_round": 400,
             "warm_start_random_seed": 32,
-            "sample_method": "No-Deterministic+MDAL2-400*20-800b+32",
+            "sample_method": "No-Deterministic+MDAL2.6-400*20-800b+32",
         },
 
 
@@ -352,7 +352,7 @@ def main(args):
 
         allMethods_results.append(method_result)
         shutil.rmtree(checkpoint_path)
-        with open("MDAL2_detail.pkl",'wb') as f:
+        with open("MDAL2.6_detail.pkl",'wb') as f:
             pkl.dump(acquisition_function.savedData, f)
 
 if __name__ == "__main__":
