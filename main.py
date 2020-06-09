@@ -237,7 +237,7 @@ def main(args):
             os.makedirs(checkpoint_path)
 
         with open(visual_data_path, 'a') as f:
-            print(sample_method,num_acquisitions_round,sep='\t',file=f)
+            print(config["group_name"],sample_method,num_acquisitions_round,sep='\t',file=f)
 
         method_result = []  # Record the performance results of each method during active learning
         ####################################### acquire data and retrain ###########################################
