@@ -25,8 +25,8 @@ def parse_args():
     parser.add_argument('--answer_count', type=int, default=5, help='the amount of answer for each quesiton')
     parser.add_argument('--num_epochs', type=int, default=40, help='training epoch')
     parser.add_argument('--use_pretrained_word_embedding', type=bool, default=True, help='')
-    parser.add_argument('--batch_size', type=int, default=2048, help='')
-    parser.add_argument('--sampling_batch_size', type=int, default=2048, help='')
+    parser.add_argument('--batch_size', type=int, default=2000, help='')
+    parser.add_argument('--sampling_batch_size', type=int, default=2000, help='')
     parser.add_argument('--with_sim_feature', type=bool, default=True, help='whether use sim_feature in deep model')
     parser.add_argument('--word_embedding_dim', type=int, default=300, help='')
     parser.add_argument('--pretrained_word_embedding', default="../../datasets/rcv2/glove.6B.300d.txt", help='')
@@ -192,6 +192,7 @@ def main(args):
         acquire_question_num_per_round = config["acquire_question_num_per_round"] if "acquire_question_num_per_round" in config else 100 #Number of samples collected per round
         warm_start_random_seed = config["warm_start_random_seed"]  # the random seed for selecting the initial training set
         sample_method = config["sample_method"]
+        visual_data_path = os.path.join("result", sample_method + ".txt")
 
         loader = Loader()
 
@@ -234,6 +235,9 @@ def main(args):
         checkpoint_path = os.path.join(args.result_path, 'active_checkpoint', config["group_name"], sample_method)
         if not os.path.exists(checkpoint_path):
             os.makedirs(checkpoint_path)
+
+        with open(visual_data_path, 'a') as f:
+            print(sample_method,num_acquisitions_round,sep='\t',file=f)
 
         method_result = []  # Record the performance results of each method during active learning
         ####################################### acquire data and retrain ###########################################
@@ -331,7 +335,7 @@ def main(args):
             #     updateLineChart(str(test_performance), sample_method, max=max_performance)
 
             method_result.append(test_performance)
-            with open(os.path.join("result",sample_method+".txt"), 'a') as f:
+            with open(visual_data_path, 'a') as f:
                 print("acq round {} : \t {}"
                       .format(i,test_performance),
                       file=f)
@@ -339,7 +343,7 @@ def main(args):
         print("acquire_method: {}，sub_acquire_method: {}, warm_start_random_seed{}"
               .format(acquire_method, sub_acquire_method, warm_start_random_seed))
         print(method_result)
-        with open(os.path.join("result",sample_method+".txt"),'a') as f:
+        with open(visual_data_path,'a') as f:
             print("acquire_method: {},sub_acquire_method: {}, warm_start_random_seed{}"
                   .format(acquire_method, sub_acquire_method, warm_start_random_seed),
                   file=f )
