@@ -25,8 +25,8 @@ def parse_args():
     parser.add_argument('--answer_count', type=int, default=5, help='the amount of answer for each quesiton')
     parser.add_argument('--num_epochs', type=int, default=40, help='training epoch')
     parser.add_argument('--use_pretrained_word_embedding', type=bool, default=True, help='')
-    parser.add_argument('--batch_size', type=int, default=2000, help='')
-    parser.add_argument('--sampling_batch_size', type=int, default=2000, help='')
+    parser.add_argument('--batch_size', type=int, default=800, help='')
+    parser.add_argument('--sampling_batch_size', type=int, default=800, help='')
     parser.add_argument('--with_sim_feature', type=bool, default=True, help='whether use sim_feature in deep model')
     parser.add_argument('--word_embedding_dim', type=int, default=300, help='')
     parser.add_argument('--pretrained_word_embedding', default="../../datasets/rcv2/glove.6B.300d.txt", help='')
@@ -67,7 +67,7 @@ def main(args):
         #     "init_question_num": 400,
         #     "acquire_question_num_per_round": 400,
         #     "warm_start_random_seed": 0,
-        #     "sample_method": "Random+400*20-0",
+        #     "sample_method": "Random+400*20-800b-0",
         # },{
         #     "model_name": "CNN",
         #     "group_name": "[mlabs]KIM+DAL+1e4trn",
@@ -81,7 +81,7 @@ def main(args):
         #     "init_question_num": 400,
         #     "acquire_question_num_per_round": 400,
         #     "warm_start_random_seed": 16,
-        #     "sample_method": "Random+400*20-16",
+        #     "sample_method": "Random+400*20-800b-16",
         # },{
         #     "model_name": "CNN",
         #     "group_name": "[mlabs]KIM+DAL+1e4trn",
@@ -95,7 +95,7 @@ def main(args):
         #     "init_question_num": 400,
         #     "acquire_question_num_per_round": 400,
         #     "warm_start_random_seed": 32,
-        #     "sample_method": "Random+400*20-32",
+        #     "sample_method": "Random+400*20-800b-32",
         # },{
         #     "model_name": "CNN",
         #     "group_name": "[mlabs]KIM+DAL+1e4trn",
@@ -109,7 +109,7 @@ def main(args):
         #     "init_question_num": 400,
         #     "acquire_question_num_per_round": 400,
         #     "warm_start_random_seed": 64,
-        #     "sample_method": "Random+400*20-64",
+        #     "sample_method": "Random+400*20-800b-64",
         # },
 
         {
@@ -125,35 +125,7 @@ def main(args):
         #     "init_question_num": 400,
         #     "acquire_question_num_per_round": 400,
         #     "warm_start_random_seed": 0,
-        #     "sample_method": "No-Deterministic+DAL-400*20+0",
-        # },{
-        #     "model_name": "CNN",
-        #     "group_name": "[mlabs]KIM+DAL+1e4trn",
-        #     "max_performance": 0.90,
-        #     "data_path": "../../datasets/rcv2/",
-        #     "acquire_method": "no-dete",
-        #     "sub_acquire_method": "DAL",
-        #     "unsupervised_method": 'submodular',
-        #     "submodular_k": 2,
-        #     "num_acquisitions_round": 20,
-        #     "init_question_num": 400,
-        #     "acquire_question_num_per_round": 400,
-        #     "warm_start_random_seed": 16,
-        #     "sample_method": "No-Deterministic+DAL-400*20+16",
-        # },{
-        #     "model_name": "CNN",
-        #     "group_name": "[mlabs]KIM+DAL+1e4trn",
-        #     "max_performance": 0.90,
-        #     "data_path": "../../datasets/rcv2/",
-        #     "acquire_method": "no-dete",
-        #     "sub_acquire_method": "DAL",
-        #     "unsupervised_method": 'submodular',
-        #     "submodular_k": 2,
-        #     "num_acquisitions_round": 20,
-        #     "init_question_num": 400,
-        #     "acquire_question_num_per_round": 400,
-        #     "warm_start_random_seed": 32,
-        #     "sample_method": "No-Deterministic+DAL-400*20+32",
+        #     "sample_method": "No-Deterministic+DAL-400*20-800b+0",
         # },{
             "model_name": "CNN",
             "group_name": "[mlabs]KIM+DAL+1e4trn",
@@ -166,8 +138,36 @@ def main(args):
             "num_acquisitions_round": 20,
             "init_question_num": 400,
             "acquire_question_num_per_round": 400,
-            "warm_start_random_seed": 256,
-            "sample_method": "No-Deterministic+DAL-400*20+256",
+            "warm_start_random_seed": 16,
+            "sample_method": "No-Deterministic+DAL-400*20-800b+16",
+        },{
+            "model_name": "CNN",
+            "group_name": "[mlabs]KIM+DAL+1e4trn",
+            "max_performance": 0.90,
+            "data_path": "../../datasets/rcv2/",
+            "acquire_method": "no-dete",
+            "sub_acquire_method": "DAL",
+            "unsupervised_method": 'submodular',
+            "submodular_k": 2,
+            "num_acquisitions_round": 20,
+            "init_question_num": 400,
+            "acquire_question_num_per_round": 400,
+            "warm_start_random_seed": 32,
+            "sample_method": "No-Deterministic+DAL-400*20-800b+32",
+        },{
+            "model_name": "CNN",
+            "group_name": "[mlabs]KIM+DAL+1e4trn",
+            "max_performance": 0.90,
+            "data_path": "../../datasets/rcv2/",
+            "acquire_method": "no-dete",
+            "sub_acquire_method": "DAL",
+            "unsupervised_method": 'submodular',
+            "submodular_k": 2,
+            "num_acquisitions_round": 20,
+            "init_question_num": 400,
+            "acquire_question_num_per_round": 400,
+            "warm_start_random_seed": 64,
+            "sample_method": "No-Deterministic+DAL-400*20-800b+64",
         },
 
 
@@ -352,8 +352,8 @@ def main(args):
 
         allMethods_results.append(method_result)
         shutil.rmtree(checkpoint_path)
-        with open("DAL_detail.pkl",'wb') as f:
-            pkl.dump(acquisition_function.savedData, f)
+        # with open("DAL_detail.pkl",'wb') as f:
+        #     pkl.dump(acquisition_function.savedData, f)
 
 if __name__ == "__main__":
     args = parse_args()
