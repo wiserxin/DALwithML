@@ -9,7 +9,7 @@ from email.mime.base import MIMEBase
 import email
 import os
 import argparse
-
+import sys
 
 class send_mail:
     def __init__(self, From, To, Cc, pw, file_path, file_header, file_body):
@@ -93,6 +93,13 @@ args = parser.parse_args()
 
 if __name__ == '__main__':
     # print(args)
-    s = send_mail(args.From, [args.To], args.Cc, args.pw, args.file_path, args.header, args.body)
-    s.login()
-    print('发送成功！')
+    try:
+        s = send_mail(args.From, [args.To], args.Cc, args.pw, args.file_path, args.header, args.body)
+        s.login()
+        print('发送成功！')
+        sys.exit(0)
+    except Exception as e:
+        print("发送失败 QaQ ")
+        print(e)
+        sys.exit(-1)
+
