@@ -352,7 +352,7 @@ def main(args):
 
         allMethods_results.append(method_result)
         shutil.rmtree(checkpoint_path)
-        with open("MDAL2.9_detail.pkl",'wb') as f:
+        with open("MDAL2.5_detail.pkl",'wb') as f:
             pkl.dump(acquisition_function.savedData, f)
 
 if __name__ == "__main__":
