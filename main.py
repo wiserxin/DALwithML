@@ -141,29 +141,29 @@ def main(args):
         #     "warm_start_random_seed": 16,
         #     "sample_method": "No-Deterministic+DAL-400*20-800b+16",
         # },{
-        #     "model_name": "CNN",
-        #     "group_name": "[mlabs]KIM+DAL+1e4trn",
-        #     "max_performance": 0.90,
-        #     "data_path": "../../datasets/rcv2/",
-        #     "acquire_method": "no-dete",
-        #     "sub_acquire_method": "DAL",
-        #     "unsupervised_method": 'submodular',
-        #     "submodular_k": 2,
-        #     "num_acquisitions_round": 20,
-        #     "init_question_num": 400,
-        #     "acquire_question_num_per_round": 400,
-        #     "warm_start_random_seed": 64,
-        #     "sample_method": "No-Deterministic+MDAL4.2-400*20-800b+64",
-        # },{
             "model_name": "CNN",
-            "group_name": "[mlabs]KIM+DAL+1e4trn",
+            "group_name": "[mlabs]KIM+DAL+3e4trn",
             "max_performance": 0.90,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "no-dete",
             "sub_acquire_method": "MDAL4.4",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
-            "num_acquisitions_round": 20,
+            "num_acquisitions_round": 30,
+            "init_question_num": 400,
+            "acquire_question_num_per_round": 400,
+            "warm_start_random_seed": 32,
+            "sample_method": "No-Deterministic+MDAL4.4-400*20-800b+32",
+        },{
+            "model_name": "CNN",
+            "group_name": "[mlabs]KIM+DAL+3e4trn",
+            "max_performance": 0.90,
+            "data_path": "../../datasets/rcv2/",
+            "acquire_method": "no-dete",
+            "sub_acquire_method": "MDAL4.4",
+            "unsupervised_method": 'submodular',
+            "submodular_k": 2,
+            "num_acquisitions_round": 30,
             "init_question_num": 400,
             "acquire_question_num_per_round": 400,
             "warm_start_random_seed": 64,
@@ -214,7 +214,7 @@ def main(args):
         train_data = data['train_points']
         val_data = data['test_points']
 
-        train_data  = train_data[:10000]
+        train_data  = train_data[:30000]
         val_data    = val_data[:2000]
 
         #word embedding
@@ -352,7 +352,7 @@ def main(args):
 
         allMethods_results.append(method_result)
         shutil.rmtree(checkpoint_path)
-        with open(sample_method.split('+')[1].split('-')[0]+"_detail.pkl",'wb') as f:
+        with open(group_name+sample_method.split('+')[1].split('-')[0]+"_detail.pkl",'wb') as f:
             pkl.dump(acquisition_function.savedData, f)
 
 if __name__ == "__main__":
