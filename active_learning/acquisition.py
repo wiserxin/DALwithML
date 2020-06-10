@@ -182,7 +182,8 @@ class Acquisition(object):
                 # obj["el"] = obj["el"] * np.sum(item)      # 1 测试增加labels维度是否有提升  -- 惨，前期=随机，中期略高于随机，后期与随机不相上下
                 # obj["el"] = obj["el"]*(1+np.sum(np.array(item)>0.5))  # 2 测试labels映射到{0,1}是否有提升
                                                      # 3 测试labels不sigmoid性能如何
-                obj["el"] = obj["el"]*np.sum( 1-abs(1-2*np.array(item)) )    # 4 测试 inconfidence * el |  inconfidence = 1-abs(2*score-1)
+                # obj["el"] = obj["el"]*np.sum( 1-abs(1-2*np.array(item)) )    # 4 测试 inconfidence * el |  inconfidence = 1-abs(2*score-1)
+                obj["el"] = obj["el"] + np.mean( 1-abs(1-2*np.array(item)) )     # 4.2 测试 inconfidence + el
 
                 if obj["el"] < 0:
                     print("elo error")
