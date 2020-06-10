@@ -180,7 +180,7 @@ class Acquisition(object):
                 obj["el"] = np.mean(np.array(dList)) - np.mean(np.array(dList2))
                 # obj["el"] = np.mean(np.array(dList))      # 0 测试 一些
                 # obj["el"] = obj["el"] * np.sum(item)      # 1 测试增加labels维度是否有提升  -- 惨，前期=随机，中期略高于随机，后期与随机不相上下
-                obj["el"] = obj["el"]*(1+np.sum(np.array(item)>0.9))  # 2 测试labels映射到{0,1}是否有提升
+                obj["el"] = obj["el"]*(1+np.sum(np.array(item)>0.5))  # 2 测试labels映射到{0,1}是否有提升
                                                      # 3 测试labels不sigmoid性能如何
 
                 if obj["el"] < 0:
