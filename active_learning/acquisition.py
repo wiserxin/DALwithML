@@ -244,6 +244,7 @@ class Acquisition(object):
                 nsamp=100,
                 model_name='',
                 returned=False,
+                thisround=-1,
                 ):
 
         model = torch.load(model_path)
@@ -352,8 +353,12 @@ class Acquisition(object):
                 # obj["el"] = obj["el"]*(1+np.sum(np.array(item)>0.5))          # 2 测试labels映射到{0,1}是否有提升
                                                                                 # 3 测试labels不sigmoid性能如何
                 # obj["el"] = obj["el"]*np.sum( 1-abs(1-2*np.array(item)) )     # 4 测试 inconfidence * el |  inconfidence = 1-abs(2*score-1)
-                obj["el"] = obj["el"] + np.mean( 1-abs(1-2*np.array(item)) )  # 4.2 测试 inconfidence + el
-                                                                                # 前5轮inconfidence,之后都是el
+                if thisround==0:
+                    obj["el"] = obj["el"] + np.mean( 1-abs(1-2*np.array(item)) )  # 4.2 测试 inconfidence + el
+                                                                                # 4.3 前5轮inconfidence,之后都是el
+                else:
+                    obj["el"] = obj["el"] + \
+                                1/np.sqrt(thisround+1)*np.mean( 1-abs(1-2*np.array(item)) )  # 4.4 动态inconfidence权重 1/sqrt(r)*IC
 
                 if obj["el"] < 0:
                     print("elo error")
@@ -430,6 +435,8 @@ class Acquisition(object):
                     else:
                         self.get_DAL(data, model_path, acquire_num, model_name=model_name)
                     pass
+                elif sub_method == 'MDAL4.4':
+                    self.get_DALplusIC(ata, model_path, acquire_num, model_name=model_name,thisround=round)
                 else:
                     assert 'not progressed'
             else:
