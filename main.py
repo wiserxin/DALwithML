@@ -166,8 +166,8 @@ def main(args):
             "num_acquisitions_round": 20,
             "init_question_num": 400,
             "acquire_question_num_per_round": 400,
-            "warm_start_random_seed": 64,
-            "sample_method": "No-Determiistic+MDAL4-400*20-800b+64",
+            "warm_start_random_seed": 32,
+            "sample_method": "No-Determiistic+MDAL4-400*20-800b+32",
         },
 
 
@@ -352,7 +352,7 @@ def main(args):
 
         allMethods_results.append(method_result)
         shutil.rmtree(checkpoint_path)
-        with open("MDAL4_detail.pkl",'wb') as f:
+        with open(sample_method.split('+')[1].split('-')[0]+"_detail.pkl",'wb') as f:
             pkl.dump(acquisition_function.savedData, f)
 
 if __name__ == "__main__":
