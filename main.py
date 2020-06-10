@@ -167,7 +167,7 @@ def main(args):
             "init_question_num": 400,
             "acquire_question_num_per_round": 400,
             "warm_start_random_seed": 32,
-            "sample_method": "No-Determiistic+MDAL4.2-400*20-800b+32",
+            "sample_method": "No-Deterministic+MDAL4.2-400*20-800b+32",
         },
 
 
