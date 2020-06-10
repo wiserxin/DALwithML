@@ -184,7 +184,8 @@ class Acquisition(object):
                                                                                 # 3 测试labels不sigmoid性能如何
                 # obj["el"] = obj["el"]*np.sum( 1-abs(1-2*np.array(item)) )     # 4 测试 inconfidence * el |  inconfidence = 1-abs(2*score-1)
                 # obj["el"] = obj["el"] + np.mean( 1-abs(1-2*np.array(item)) )  # 4.2 测试 inconfidence + el
-                                                                                # 前5轮inconfidence,之后都是el
+                                                                                # 4.3 前5轮inconfidence,之后都是el
+                                                                                # 4.4 动态inconfidence权重 el+1/sqrt(r)*IC
 
                 if obj["el"] < 0:
                     print("elo error")
@@ -436,7 +437,7 @@ class Acquisition(object):
                         self.get_DAL(data, model_path, acquire_num, model_name=model_name)
                     pass
                 elif sub_method == 'MDAL4.4':
-                    self.get_DALplusIC(ata, model_path, acquire_num, model_name=model_name,thisround=round)
+                    self.get_DALplusIC(data, model_path, acquire_num, model_name=model_name,thisround=round)
                 else:
                     assert 'not progressed'
             else:
