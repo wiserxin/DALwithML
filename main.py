@@ -160,14 +160,14 @@ def main(args):
             "max_performance": 0.90,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "no-dete",
-            "sub_acquire_method": "DAL",
+            "sub_acquire_method": "MDAL4.3",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 20,
             "init_question_num": 400,
             "acquire_question_num_per_round": 400,
             "warm_start_random_seed": 0,
-            "sample_method": "No-Deterministic+MDAL4.2-400*20-800b+0",
+            "sample_method": "No-Deterministic+MDAL4.3-400*20-800b+0",
         },
 
 

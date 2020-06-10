@@ -180,10 +180,11 @@ class Acquisition(object):
                 obj["el"] = np.mean(np.array(dList)) - np.mean(np.array(dList2))
                 # obj["el"] = np.mean(np.array(dList))      # 0 测试 一些
                 # obj["el"] = obj["el"] * np.sum(item)      # 1 测试增加labels维度是否有提升  -- 惨，前期=随机，中期略高于随机，后期与随机不相上下
-                # obj["el"] = obj["el"]*(1+np.sum(np.array(item)>0.5))  # 2 测试labels映射到{0,1}是否有提升
-                                                     # 3 测试labels不sigmoid性能如何
-                # obj["el"] = obj["el"]*np.sum( 1-abs(1-2*np.array(item)) )    # 4 测试 inconfidence * el |  inconfidence = 1-abs(2*score-1)
-                obj["el"] = obj["el"] + np.mean( 1-abs(1-2*np.array(item)) )     # 4.2 测试 inconfidence + el
+                # obj["el"] = obj["el"]*(1+np.sum(np.array(item)>0.5))          # 2 测试labels映射到{0,1}是否有提升
+                                                                                # 3 测试labels不sigmoid性能如何
+                # obj["el"] = obj["el"]*np.sum( 1-abs(1-2*np.array(item)) )     # 4 测试 inconfidence * el |  inconfidence = 1-abs(2*score-1)
+                # obj["el"] = obj["el"] + np.mean( 1-abs(1-2*np.array(item)) )  # 4.2 测试 inconfidence + el
+                                                                                # 前5轮inconfidence,之后都是el
 
                 if obj["el"] < 0:
                     print("elo error")
@@ -238,6 +239,175 @@ class Acquisition(object):
                                  "index2id":{_index:p[3] for _index,p in enumerate(new_dataset)},
                                  "_delt_arr":_delt_arr } )
 
+    # el + inconfidence
+    def get_DALplusIC(self, dataset, model_path, acquire_document_num,
+                nsamp=100,
+                model_name='',
+                returned=False,
+                ):
+
+        model = torch.load(model_path)
+        model.train(True) # 保持 dropout 开启
+        tm = time.time()
+
+        # data without id
+        new_dataset = [datapoint for j, datapoint in enumerate(dataset) if j not in list(self.train_index)]
+
+        # id that not in train_index
+        new_datapoints = [j for j in range(len(dataset)) if j not in list(self.train_index)]
+
+        print('DALplusIC: preparing batch data',end='')
+        data_batches = create_batches(new_dataset, batch_size=self.batch_size, order='no')
+
+        pt = 0
+        _delt_arr = []
+
+        for iter_batch,data in enumerate(data_batches):
+            print('\rDALplusIC acquire batch {}/{}'.format(iter_batch,len(data_batches)),end='')
+
+            batch_data_numpy  = data['data_numpy']
+            batch_data_points = data['data_points']
+
+            X = batch_data_numpy[0]
+            Y = batch_data_numpy[1]
+
+            if self.usecuda:
+                X = Variable(torch.from_numpy(X).long()).cuda(self.cuda_device)
+            else:
+                X = Variable(torch.from_numpy(X).long())
+
+
+            tag_arr = []
+            score_arr = []
+            real_tag_arr = []
+            # sigma_total = torch.zeros((nsamp, words_q.size(0))) # ???
+
+            for itr in range(nsamp):
+
+                if model_name == 'BiLSTM':
+                    # output = model(words_q, words_a, wordslen_q, wordslen_a)
+                    pass
+                elif model_name == 'CNN':
+                    output = model(X)
+
+                score = torch.sigmoid(output).data.cpu().numpy().tolist()
+                # score = torch.softmax(output,dim=1).data.cpu().numpy().tolist() # 测试softmax
+                # score = F.logsigmoid(output).data.cpu().numpy().tolist()
+
+                score_arr.append(score)
+
+                # evidence level , using confidence stratgy
+                # score_arr.append(torch.abs(score-0.5))
+
+
+            # print("score_arr:",len(score_arr),len(score_arr[0]),len(score_arr[0][0]))
+
+            # new_score_seq = np.array(score_arr).transpose(0, 1).tolist()
+            new_score_seq = []  # size: btach_size * nsample * nlabel
+            for m in range(len(Y)):
+                tp = []
+                for n in range(nsamp):
+                    tp.append(score_arr[n][m])
+                new_score_seq.append(tp)
+
+            # print("new_score_seq:",len(new_score_seq),len(new_score_seq[0]),len(new_score_seq[0][0]))
+
+            for index, item in enumerate(new_score_seq):
+                # shape: batch_size * nsample * nlabel
+
+
+                def rankedList(rList):
+                    rList = np.array(rList)
+                    gain = 2 ** rList - 1
+                    discounts = np.log2(np.arange(len(rList)) + 2)
+                    return np.sum(gain / discounts)
+
+                tp1 = item # shape: nsample * nlabel
+                item = np.transpose(np.array(item)).tolist() # shape: labels * nsample
+
+
+                dList = []
+                for i in range(len(tp1)):
+                    rL = sorted(tp1[i], reverse=True)
+                    dList.append(rankedList(rL))
+
+                # t = np.mean(2 ** np.array(item) - 1, axis=1)
+                # rankedt = sorted(t.tolist(), reverse=True)
+                # d = rankedList(rankedt)
+
+                item_arr = np.array(item)
+
+                t = np.mean(item_arr, axis=1)
+                rankedt = np.transpose(item_arr[(-t).argsort()]).tolist()  # nsamp, 5
+
+                dList2 = []
+                for i in range(len(rankedt)):
+                    dList2.append(rankedList(rankedt[i]))
+
+                obj = {}
+                obj["id"] = pt
+                obj["el"] = np.mean(np.array(dList)) - np.mean(np.array(dList2))
+                # obj["el"] = np.mean(np.array(dList))      # 0 测试 一些
+                # obj["el"] = obj["el"] * np.sum(item)      # 1 测试增加labels维度是否有提升  -- 惨，前期=随机，中期略高于随机，后期与随机不相上下
+                # obj["el"] = obj["el"]*(1+np.sum(np.array(item)>0.5))          # 2 测试labels映射到{0,1}是否有提升
+                                                                                # 3 测试labels不sigmoid性能如何
+                # obj["el"] = obj["el"]*np.sum( 1-abs(1-2*np.array(item)) )     # 4 测试 inconfidence * el |  inconfidence = 1-abs(2*score-1)
+                obj["el"] = obj["el"] + np.mean( 1-abs(1-2*np.array(item)) )  # 4.2 测试 inconfidence + el
+                                                                                # 前5轮inconfidence,之后都是el
+
+                if obj["el"] < 0:
+                    print("elo error")
+                    exit()
+
+                _delt_arr.append(obj)
+                pt += 1
+        print()
+
+        _delt_arr = sorted(_delt_arr, key=lambda o: o["el"], reverse=True) # 从大到小排序
+        # _delt_arr = sorted(_delt_arr, key=lambda o: o["el"], reverse=False)  # 从小到大排序 测试效果如何
+
+        # with open( "DAL_dele_arr.txt" , 'a+' ) as f:
+        #     temp_delt_arr = [ i["el"] for i in _delt_arr ]
+        #     print( temp_delt_arr ,file=f)
+
+        cur_indices = set()
+        i = 0
+
+        while len(cur_indices) < acquire_document_num:
+            try:
+                cur_indices.add(new_datapoints[_delt_arr[i]["id"]])
+                i += 1
+            except:
+                print(acquire_document_num)
+                print(i)
+                print(type(new_datapoints),len(new_datapoints))
+                print(new_datapoints[:10])
+                print(_delt_arr[i])
+                assert False
+
+        if not returned:
+            # print("DAL acquiring:",sorted(cur_indices))
+            self.train_index.update(cur_indices)
+            print('DALplusIC time consuming： %d seconds:' % (time.time() - tm))
+            # print('now type1:type2 = {}:{}'.format(
+            #                     sum([1 if i<200 else 0 for i in self.train_index ]) ,
+            #                     sum([1 if i >= 200 else 0 for i in self.train_index]),
+            #       ))
+        else:
+            sorted_cur_indices = list(cur_indices)
+            sorted_cur_indices.sort()
+            dataset_pool = []
+            for m in range(len(sorted_cur_indices)):
+                item = dataset[sorted_cur_indices[m]]
+                item["index"] = sorted_cur_indices[m]
+                dataset_pool.append(item)
+
+            return dataset_pool, cur_indices
+
+        self.savedData.append( { "added_index":cur_indices,
+                                 "index2id":{_index:p[3] for _index,p in enumerate(new_dataset)},
+                                 "_delt_arr":_delt_arr } )
+
     def obtain_data(self, data, model_path=None, model_name=None, acquire_num=2,
                     method='random', sub_method='', unsupervised_method='', round = 0):
 
@@ -254,6 +424,12 @@ class Acquisition(object):
             elif method == 'no-dete': # Bayesian neural network based method
                 if sub_method == 'DAL':
                     self.get_DAL(data, model_path, acquire_num, model_name=model_name)
+                elif sub_method == 'MDAL4.3':
+                    if round < 5:
+                        self.get_DALplusIC(data, model_path, acquire_num, model_name=model_name)
+                    else:
+                        self.get_DAL(data, model_path, acquire_num, model_name=model_name)
+                    pass
                 else:
                     assert 'not progressed'
             else:
