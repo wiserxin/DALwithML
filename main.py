@@ -352,7 +352,7 @@ def main(args):
 
         allMethods_results.append(method_result)
         shutil.rmtree(checkpoint_path)
-        with open(group_name+sample_method.split('+')[1].split('-')[0]+"_detail.pkl",'wb') as f:
+        with open(config["group_name"]+sample_method.split('+')[1].split('-')[0]+"_detail.pkl",'wb') as f:
             pkl.dump(acquisition_function.savedData, f)
 
 if __name__ == "__main__":
