@@ -335,6 +335,10 @@ def main(args):
             #     updateLineChart(str(test_performance), sample_method, max=max_performance)
 
             method_result.append(test_performance)
+
+            if not os.path.exists(visual_data_path): # 被zip.sh删掉了,需要重新创建，并写头信息
+                with open(visual_data_path, 'a') as f:
+                    print(config["group_name"], sample_method, num_acquisitions_round, sep='\t', file=f)
             with open(visual_data_path, 'a') as f:
                 print("acq round {} : \t {}"
                       .format(i,test_performance),
