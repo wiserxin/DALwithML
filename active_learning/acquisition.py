@@ -522,6 +522,10 @@ class Acquisition(object):
                 obj = {}
                 obj["id"] = pt
                 obj["el"] = np.mean(np.array(dList)) - np.mean(np.array(dList2))
+                obj["sc"] = np.mean(np.array(item),axis=1)
+                print(obj["sc"].shape)
+                print(obj["sc"])
+                assert 1==-1
 
                 if obj["el"] < 0:
                     print("elo error")
