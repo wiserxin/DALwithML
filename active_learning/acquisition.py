@@ -592,14 +592,14 @@ class Acquisition(object):
         # id that not in train_index
         new_datapoints = [j for j in range(len(dataset)) if j not in list(self.train_index)]
 
-        print('RS2HEL: preparing batch data',end='')
+        print('BEL: preparing batch data',end='')
         data_batches = create_batches(new_dataset, batch_size=self.batch_size, order='no')
 
         pt = 0
         _delt_arr = []
 
         for iter_batch,data in enumerate(data_batches):
-            print('\rRS2HEL acquire batch {}/{}'.format(iter_batch,len(data_batches)),end='')
+            print('\rBEL acquire batch {}/{}'.format(iter_batch,len(data_batches)),end='')
 
             batch_data_numpy  = data['data_numpy']
             batch_data_points = data['data_points']
@@ -704,7 +704,6 @@ class Acquisition(object):
 
         clf = KMeans(n_clusters=acquire_document_num, random_state=self.random_seed)
         clf_y = clf.fit_predict([i["sc"] for i in sample_domin])
-
         for cluster in range(0, acquire_document_num):
             cluster_indexs = np.where(clf_y == cluster)[0]
             # where 返回一个 tuple ? 很奇怪
