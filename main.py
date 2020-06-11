@@ -166,8 +166,8 @@ def main(args):
             "num_acquisitions_round": 20,
             "init_question_num": 400,
             "acquire_question_num_per_round": 400,
-            "warm_start_random_seed": 0,
-            "sample_method": "No-Deterministic+RS2HEL-400*20-800b+0",
+            "warm_start_random_seed": 16,
+            "sample_method": "No-Deterministic+RS2HEL-400*20-800b+16",
         },
 
 
