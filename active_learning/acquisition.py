@@ -418,6 +418,7 @@ class Acquisition(object):
                 nsamp=100,
                 model_name='',
                 returned=False,
+                thisround=-1,
                 ):
 
         model = torch.load(model_path)
@@ -538,7 +539,8 @@ class Acquisition(object):
 
         # 在前 4*acquire_document_num 中随机选 acquire_document_num 个 （未标记样本足够的话）
         sample_domin = min(4*acquire_document_num, len(new_dataset))
-        sample_domin = self.npr.permutation(range(sample_domin))
+        sample_domin =  range( (max(3-thisround,0)+1) * sample_domin )
+        sample_domin = self.npr.permutation(sample_domin)
 
         while len(cur_indices) < acquire_document_num:
             try:
@@ -598,7 +600,7 @@ class Acquisition(object):
                 elif sub_method == 'MDAL4.4':
                     self.get_DALplusIC(data, model_path, acquire_num, model_name=model_name,thisround=round)
                 elif sub_method == 'RS2HEL': # random sampling to ins with high el values
-                    self.get_RS2HEL(data, model_path, acquire_num, model_name=model_name,)
+                    self.get_RS2HEL(data, model_path, acquire_num, model_name=model_name,thisround=round)
                 else:
                     assert 'not progressed'
             else:
