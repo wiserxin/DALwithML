@@ -8,6 +8,7 @@ from neural.util.utils import *
 from sklearn.metrics.pairwise import cosine_similarity
 import torch.nn.functional as F
 from .unsupervised import *
+from sklearn.cluster import KMeans
 
 
 class Acquisition(object):
@@ -22,6 +23,7 @@ class Acquisition(object):
         self.document_num = len(train_data)
         self.train_index = set()  #the index of the labeled samples
         self.pseudo_train_data = []
+        self.random_seed = seed
         self.npr = np.random.RandomState(seed)
         self.usecuda = usecuda
         self.cuda_device = cuda_device
@@ -522,10 +524,6 @@ class Acquisition(object):
                 obj = {}
                 obj["id"] = pt
                 obj["el"] = np.mean(np.array(dList)) - np.mean(np.array(dList2))
-                obj["sc"] = np.mean(np.array(item),axis=1)
-                print(obj["sc"].shape)
-                print(obj["sc"])
-                assert 1==-1
 
                 if obj["el"] < 0:
                     print("elo error")
@@ -577,6 +575,164 @@ class Acquisition(object):
                                  "index2id":{_index:p[3] for _index,p in enumerate(new_dataset)},
                                  "_delt_arr":_delt_arr } )
 
+    # batch mode with EL , 考虑样本间的相似性，尽量选取不相似的样本
+    def get_BEL(self, dataset, model_path, acquire_document_num,
+                nsamp=100,
+                model_name='',
+                returned=False,
+                thisround=-1,
+                ):
+        model = torch.load(model_path)
+        model.train(True) # 保持 dropout 开启
+        tm = time.time()
+
+        # data without id
+        new_dataset = [datapoint for j, datapoint in enumerate(dataset) if j not in list(self.train_index)]
+
+        # id that not in train_index
+        new_datapoints = [j for j in range(len(dataset)) if j not in list(self.train_index)]
+
+        print('RS2HEL: preparing batch data',end='')
+        data_batches = create_batches(new_dataset, batch_size=self.batch_size, order='no')
+
+        pt = 0
+        _delt_arr = []
+
+        for iter_batch,data in enumerate(data_batches):
+            print('\rRS2HEL acquire batch {}/{}'.format(iter_batch,len(data_batches)),end='')
+
+            batch_data_numpy  = data['data_numpy']
+            batch_data_points = data['data_points']
+
+            X = batch_data_numpy[0]
+            Y = batch_data_numpy[1]
+
+            if self.usecuda:
+                X = Variable(torch.from_numpy(X).long()).cuda(self.cuda_device)
+            else:
+                X = Variable(torch.from_numpy(X).long())
+
+
+            tag_arr = []
+            score_arr = []
+            real_tag_arr = []
+            # sigma_total = torch.zeros((nsamp, words_q.size(0))) # ???
+
+            for itr in range(nsamp):
+
+                if model_name == 'BiLSTM':
+                    # output = model(words_q, words_a, wordslen_q, wordslen_a)
+                    pass
+                elif model_name == 'CNN':
+                    output = model(X)
+
+                score = torch.sigmoid(output).data.cpu().numpy().tolist()
+                # score = torch.softmax(output,dim=1).data.cpu().numpy().tolist() # 测试softmax
+                # score = F.logsigmoid(output).data.cpu().numpy().tolist()
+
+                score_arr.append(score)
+
+                # evidence level , using confidence stratgy
+                # score_arr.append(torch.abs(score-0.5))
+
+
+            # print("score_arr:",len(score_arr),len(score_arr[0]),len(score_arr[0][0]))
+
+            # new_score_seq = np.array(score_arr).transpose(0, 1).tolist()
+            new_score_seq = []  # size: btach_size * nsample * nlabel
+            for m in range(len(Y)):
+                tp = []
+                for n in range(nsamp):
+                    tp.append(score_arr[n][m])
+                new_score_seq.append(tp)
+
+            # print("new_score_seq:",len(new_score_seq),len(new_score_seq[0]),len(new_score_seq[0][0]))
+
+            for index, item in enumerate(new_score_seq):
+                # shape: batch_size * nsample * nlabel
+
+
+                def rankedList(rList):
+                    rList = np.array(rList)
+                    gain = 2 ** rList - 1
+                    discounts = np.log2(np.arange(len(rList)) + 2)
+                    return np.sum(gain / discounts)
+
+                tp1 = item # shape: nsample * nlabel
+                item = np.transpose(np.array(item)).tolist() # shape: labels * nsample
+
+
+                dList = []
+                for i in range(len(tp1)):
+                    rL = sorted(tp1[i], reverse=True)
+                    dList.append(rankedList(rL))
+
+                # t = np.mean(2 ** np.array(item) - 1, axis=1)
+                # rankedt = sorted(t.tolist(), reverse=True)
+                # d = rankedList(rankedt)
+
+                item_arr = np.array(item)
+
+                t = np.mean(item_arr, axis=1)
+                rankedt = np.transpose(item_arr[(-t).argsort()]).tolist()  # nsamp, 5
+
+                dList2 = []
+                for i in range(len(rankedt)):
+                    dList2.append(rankedList(rankedt[i]))
+
+                obj = {}
+                obj["id"] = pt
+                obj["el"] = np.mean(np.array(dList)) - np.mean(np.array(dList2))
+                obj["sc"] = np.mean(np.array(item),axis=1) # score
+
+                if obj["el"] < 0:
+                    print("elo error")
+                    exit()
+
+                _delt_arr.append(obj)
+                pt += 1
+        print()
+
+        _delt_arr = sorted(_delt_arr, key=lambda o: o["el"], reverse=True) # 从大到小排序
+
+
+        cur_indices = set()
+
+        # 在前 4*acquire_document_num 中选 acquire_document_num 个 （未标记样本足够的话）
+        sample_domin = min(4*acquire_document_num, len(new_dataset))
+        sample_domin = _delt_arr[:sample_domin]
+
+        clf = KMeans(n_clusters=acquire_document_num, random_state=self.random_seed)
+        clf_y = clf.fit_predict([i["sc"] for i in sample_domin])
+
+        for cluster in range(0, acquire_document_num):
+            cluster_indexs = np.where(clf_y == cluster)[0]
+            # where 返回一个 tuple ? 很奇怪
+            # 应为严格的升序序列，如0,1,2
+            # 但是以防万一还是排序一下
+            cluster_delt_arr = [ sample_domin[i] for i in sorted(cluster_indexs) ]
+            cur_indices.add(new_datapoints[cluster_delt_arr[0]["id"]])
+
+
+        if not returned:
+            # print("DAL acquiring:",sorted(cur_indices))
+            self.train_index.update(cur_indices)
+            print('RS2HEL time consuming： %d seconds:' % (time.time() - tm))
+        else:
+            sorted_cur_indices = list(cur_indices)
+            sorted_cur_indices.sort()
+            dataset_pool = []
+            for m in range(len(sorted_cur_indices)):
+                item = dataset[sorted_cur_indices[m]]
+                item["index"] = sorted_cur_indices[m]
+                dataset_pool.append(item)
+
+            return dataset_pool, cur_indices
+
+        self.savedData.append( { "added_index":cur_indices,
+                                 "index2id":{_index:p[3] for _index,p in enumerate(new_dataset)},
+                                 "_delt_arr":_delt_arr } )
+
 
 
     def obtain_data(self, data, model_path=None, model_name=None, acquire_num=2,
@@ -605,6 +761,8 @@ class Acquisition(object):
                     self.get_DALplusIC(data, model_path, acquire_num, model_name=model_name,thisround=round)
                 elif sub_method == 'RS2HEL': # random sampling to ins with high el values
                     self.get_RS2HEL(data, model_path, acquire_num, model_name=model_name,thisround=round)
+                elif sub_method == "BEL":
+                    self.get_BEL(data, model_path, acquire_num, model_name=model_name,thisround=round)
                 else:
                     assert 'not progressed'
             else:
