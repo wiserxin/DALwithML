@@ -416,7 +416,8 @@ class Acquisition(object):
             r = 0
             for column in range(positiveItems.shape[1]):
                 temp = positiveItems[:, column]
-                r += np.sum(negitiveItems.transpose() > temp)
+                temp = negitiveItems.transpose() - temp
+                r += np.sum((temp > 0) * temp)
             return r
 
 

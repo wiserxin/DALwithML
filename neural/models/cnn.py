@@ -87,6 +87,7 @@ class CNN_ori(nn.Module):
 
 
 class CNN(nn.Module):
+    # CNN-Kim
 
     def __init__(self, word_vocab_size, word_embedding_dim, word_out_channels, output_size,
                  dropout_p=0.5, pretrained=None, double_embedding=False, cuda_device=0):
@@ -129,4 +130,12 @@ class CNN(nn.Module):
         x = self.dropout(x)
         output = self.linear(x)
         return output
+        # 得到的是概率值，如果要预测值，需要sigmoid后，经过阈值筛选得到 (0,1)值
 
+    def features(self,x,usecuda=True):
+        x = self.embedding(x).unsqueeze(1)
+        x1 = self.conv_and_pool(x, self.conv13)
+        x2 = self.conv_and_pool(x, self.conv14)
+        x3 = self.conv_and_pool(x, self.conv15)
+        x = torch.cat((x1, x2, x3), 1)
+        return x
