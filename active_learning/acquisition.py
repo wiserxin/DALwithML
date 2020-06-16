@@ -229,12 +229,12 @@ class Acquisition(object):
             #       ))
         else:
             sorted_cur_indices = list(cur_indices)
-            sorted_cur_indices.sort()
+            # sorted_cur_indices.sort()
             dataset_pool = []
-            for m in range(len(sorted_cur_indices)):
-                item = dataset[sorted_cur_indices[m]]
-                item["index"] = sorted_cur_indices[m]
-                dataset_pool.append(item)
+            # for m in range(len(sorted_cur_indices)):
+            #     item = dataset[sorted_cur_indices[m]]
+            #     item["index"] = sorted_cur_indices[m]
+            #     dataset_pool.append(item)
 
             return dataset_pool, cur_indices
 
