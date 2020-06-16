@@ -689,7 +689,85 @@ class Acquisition(object):
                                  "index2id":{_index:p[3] for _index,p in enumerate(new_dataset)},
                                  "_delt_arr":_delt_arr } )
 
+    def get_submodular(self, data,unlabel_index, acquire_questions_num, model_path='', model_name='', ):
+        def greedy_k_center(labeled, unlabeled, amount):
+        # input:
+        ## labeled features
+        ## unlabeled features
+        ## amount to be chosen in unlabeled
+            greedy_indices = []
+            # get the minimum distances between the labeled and unlabeled examples (iteratively, to avoid memory issues):
+            min_dist = np.min(distance_matrix(labeled[0, :].reshape((1, labeled.shape[1])), unlabeled), axis=0)
+            min_dist = min_dist.reshape((1, min_dist.shape[0]))
+            for j in range(1, labeled.shape[0], 100):
+                if j + 100 < labeled.shape[0]:
+                    dist = distance_matrix(labeled[j:j + 100, :], unlabeled)
+                else:
+                    dist = distance_matrix(labeled[j:, :], unlabeled)
+                min_dist = np.vstack((min_dist, np.min(dist, axis=0).reshape((1, min_dist.shape[1]))))
+                min_dist = np.min(min_dist, axis=0)
+                min_dist = min_dist.reshape((1, min_dist.shape[0]))
 
+            # iteratively insert the farthest index and recalculate the minimum distances:
+            farthest = np.argmax(min_dist)
+            greedy_indices.append(farthest)
+            for i in range(amount - 1):
+                dist = distance_matrix(unlabeled[greedy_indices[-1], :].reshape((1, unlabeled.shape[1])), unlabeled)
+                min_dist = np.vstack((min_dist, dist.reshape((1, min_dist.shape[1]))))
+                min_dist = np.min(min_dist, axis=0)
+                min_dist = min_dist.reshape((1, min_dist.shape[0]))
+                farthest = np.argmax(min_dist)
+                greedy_indices.append(farthest)
+
+            return np.array(greedy_indices)
+
+        sample_feature = self.getSimilarityMatrix(data, model_path, model_name, feature_only=True)
+        unlabel = list(unlabel_index)
+        labeled = list(self.train_index)
+        labeled_feature = sample_feature[labeled]
+        unlabel_feature = sample_feature[unlabel]
+        sel_indices = greedy_k_center(labeled_feature, unlabel_feature, acquire_questions_num)
+        cur_indices = np.array(unlabel)[sel_indices].tolist()
+        self.train_index.update(cur_indices)
+
+    def getSimilarityMatrix(self, dataset, model_path='', model_name='', batch_size=800,
+                            feature_only=False):
+        '''
+        :param feature_only: 表示返回特征还是相似度矩阵
+        '''
+
+        model = torch.load(model_path)
+        model.train(False)
+
+        # 对剩余样本池创建batch
+        data_batches = create_batches(dataset, batch_size=batch_size, order='no')
+
+        temp_feature = []
+        for iter_batch,data in enumerate(data_batches):
+            batch_data_numpy  = data['data_numpy']
+
+            X = batch_data_numpy[0]
+            Y = batch_data_numpy[1]
+
+            if self.usecuda:
+                X = Variable(torch.from_numpy(X).long()).cuda(self.cuda_device)
+            else:
+                X = Variable(torch.from_numpy(X).long())
+
+            if model_name == 'BiLSTM':
+                # output = model(words_q, words_a, wordslen_q, wordslen_a)
+                pass
+            elif model_name == 'CNN':
+                output = model.features(X)
+            temp_feature.extend(output.data.cpu().numpy().tolist())
+
+        features = np.stack(temp_feature, axis=0)
+
+        if feature_only:
+            return features
+
+        similarity = cosine_similarity(features) + 1
+        return similarity
 
     def obtain_data(self, data, model_path=None, model_name=None, acquire_num=2,
                     method='random', sub_method='', unsupervised_method='', round = 0):
@@ -706,7 +784,8 @@ class Acquisition(object):
                 assert 'not progressed ...'
             elif method == 'no-dete': # Bayesian neural network based method
                 if sub_method == 'DAL':
-                    self.get_DAL(data, model_path, acquire_num, model_name=model_name)
+                    _,unlabeled_index = self.get_DAL(data, model_path, acquire_num*2, model_name=model_name,returned=True)
+                    self.get_submodular(data,unlabeled_index,acquire_num,model_path=model_path,model_name=model_name)
                 elif sub_method == 'MDAL4.3':
                     if round < 5:
                         self.get_DALplusIC(data, model_path, acquire_num, model_name=model_name)
