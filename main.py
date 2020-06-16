@@ -192,7 +192,7 @@ def main(args):
         acquire_question_num_per_round = config["acquire_question_num_per_round"] if "acquire_question_num_per_round" in config else 100 #Number of samples collected per round
         warm_start_random_seed = config["warm_start_random_seed"]  # the random seed for selecting the initial training set
         sample_method = config["sample_method"]
-        visual_data_path = os.path.join("result", sample_method + ".txt")
+        # visual_data_path = os.path.join("result", sample_method + ".txt")
 
         loader = Loader()
 
@@ -236,8 +236,8 @@ def main(args):
         if not os.path.exists(checkpoint_path):
             os.makedirs(checkpoint_path)
 
-        with open(visual_data_path, 'a') as f:
-            print(config["group_name"],sample_method,num_acquisitions_round,sep='\t',file=f)
+        # with open(visual_data_path, 'a') as f:
+        #     print(config["group_name"],sample_method,num_acquisitions_round,sep='\t',file=f)
 
         method_result = []  # Record the performance results of each method during active learning
         ####################################### acquire data and retrain ###########################################
@@ -329,30 +329,30 @@ def main(args):
             #--------------------------Send data for a visual web page------------------------------
             max_performance = config["max_performance"] if "max_performance" in config else 0
 
-            # if "group_name" in config:
-            #     updateLineChart(str(test_performance), sample_method, gp_name=config["group_name"], max=max_performance)
-            # else:
-            #     updateLineChart(str(test_performance), sample_method, max=max_performance)
+            if "group_name" in config:
+                updateLineChart(str(test_performance), sample_method, gp_name=config["group_name"], max=max_performance)
+            else:
+                updateLineChart(str(test_performance), sample_method, max=max_performance)
 
             method_result.append(test_performance)
 
-            if not os.path.exists(visual_data_path): # 被zip.sh删掉了,需要重新创建，并写头信息
-                with open(visual_data_path, 'a') as f:
-                    print(config["group_name"], sample_method, num_acquisitions_round, sep='\t', file=f)
-            with open(visual_data_path, 'a') as f:
-                print("acq round {} : \t {}"
-                      .format(i,test_performance),
-                      file=f)
+            # if not os.path.exists(visual_data_path): # 被zip.sh删掉了,需要重新创建，并写头信息
+            #     with open(visual_data_path, 'a') as f:
+            #         print(config["group_name"], sample_method, num_acquisitions_round, sep='\t', file=f)
+            # with open(visual_data_path, 'a') as f:
+            #     print("acq round {} : \t {}"
+            #           .format(i,test_performance),
+            #           file=f)
 
         print("acquire_method: {}，sub_acquire_method: {}, warm_start_random_seed{}"
               .format(acquire_method, sub_acquire_method, warm_start_random_seed))
         print(method_result)
-        with open(visual_data_path,'a') as f:
-            print("acquire_method: {},sub_acquire_method: {}, warm_start_random_seed{}"
-                  .format(acquire_method, sub_acquire_method, warm_start_random_seed),
-                  file=f )
-            print(method_result, file=f )
-            print('', file=f)
+        # with open(visual_data_path,'a') as f:
+        #     print("acquire_method: {},sub_acquire_method: {}, warm_start_random_seed{}"
+        #           .format(acquire_method, sub_acquire_method, warm_start_random_seed),
+        #           file=f )
+        #     print(method_result, file=f )
+        #     print('', file=f)
 
         allMethods_results.append(method_result)
         shutil.rmtree(checkpoint_path)
