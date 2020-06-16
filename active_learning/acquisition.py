@@ -784,7 +784,14 @@ class Acquisition(object):
                 assert 'not progressed ...'
             elif method == 'no-dete': # Bayesian neural network based method
                 if sub_method == 'DAL':
-                    _,unlabeled_index = self.get_DAL(data, model_path, acquire_num*2, model_name=model_name,returned=True)
+                    # smDAL
+                    # _,unlabeled_index = self.get_DAL(data, model_path, acquire_num*2, model_name=model_name,returned=True)
+                    # self.get_submodular(data,unlabeled_index,acquire_num,model_path=model_path,model_name=model_name)
+
+                    # dsmDAL dynamic submodular DAL
+                    _,unlabeled_index = self.get_DAL(data, model_path,
+                                                     int(acquire_num*( max(2,6-0.5*round) )) ,
+                                                     model_name=model_name,returned=True)
                     self.get_submodular(data,unlabeled_index,acquire_num,model_path=model_path,model_name=model_name)
                 elif sub_method == 'MDAL4.3':
                     if round < 5:
