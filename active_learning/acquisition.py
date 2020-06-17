@@ -420,32 +420,57 @@ class Acquisition(object):
                 r += np.sum((temp > 0) * temp)
             return r
 
-        def rankingLoss3(item, eachRankingLoss=True):  # item = nsamples * labels
-            item_arr = np.array(item)
-            if eachRankingLoss: # each时遇到异常样本时为 1
-                r = []
-                eachGroundTruth = item_arr > 0.5
-                for i in range(item_arr.shape[0]):
-                    tn = (np.sum(eachGroundTruth[i] == 1))
-                    fn = (np.sum(eachGroundTruth[i] == 0))
-                    if tn == 0 or fn == 0:
-                        r.append(1)
-                        # pass
-                    else:
-                        r.append(np.sum(item_arr[i] * eachGroundTruth[i]) / tn - np.sum(
-                            item_arr[i] * (eachGroundTruth[i] == 0)) / fn)
-                return np.array(r)
+        # def rankingLoss3(item, eachRankingLoss=True):
+        #     # 设计的有问题，是否为正样本应按照大小排序，而不应用阈值
+        #     # 使用阈值的话，会产生el error
+        #     # item = nsamples * labels
+        #     item_arr = np.array(item)
+        #     if eachRankingLoss: # each时遇到异常样本时为 1
+        #         r = []
+        #         eachGroundTruth = item_arr > 0.5
+        #         for i in range(item_arr.shape[0]):
+        #             tn = (np.sum(eachGroundTruth[i] == 1))
+        #             fn = (np.sum(eachGroundTruth[i] == 0))
+        #             if tn == 0 or fn == 0:
+        #                 r.append(1)
+        #                 # pass
+        #             else:
+        #                 r.append(np.sum(item_arr[i] * eachGroundTruth[i]) / tn - np.sum(
+        #                     item_arr[i] * (eachGroundTruth[i] == 0)) / fn)
+        #         return np.array(r)
+        #
+        #     else: # overall时遇到异常样本返回-1
+        #         overAllGroundTruth = np.mean(item_arr, axis=0) > 0.5
+        #         tn = (np.sum(overAllGroundTruth == 1))
+        #         fn = (np.sum(overAllGroundTruth == 0))
+        #         if tn == 0 or fn == 0:
+        #             return -1
+        #         else:
+        #             positiveItems = item_arr[:, overAllGroundTruth]
+        #             negitiveItems = item_arr[:, overAllGroundTruth == 0]
+        #             return np.mean(positiveItems) - np.mean(negitiveItems)
 
-            else: # overall时遇到异常样本返回-1
-                overAllGroundTruth = np.mean(item_arr, axis=0) > 0.5
-                tn = (np.sum(overAllGroundTruth == 1))
-                fn = (np.sum(overAllGroundTruth == 0))
-                if tn == 0 or fn == 0:
-                    return -1
-                else:
-                    positiveItems = item_arr[:, overAllGroundTruth]
-                    negitiveItems = item_arr[:, overAllGroundTruth == 0]
-                    return np.mean(positiveItems) - np.mean(negitiveItems)
+        def rankingLoss4(item):
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            positive_num = np.sum(overAllGroundTruth > 0.5)
+            if positive_num == 0:
+                positive_num = 1
+            elif positive_num == overAllGroundTruth.size:
+                positive_num = overAllGroundTruth.size - 1
+
+            # each RL3
+            sorted_item_arr = np.sort(item_arr)
+            positive_item_arr = sorted_item_arr[:, -positive_num:]
+            negitive_item_arr = sorted_item_arr[:, :-positive_num]
+            each_rl = np.mean((np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1)))
+
+            # overall RL3
+            sorted_item_arr = item_arr[:, overAllGroundTruth.argsort()]
+            positive_item_arr = sorted_item_arr[:, -positive_num:]
+            negitive_item_arr = sorted_item_arr[:, :-positive_num]
+            overall_rl = np.mean(np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1))
+            return each_rl - overall_rl
 
         model = torch.load(model_path)
         model.train(True) # 保持 dropout 开启
@@ -511,11 +536,9 @@ class Acquisition(object):
                 # item    shape: nsample * nlabel
                 obj = {}
                 obj["id"] = pt
-                obj["el"] = np.mean(rankingLoss3(item,eachRankingLoss=True)) - rankingLoss3(item,eachRankingLoss=False)
+                obj["el"] = rankingLoss4(item)
 
                 if obj["el"] < 0:
-                    print(rankingLoss3(item,eachRankingLoss=True))
-                    print(rankingLoss3(item,eachRankingLoss=False))
                     print("elo error")
                     exit()
 
