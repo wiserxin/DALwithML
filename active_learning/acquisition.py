@@ -540,7 +540,6 @@ class Acquisition(object):
                 thisround=-1,
                 ):
         model = torch.load(model_path)
-        model.train(True) # 保持 dropout 开启
         tm = time.time()
 
         # data without id
@@ -570,11 +569,13 @@ class Acquisition(object):
                 X = Variable(torch.from_numpy(X).long())
 
 
-            tag_arr = []
+            feature_arr = []
             score_arr = []
-            real_tag_arr = []
-            # sigma_total = torch.zeros((nsamp, words_q.size(0))) # ???
 
+            model.train(False)
+            feature_arr = model.features(X).data.cpu().numpy().tolist()
+
+            model.train(True)  # 保持 dropout 开启
             for itr in range(nsamp):
 
                 if model_name == 'BiLSTM':
@@ -640,7 +641,8 @@ class Acquisition(object):
                 obj = {}
                 obj["id"] = pt
                 obj["el"] = np.mean(np.array(dList)) - np.mean(np.array(dList2))
-                obj["sc"] = np.mean(np.array(item),axis=1) # score
+                # obj["sc"] = np.mean(np.array(item),axis=1) # score
+                obj['ft'] = feature_arr[index]
 
                 if obj["el"] < 0:
                     print("elo error")
@@ -660,7 +662,7 @@ class Acquisition(object):
         sample_domin = _delt_arr[:sample_domin]
 
         clf = KMeans(n_clusters=acquire_document_num, random_state=self.random_seed)
-        clf_y = clf.fit_predict([i["sc"] for i in sample_domin])
+        clf_y = clf.fit_predict(np.array([i["ft"] for i in sample_domin]))
         for cluster in range(0, acquire_document_num):
             cluster_indexs = np.where(clf_y == cluster)[0]
             # where 返回一个 tuple ? 很奇怪
@@ -784,6 +786,9 @@ class Acquisition(object):
                 assert 'not progressed ...'
             elif method == 'no-dete': # Bayesian neural network based method
                 if sub_method == 'DAL':
+                    # 普通DAL
+                    # self.get_DAL(data, model_path, acquire_num, model_name=model_name)
+
                     # smDAL
                     # _,unlabeled_index = self.get_DAL(data, model_path, acquire_num*2, model_name=model_name,returned=True)
                     # self.get_submodular(data,unlabeled_index,acquire_num,model_path=model_path,model_name=model_name)
