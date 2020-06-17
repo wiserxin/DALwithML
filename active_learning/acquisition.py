@@ -422,25 +422,26 @@ class Acquisition(object):
 
         def rankingLoss3(item, eachRankingLoss=True):  # item = nsamples * labels
             item_arr = np.array(item)
-            if eachRankingLoss:
+            if eachRankingLoss: # each时遇到异常样本时跳过
                 r = []
                 eachGroundTruth = item_arr > 0.5
                 for i in range(item_arr.shape[0]):
                     tn = (np.sum(eachGroundTruth[i] == 1))
                     fn = (np.sum(eachGroundTruth[i] == 0))
                     if tn == 0 or fn == 0:
-                        r.append(1)
+                        # r.append(1)
+                        pass
                     else:
                         r.append(np.sum(item_arr[i] * eachGroundTruth[i]) / tn - np.sum(
                             item_arr[i] * (eachGroundTruth[i] == 0)) / fn)
                 return np.array(r)
 
-            else:
+            else: # overall时遇到异常样本返回-1
                 overAllGroundTruth = np.mean(item_arr, axis=0) > 0.5
                 tn = (np.sum(overAllGroundTruth == 1))
                 fn = (np.sum(overAllGroundTruth == 0))
                 if tn == 0 or fn == 0:
-                    return 1
+                    return -1
                 else:
                     positiveItems = item_arr[:, overAllGroundTruth]
                     negitiveItems = item_arr[:, overAllGroundTruth == 0]
