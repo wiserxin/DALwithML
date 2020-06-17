@@ -408,7 +408,7 @@ class Acquisition(object):
                 returned=False,
                 thisround=-1,):
 
-        def rankingLoss(item):  # item = nsamples * labels
+        def rankingLoss2(item):  # item = nsamples * labels
             item_arr = np.array(item)
             overAllGroundTruth = np.mean(item_arr, axis=0) > 0.5
             positiveItems = item_arr[:, overAllGroundTruth]
@@ -420,6 +420,17 @@ class Acquisition(object):
                 r += np.sum((temp > 0) * temp)
             return r
 
+        def rankingLoss3(item):  # item = nsamples * labels
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0) > 0.5
+            positiveItems = item_arr[:, overAllGroundTruth]
+            negitiveItems = item_arr[:, overAllGroundTruth == 0]
+            r = 0
+            for column in range(positiveItems.shape[1]):
+                temp = positiveItems[:, column]
+                temp = negitiveItems.transpose() - temp
+                r += np.sum(-temp)
+            return r / (positiveItems.shape[1] * negitiveItems.shape[1] * positiveItems.shape[0])
 
         model = torch.load(model_path)
         model.train(True) # 保持 dropout 开启
@@ -485,7 +496,7 @@ class Acquisition(object):
                 # item    shape: nsample * nlabel
                 obj = {}
                 obj["id"] = pt
-                obj["el"] = np.mean(rankingLoss(item))
+                obj["el"] = 1 - np.mean(rankingLoss3(item))
 
                 if obj["el"] < 0:
                     print("elo error")
@@ -675,7 +686,7 @@ class Acquisition(object):
         if not returned:
             # print("DAL acquiring:",sorted(cur_indices))
             self.train_index.update(cur_indices)
-            print('RS2HEL time consuming： %d seconds:' % (time.time() - tm))
+            print('BEL time consuming： %d seconds:' % (time.time() - tm))
         else:
             sorted_cur_indices = list(cur_indices)
             sorted_cur_indices.sort()
