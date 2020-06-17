@@ -420,17 +420,31 @@ class Acquisition(object):
                 r += np.sum((temp > 0) * temp)
             return r
 
-        def rankingLoss3(item):  # item = nsamples * labels
+        def rankingLoss3(item, eachRankingLoss=True):  # item = nsamples * labels
             item_arr = np.array(item)
-            overAllGroundTruth = np.mean(item_arr, axis=0) > 0.5
-            positiveItems = item_arr[:, overAllGroundTruth]
-            negitiveItems = item_arr[:, overAllGroundTruth == 0]
-            r = 0
-            for column in range(positiveItems.shape[1]):
-                temp = positiveItems[:, column]
-                temp = negitiveItems.transpose() - temp
-                r += np.sum(-temp)
-            return r / (positiveItems.shape[1] * negitiveItems.shape[1] * positiveItems.shape[0])
+            if eachRankingLoss:
+                r = []
+                eachGroundTruth = item_arr > 0.5
+                for i in range(item_arr.shape[0]):
+                    tn = (np.sum(eachGroundTruth[i] == 1))
+                    fn = (np.sum(eachGroundTruth[i] == 0))
+                    if tn == 0 or fn == 0:
+                        r.append(-1)
+                    else:
+                        r.append(np.sum(item_arr[i] * eachGroundTruth[i]) / tn - np.sum(
+                            item_arr[i] * (eachGroundTruth[i] == 0)) / fn)
+                return np.array(r)
+
+            else:
+                overAllGroundTruth = np.mean(item_arr, axis=0) > 0.5
+                tn = (np.sum(overAllGroundTruth == 1))
+                fn = (np.sum(overAllGroundTruth == 0))
+                if tn == 0 or fn == 0:
+                    return -1
+                else:
+                    positiveItems = item_arr[:, overAllGroundTruth]
+                    negitiveItems = item_arr[:, overAllGroundTruth == 0]
+                    return np.mean(positiveItems) - np.mean(negitiveItems)
 
         model = torch.load(model_path)
         model.train(True) # 保持 dropout 开启
@@ -496,7 +510,7 @@ class Acquisition(object):
                 # item    shape: nsample * nlabel
                 obj = {}
                 obj["id"] = pt
-                obj["el"] = 1 - np.mean(rankingLoss3(item))
+                obj["el"] = np.mean(rankingLoss3(item,eachRankingLoss=True)) - rankingLoss3(item,eachRankingLoss=False)
 
                 if obj["el"] < 0:
                     print("elo error")
