@@ -429,7 +429,7 @@ class Acquisition(object):
                     tn = (np.sum(eachGroundTruth[i] == 1))
                     fn = (np.sum(eachGroundTruth[i] == 0))
                     if tn == 0 or fn == 0:
-                        r.append(-1)
+                        r.append(1)
                     else:
                         r.append(np.sum(item_arr[i] * eachGroundTruth[i]) / tn - np.sum(
                             item_arr[i] * (eachGroundTruth[i] == 0)) / fn)
@@ -440,7 +440,7 @@ class Acquisition(object):
                 tn = (np.sum(overAllGroundTruth == 1))
                 fn = (np.sum(overAllGroundTruth == 0))
                 if tn == 0 or fn == 0:
-                    return -1
+                    return 1
                 else:
                     positiveItems = item_arr[:, overAllGroundTruth]
                     negitiveItems = item_arr[:, overAllGroundTruth == 0]
