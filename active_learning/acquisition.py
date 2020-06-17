@@ -513,6 +513,7 @@ class Acquisition(object):
                 obj["el"] = np.mean(rankingLoss3(item,eachRankingLoss=True)) - rankingLoss3(item,eachRankingLoss=False)
 
                 if obj["el"] < 0:
+                    print(item)
                     print("elo error")
                     exit()
 
