@@ -878,6 +878,18 @@ class Acquisition(object):
                                                       model_name=model_name, returned=True)
                     self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
                                         model_name=model_name)
+                elif sub_method == "DARKL":
+                    _, DAL_unlabeled_index = self.get_DAL(data, model_path,
+                                                      acquire_num,
+                                                      model_name=model_name, returned=True)
+                    _, RKL_unlabeled_index = self.get_RKL(data, model_path,
+                                                      acquire_num,
+                                                      model_name=model_name, returned=True)
+                    unlabeled_index = set()
+                    unlabeled_index.update(DAL_unlabeled_index)
+                    unlabeled_index.update(RKL_unlabeled_index)
+                    self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
+                                        model_name=model_name)
                 else:
                     assert 'not progressed'
             else:
