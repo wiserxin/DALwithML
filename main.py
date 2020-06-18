@@ -27,7 +27,6 @@ def parse_args():
     parser.add_argument('--use_pretrained_word_embedding', type=bool, default=True, help='')
     parser.add_argument('--batch_size', type=int, default=800, help='')
     parser.add_argument('--sampling_batch_size', type=int, default=800, help='')
-    parser.add_argument('--with_sim_feature', type=bool, default=True, help='whether use sim_feature in deep model')
     parser.add_argument('--word_embedding_dim', type=int, default=300, help='')
     parser.add_argument('--pretrained_word_embedding', default="../../datasets/rcv2/glove.6B.300d.txt", help='')
     parser.add_argument('--dropout', type=float, default=0.5, help='')
@@ -35,6 +34,7 @@ def parse_args():
     parser.add_argument('--learning_rate', type=float, default=1e-3, help='')
     parser.add_argument('--target_size', type=int, default=103, help='rcv2:103 ')
     parser.add_argument('--top_k', type=int, default=40, help='rcv2:40 , eurLex:100')
+    parser.add_argument('--ndcg_num', type=int, default=10, help='k in ndcg@k to evaluate model, origin is 5')
     parser.add_argument('--word_out_channels', type=int, default=200, help='')
     parser.add_argument('--result_path', default="result/rcv2/",help='')
     parser.add_argument('--device', type=int, default=[0], help='')
@@ -142,7 +142,7 @@ def main(args):
         #     "sample_method": "No-Deterministic+DAL-400*20-800b+16",
         # },{
             "model_name": "CNN",
-            "group_name": "[mlabs]KIM+???+1e4trn",
+            "group_name": "[mlabs]KIM+???+1e4trn+ndcg10",
             "max_performance": 0.90,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "no-dete",
@@ -156,7 +156,7 @@ def main(args):
             "sample_method": "No-Deterministic+dsmRKL4+32",
         },{
             "model_name": "CNN",
-            "group_name": "[mlabs]KIM+???+1e4trn",
+            "group_name": "[mlabs]KIM+???+1e4trn+ndcg10",
             "max_performance": 0.90,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "no-dete",
@@ -170,7 +170,7 @@ def main(args):
             "sample_method": "No-Deterministic+dsmRKL4+64",
         },{
             "model_name": "CNN",
-            "group_name": "[mlabs]KIM+???+1e4trn",
+            "group_name": "[mlabs]KIM+???+1e4trn+ndcg10",
             "max_performance": 0.90,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "no-dete",
@@ -184,7 +184,7 @@ def main(args):
             "sample_method": "No-Deterministic+dsmRKL4+0",
         },{
             "model_name": "CNN",
-            "group_name": "[mlabs]KIM+???+1e4trn",
+            "group_name": "[mlabs]KIM+???+1e4trn+ndcg10",
             "max_performance": 0.90,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "no-dete",
@@ -339,7 +339,8 @@ def main(args):
                               model_name,
                               eval_begin=1,
                               cuda_device=args.device[0],
-                              top_k= args.top_k
+                              top_k= args.top_k,
+                              ndcg_num=args.ndcg_num
                               )
 
             test_performance = trainer.train_supervisedLearning(args.num_epochs,

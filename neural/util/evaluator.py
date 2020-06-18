@@ -94,13 +94,14 @@ from multiprocessing import Pool
 
 
 class Evaluator(object):
-    def __init__(self, result_path, model_name, usecuda=True, top_k=50, batch_size=512, cuda_device=0):
+    def __init__(self, result_path, model_name, usecuda=True, top_k=50, batch_size=512, cuda_device=0, ndcg_num = 5):
 
         self.model_name = model_name
         self.usecuda = usecuda
         self.top_k = top_k
         self.batch_size = batch_size
         self.cuda_device = cuda_device
+        self.ndcg_num = ndcg_num
 
 
     def precision_at_k(self, r, k):
@@ -166,8 +167,9 @@ class Evaluator(object):
         # ndcg_5 = self.ndcg_at_k(r, 5)
         # return np.array([p_1, p_3, p_5, ndcg_1, ndcg_3, ndcg_5])
 
-        ndcg_5 = self.ndcg_at_k(r, 5)
-        return np.array([ndcg_5])
+        # ndcg_5 = self.ndcg_at_k(r, 5)
+        ndcg = self.ndcg_at_k(r, self.ndcg_num)
+        return np.array([ndcg])
 
 
     def evaluate(self, model, dataset, best_result = 0.0, model_name='CNN', multi_progress_num= 4):
