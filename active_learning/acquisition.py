@@ -862,8 +862,8 @@ class Acquisition(object):
                 elif sub_method == "BEL":
                     self.get_BEL(data, model_path, acquire_num, model_name=model_name,thisround=round)
                 elif sub_method == "RKL":
-                    # # 普通RKL
-                    self.get_RKL(data, model_path, acquire_num, model_name=model_name,thisround=round)
+                    # # # 普通RKL
+                    # self.get_RKL(data, model_path, acquire_num, model_name=model_name,thisround=round)
 
                     # dsm RKL
                     # _, unlabeled_index = self.get_RKL(data, model_path,
@@ -871,6 +871,13 @@ class Acquisition(object):
                     #                                   model_name=model_name, returned=True)
                     # self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
                     #                     model_name=model_name)
+
+                    # dsm2 RKL
+                    _, unlabeled_index = self.get_RKL(data, model_path,
+                                                      int(acquire_num * (max(1.1, 4 -  round))),
+                                                      model_name=model_name, returned=True)
+                    self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
+                                        model_name=model_name)
                 else:
                     assert 'not progressed'
             else:
