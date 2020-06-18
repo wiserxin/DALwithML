@@ -482,14 +482,14 @@ class Acquisition(object):
         # id that not in train_index
         new_datapoints = [j for j in range(len(dataset)) if j not in list(self.train_index)]
 
-        print('DAL: preparing batch data',end='')
+        print('RKL: preparing batch data',end='')
         data_batches = create_batches(new_dataset, batch_size=self.batch_size, order='no')
 
         pt = 0
         _delt_arr = []
 
         for iter_batch,data in enumerate(data_batches):
-            print('\rDAL acquire batch {}/{}'.format(iter_batch,len(data_batches)),end='')
+            print('\rRKL acquire batch {}/{}'.format(iter_batch,len(data_batches)),end='')
 
             batch_data_numpy  = data['data_numpy']
             batch_data_points = data['data_points']
@@ -890,6 +890,7 @@ class Acquisition(object):
                     unlabeled_index.update(RKL_unlabeled_index)
                     self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
                                         model_name=model_name)
+                    print("DARK {} redundancy ...".format(len(unlabeled_index)-acquire_num))
                 else:
                     assert 'not progressed'
             else:
