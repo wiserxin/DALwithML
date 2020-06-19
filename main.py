@@ -54,7 +54,7 @@ def main(args):
         # acquire_method(sub_acquire_method): random(""), no-dete("DAL","BALD"), dete("coreset","entropy",...)
         # "../../datasets/answer_selection/YahooCQA/data/data-FD/"
 
-        {
+        # {
         #     "model_name": "CNN",
         #     "group_name": "[mlabs]KIM+DAL+1e4trn",
         #     "max_performance": 0.90,
@@ -96,63 +96,63 @@ def main(args):
         #     "acquire_question_num_per_round": 400,
         #     "warm_start_random_seed": 0,
         #     "sample_method": "No-Deterministic+DARKL4+0",
-        # }, {
+        # },
+        {
             "model_name": "CNN",
             "group_name": "[mlabs]KIM+???+1e4trn+ndcg10",
             "max_performance": 0.90,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "no-dete",
-            "sub_acquire_method": "DAL",
+            "sub_acquire_method": "RKL",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 20,
             "init_question_num": 400,
             "acquire_question_num_per_round": 400,
             "warm_start_random_seed": 0,
-            "sample_method": "No-Deterministic+DAL+0",
-        }, {
+            "sample_method": "No-Deterministic+dsm-RKL4+0",
+        },{
             "model_name": "CNN",
             "group_name": "[mlabs]KIM+???+1e4trn+ndcg10",
             "max_performance": 0.90,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "no-dete",
-            "sub_acquire_method": "DAL",
+            "sub_acquire_method": "RKL",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 20,
             "init_question_num": 400,
             "acquire_question_num_per_round": 400,
             "warm_start_random_seed": 16,
-            "sample_method": "No-Deterministic+DAL+16",
-        }, {
+            "sample_method": "No-Deterministic+dsm-RKL4+16",
+        },{
             "model_name": "CNN",
             "group_name": "[mlabs]KIM+???+1e4trn+ndcg10",
             "max_performance": 0.90,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "no-dete",
-            "sub_acquire_method": "DAL",
+            "sub_acquire_method": "RKL",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 20,
             "init_question_num": 400,
             "acquire_question_num_per_round": 400,
             "warm_start_random_seed": 32,
-            "sample_method": "No-Deterministic+DAL+32",
-        }, {
+            "sample_method": "No-Deterministic+dsm-RKL4+32",
+        },{
             "model_name": "CNN",
             "group_name": "[mlabs]KIM+???+1e4trn+ndcg10",
             "max_performance": 0.90,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "no-dete",
-            "sub_acquire_method": "DAL",
+            "sub_acquire_method": "RKL",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 20,
             "init_question_num": 400,
             "acquire_question_num_per_round": 400,
             "warm_start_random_seed": 64,
-            "sample_method": "No-Deterministic+DAL+64",
-
+            "sample_method": "No-Deterministic+dsm-RKL4+64",
         },
 
 
