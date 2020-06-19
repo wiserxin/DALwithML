@@ -539,7 +539,7 @@ class Acquisition(object):
                 obj["el"] = rankingLoss4(item)
 
                 if obj["el"] < 0:
-                    print("elo error")
+                    print("elo error:",obj["el"])
                     exit()
 
                 _delt_arr.append(obj)
@@ -838,17 +838,17 @@ class Acquisition(object):
             elif method == 'no-dete': # Bayesian neural network based method
                 if sub_method == 'DAL':
                     # 普通DAL
-                    # self.get_DAL(data, model_path, acquire_num, model_name=model_name)
+                    self.get_DAL(data, model_path, acquire_num, model_name=model_name)
 
                     # smDAL
                     # _,unlabeled_index = self.get_DAL(data, model_path, acquire_num*2, model_name=model_name,returned=True)
                     # self.get_submodular(data,unlabeled_index,acquire_num,model_path=model_path,model_name=model_name)
 
                     # dsmDAL dynamic submodular DAL
-                    _,unlabeled_index = self.get_DAL(data, model_path,
-                                                     int(acquire_num*( max(2,6-0.5*round) )) ,
-                                                     model_name=model_name,returned=True)
-                    self.get_submodular(data,unlabeled_index,acquire_num,model_path=model_path,model_name=model_name)
+                    # _,unlabeled_index = self.get_DAL(data, model_path,
+                    #                                  int(acquire_num*( max(2,6-0.5*round) )) ,
+                    #                                  model_name=model_name,returned=True)
+                    # self.get_submodular(data,unlabeled_index,acquire_num,model_path=model_path,model_name=model_name)
                 elif sub_method == 'MDAL4.3':
                     if round < 5:
                         self.get_DALplusIC(data, model_path, acquire_num, model_name=model_name)
