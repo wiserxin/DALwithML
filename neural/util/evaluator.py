@@ -6,6 +6,7 @@ from .utils import *
 import torch
 from torch.autograd import Variable
 from multiprocessing import Pool
+from sklearn.metrics import f1_score
 
 # np.set_printoptions(threshold=np.inf)
 
@@ -220,7 +221,7 @@ class Evaluator(object):
         return best_result, tst_result, save
 
     def evaluate_for_datapoints(self, model, dataset, best_result = 0.0, model_name='CNN', multi_progress_num= 4):
-
+        # NDCG
         model.train(False)
         batchs = create_batches(dataset,self.batch_size)
         results = []
@@ -251,6 +252,44 @@ class Evaluator(object):
 
         results = np.array(list(results))
         tst_result = list(np.mean(results, 0))[0]
+
+        save = tst_result > best_result
+        best_result = tst_result if tst_result > best_result else best_result
+
+        model.train(True)
+
+        return best_result, tst_result, save
+
+    def evaluate_with_datapoints_F1(self,model, dataset, best_result = 0.0, model_name='CNN',):
+        model.train(False)
+        batchs = create_batches(dataset,self.batch_size)
+
+        Y_true = None
+        Y_pred = None
+
+        for i,batch_data in enumerate(batchs):
+            batch_data = batch_data['data_numpy']
+            X_batch = batch_data[0]
+            Y_batch = batch_data[1]
+
+            X_batch = torch.from_numpy(X_batch).long()
+            X_batch = X_batch.cuda() if self.usecuda else X_batch
+            Y_batch = Variable(torch.from_numpy(Y_batch).int())
+
+            Y_batch_pred = model(X_batch).cpu()
+            if Y_batch_pred.shape[1] >= Y_batch.shape[1]:
+                Y_batch_pred = Y_batch_pred[:, :Y_batch.shape[1]]
+
+            Y_true = Y_batch if Y_true==None else np.vstack((Y_true,Y_batch))
+            Y_pred = Y_batch_pred if Y_pred==None else  np.vstack((Y_pred,Y_batch_pred))
+
+            print("\rEvaluating: {}/{} ({:.1f}%)".format(i, len(batchs), i * 100 / len(batchs)), end=' ')
+
+
+        tst_result_micro = f1_score(Y_true, Y_pred , average = 'micro')
+        tst_result_macro = f1_score(Y_true, Y_pred , average = 'macro')
+
+        tst_result = tst_result_micro
 
         save = tst_result > best_result
         best_result = tst_result if tst_result > best_result else best_result

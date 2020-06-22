@@ -98,7 +98,7 @@ def main(args):
         #     "sample_method": "No-Deterministic+DARKL4+0",
         # }, {
             "model_name": "CNN",
-            "group_name": "[mlabs]KIM+???+1e4trn+ndcg10",
+            "group_name": "[mlabs]KIM+???+1e4trn+microF1",
             "max_performance": 0.90,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "no-dete",

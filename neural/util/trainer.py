@@ -24,7 +24,7 @@ class Trainer(object):
         self.lossfunc = nn.MultiLabelSoftMarginLoss()
         self.cuda_device = cuda_device
         self.evaluator = Evaluator(result_path, model_name,top_k=top_k,
-                                   cuda_device = self.cuda_device,ndcg_num=ndcg_num).evaluate_for_datapoints
+                                   cuda_device = self.cuda_device,ndcg_num=ndcg_num).evaluate_with_datapoints_F1
 
 
     ##############################################################################
