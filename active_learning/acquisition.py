@@ -538,7 +538,7 @@ class Acquisition(object):
                 obj["id"] = pt
                 obj["el"] = rankingLoss4(item)
 
-                if obj["el"] < 1e-10:
+                if obj["el"] < -1e-10:
                     print("elo error:",obj["el"])
                     exit()
 
