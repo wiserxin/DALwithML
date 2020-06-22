@@ -281,8 +281,8 @@ class Evaluator(object):
             if Y_batch_pred.shape[1] >= Y_batch.shape[1]:
                 Y_batch_pred = Y_batch_pred[:, :Y_batch.shape[1]]
 
-            Y_true = Y_batch.detach().numpy() if Y_true is None else np.vstack((Y_true,Y_batch.detach().numpy()))
-            Y_pred = Y_batch_pred.detach().numpy() if Y_pred is None else  np.vstack((Y_pred,Y_batch_pred.detach().numpy()))
+            Y_true = Y_batch.detach().cpu().numpy() if Y_true is None else np.vstack((Y_true,Y_batch.detach().cpu() .numpy()))
+            Y_pred = Y_batch_pred.detach().cpu().numpy() if Y_pred is None else  np.vstack((Y_pred,Y_batch_pred.detach().cpu().numpy()))
 
             print("\rEvaluating: {}/{} ({:.1f}%)".format(i, len(batchs), i * 100 / len(batchs)), end=' ')
 
