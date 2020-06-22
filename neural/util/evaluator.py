@@ -260,7 +260,7 @@ class Evaluator(object):
 
         return best_result, tst_result, save
 
-    def evaluate_with_datapoints_F1(self,model, dataset, best_result = 0.0, model_name='CNN',):
+    def evaluate_with_datapoints_F1(self,model, dataset, best_result = (.0, .0), model_name='CNN',):
         model.train(False)
         batchs = create_batches(dataset,self.batch_size)
 
@@ -285,14 +285,18 @@ class Evaluator(object):
 
             print("\rEvaluating: {}/{} ({:.1f}%)".format(i, len(batchs), i * 100 / len(batchs)), end=' ')
 
+        best_result_micro,best_result_macro = best_result
 
         tst_result_micro = f1_score(Y_true, Y_pred , average = 'micro')
         tst_result_macro = f1_score(Y_true, Y_pred , average = 'macro')
 
-        tst_result = tst_result_micro
+        save = (tst_result_micro > best_result_micro) or (tst_result_macro > best_result_macro)
 
-        save = tst_result > best_result
-        best_result = tst_result if tst_result > best_result else best_result
+        best_result_micro = tst_result_micro if tst_result_micro > best_result_micro else best_result_micro
+        best_result_macro = tst_result_macro if tst_result_macro > best_result_macro else best_result_macro
+
+        best_result = (best_result_micro,best_result_macro)
+        tst_result  = (tst_result_micro,tst_result_macro)
 
         model.train(True)
 

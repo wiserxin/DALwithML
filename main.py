@@ -316,7 +316,8 @@ def main(args):
             max_performance = config["max_performance"] if "max_performance" in config else 0
 
             if "group_name" in config:
-                updateLineChart(str(test_performance), sample_method, gp_name=config["group_name"], max=max_performance)
+                updateLineChart(str(test_performance[0]), sample_method, gp_name=config["group_name"]+"micro", max=max_performance)
+                updateLineChart(str(test_performance[1]), sample_method, gp_name=config["group_name"]+"macro", max=max_performance)
             else:
                 updateLineChart(str(test_performance), sample_method, max=max_performance)
 
