@@ -482,6 +482,9 @@ class Acquisition(object):
         # id that not in train_index
         new_datapoints = [j for j in range(len(dataset)) if j not in list(self.train_index)]
 
+        # 防止死循环
+        acquire_document_num = acquire_document_num if acquire_document_num <= len(new_datapoints) else len(new_datapoints)
+
         print('RKL: preparing batch data',end='')
         data_batches = create_batches(new_dataset, batch_size=self.batch_size, order='no')
 
@@ -565,7 +568,7 @@ class Acquisition(object):
 
         if not returned:
             self.train_index.update(cur_indices)
-            print('DAL time consuming： %d seconds:' % (time.time() - tm))
+            print('RKL time consuming： %d seconds:' % (time.time() - tm))
 
         else:
             # sorted_cur_indices = list(cur_indices)
@@ -871,13 +874,12 @@ class Acquisition(object):
                     #                                   model_name=model_name, returned=True)
                     # self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
                     #                     model_name=model_name)
-
-                    # dsm2 RKL
-                    # _, unlabeled_index = self.get_RKL(data, model_path,
-                    #                                   int(acquire_num * (max(1.1, 4 -  round))),
-                    #                                   model_name=model_name, returned=True)
-                    # self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
-                    #                     model_name=model_name)
+                elif sub_method == "dsm2RKL":
+                    _, unlabeled_index = self.get_RKL(data, model_path,
+                                                      int(acquire_num * (max(1.1, 4 - round))),
+                                                      model_name=model_name, returned=True)
+                    self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
+                                        model_name=model_name)
                 elif sub_method == "DARKL":
                     _, DAL_unlabeled_index = self.get_DAL(data, model_path,
                                                       acquire_num,
