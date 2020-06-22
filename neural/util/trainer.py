@@ -34,7 +34,8 @@ class Trainer(object):
 
         losses = []
         lossD = 0.0
-        best_test_ndcg5 = 0.0
+        # best_test_ndcg5 = 0.0
+        best_F1 = (0.0,0.0)
 
 
         self.model.train(True)
@@ -95,10 +96,10 @@ class Trainer(object):
             ####################################### Validation ###########################################
             if (epoch >= self.eval_begin) and (epoch % self.eval_every == 0):
 
-                best_test_ndcg5, new_test_ndcg5, save = self.evaluator(self.model, val_data, best_test_ndcg5, model_name = self._model_name)
-
+                # best_test_ndcg5, new_test_ndcg5, save = self.evaluator(self.model, val_data, best_test_ndcg5, model_name = self._model_name)
+                best_F1, new_F1, save = self.evaluator(self.model, val_data, best_F1, model_name = self._model_name)
                 print('*'*50)
-                print("Validation：best：%f   new: %f " % (best_test_ndcg5, new_test_ndcg5))
+                print("Validation：best：%f   new: %f " % (best_F1, new_F1))
 
                 if save:
                     print('Saving Best Weights')
@@ -113,6 +114,7 @@ class Trainer(object):
         #                                 test_data,
         #                                 model_name=self._model_name)
 
-        return best_test_ndcg5
+        # return best_test_ndcg5
+        return best_F1
 
 
