@@ -279,7 +279,7 @@ class Evaluator(object):
             X_batch = X_batch.cuda() if self.usecuda else X_batch
             Y_batch = Variable(torch.from_numpy(Y_batch).int())
 
-            Y_batch_pred = model.predit(X_batch)
+            Y_batch_pred = model.predict(X_batch)
             if Y_batch_pred.shape[1] >= Y_batch.shape[1]:
                 Y_batch_pred = Y_batch_pred[:, :Y_batch.shape[1]]
 
