@@ -261,6 +261,9 @@ class Evaluator(object):
         return best_result, tst_result, save
 
     def evaluate_with_datapoints_F1(self,model, dataset, best_result = (.0, .0), model_name='CNN',):
+        if best_result == 0.0:
+            best_result = (0.0,0.0)
+
         model.train(False)
         batchs = create_batches(dataset,self.batch_size)
 
