@@ -248,7 +248,7 @@ class Evaluator(object):
             # 非多线程 evaluate
             results.extend(list(map(self.get_result, zip(list(Y_pred), list(Y_batch)))))
 
-            print("\rEvaluating: {}/{} ({:.1f}%)".format(i, len(batchs), i * 100 / len(batchs)), end=' ')
+            # print("\rEvaluating: {}/{} ({:.1f}%)".format(i, len(batchs), i * 100 / len(batchs)), end=' ')
 
         results = np.array(list(results))
         tst_result = list(np.mean(results, 0))[0]
@@ -279,15 +279,14 @@ class Evaluator(object):
             X_batch = X_batch.cuda() if self.usecuda else X_batch
             Y_batch = Variable(torch.from_numpy(Y_batch).int())
 
-            Y_batch_pred = model(X_batch)
-            Y_batch_pred = torch.sigmoid(Y_batch_pred)>0.5
+            Y_batch_pred = model.predit(X_batch)
             if Y_batch_pred.shape[1] >= Y_batch.shape[1]:
                 Y_batch_pred = Y_batch_pred[:, :Y_batch.shape[1]]
 
             Y_true = Y_batch.detach().cpu().numpy() if Y_true is None else np.vstack((Y_true,Y_batch.detach().cpu() .numpy()))
             Y_pred = Y_batch_pred.detach().cpu().numpy() if Y_pred is None else  np.vstack((Y_pred,Y_batch_pred.detach().cpu().numpy()))
 
-            print("\rEvaluating: {}/{} ({:.1f}%)".format(i, len(batchs), i * 100 / len(batchs)), end=' ')
+            # print("\rEvaluating: {}/{} ({:.1f}%)".format(i, len(batchs), i * 100 / len(batchs)), end=' ')
 
         best_result_micro,best_result_macro = best_result
 
