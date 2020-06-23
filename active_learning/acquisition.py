@@ -569,15 +569,8 @@ class Acquisition(object):
         if not returned:
             self.train_index.update(cur_indices)
             print('RKL time consuming： %d seconds:' % (time.time() - tm))
-
         else:
-            # sorted_cur_indices = list(cur_indices)
-            # sorted_cur_indices.sort()
             dataset_pool = []
-            # for m in range(len(sorted_cur_indices)):
-            #     item = dataset[sorted_cur_indices[m]]
-            #     item["index"] = sorted_cur_indices[m]
-            #     dataset_pool.append(item)
 
             return dataset_pool, cur_indices
 
@@ -586,11 +579,125 @@ class Acquisition(object):
                                  "_delt_arr":_delt_arr } )
 
     def get_FEL(self, dataset, model_path, acquire_document_num,
-                nsamp=100,
-                model_name='',
-                returned=False,
-                thisround=-1,):
-        pass
+                nsamp=100, model_name='', returned=False, thisround=-1,):
+    # use F1 function calcualte the loss
+    # just test it
+
+        def F1Loss(item):
+            from sklearn.metrics import f1_score
+            baseLine = 0.5
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0) > baseLine
+
+            overAllGroundTruth = np.tile(overAllGroundTruth, (item_arr.shape[0], 1))
+            r = 0
+            for am in ['micro', 'macro', 'weighted', 'samples']:
+                r += (1.0 - f1_score(overAllGroundTruth, item_arr > baseLine, average=am))
+            return r
+
+        model = torch.load(model_path)
+        model.train(True)  # 保持 dropout 开启
+
+        # data without id
+        new_dataset = [datapoint for j, datapoint in enumerate(dataset) if j not in list(self.train_index)]
+
+        # id that not in train_index
+        new_datapoints = [j for j in range(len(dataset)) if j not in list(self.train_index)]
+
+        # 防止死循环
+        acquire_document_num = acquire_document_num if acquire_document_num <= len(new_datapoints) else len(
+            new_datapoints)
+
+        print('FEL: preparing batch data', end='')
+        data_batches = create_batches(new_dataset, batch_size=self.batch_size, order='no')
+
+        pt = 0
+        _delt_arr = []
+
+        for iter_batch, data in enumerate(data_batches):
+            print('\rFEL acquire batch {}/{}'.format(iter_batch, len(data_batches)), end='')
+
+            batch_data_numpy = data['data_numpy']
+            batch_data_points = data['data_points']
+
+            X = batch_data_numpy[0]
+            Y = batch_data_numpy[1]
+
+            if self.usecuda:
+                X = Variable(torch.from_numpy(X).long()).cuda(self.cuda_device)
+            else:
+                X = Variable(torch.from_numpy(X).long())
+
+            score_arr = []
+
+            for itr in range(nsamp):
+
+                if model_name == 'BiLSTM':
+                    # output = model(words_q, words_a, wordslen_q, wordslen_a)
+                    pass
+                elif model_name == 'CNN':
+                    output = model(X)
+
+                score = torch.sigmoid(output).data.cpu().numpy().tolist()
+                # score = torch.softmax(output,dim=1).data.cpu().numpy().tolist() # 测试softmax
+                # score = F.logsigmoid(output).data.cpu().numpy().tolist()
+
+                score_arr.append(score)
+
+                # evidence level , using confidence stratgy
+                # score_arr.append(torch.abs(score-0.5))
+
+            new_score_seq = []  # size: btach_size * nsample * nlabel
+            for m in range(len(Y)):
+                tp = []
+                for n in range(nsamp):
+                    tp.append(score_arr[n][m])
+                new_score_seq.append(tp)
+
+            # print("new_score_seq:",len(new_score_seq),len(new_score_seq[0]),len(new_score_seq[0][0]))
+
+            for index, item in enumerate(new_score_seq):
+                # new_xxx shape: batch_size * nsample * nlabel
+                # item    shape: nsample * nlabel
+                obj = {}
+                obj["id"] = pt
+                obj["el"] = F1Loss(item)
+
+                if obj["el"] < -1e-10:
+                    print("elo error:", obj["el"])
+                    exit()
+
+                _delt_arr.append(obj)
+                pt += 1
+        print()
+
+        _delt_arr = sorted(_delt_arr, key=lambda o: o["el"], reverse=True)  # 从大到小排序
+
+        cur_indices = set()
+        i = 0
+
+        while len(cur_indices) < acquire_document_num:
+            try:
+                cur_indices.add(new_datapoints[_delt_arr[i]["id"]])
+                i += 1
+            except:
+                print(acquire_document_num)
+                print(i)
+                print(type(new_datapoints), len(new_datapoints))
+                print(new_datapoints[:10])
+                print(_delt_arr[i])
+                assert False
+
+        if not returned:
+            self.train_index.update(cur_indices)
+        else:
+            dataset_pool = []
+
+            return dataset_pool, cur_indices
+
+        self.savedData.append({"added_index": cur_indices,
+                               "index2id": {_index: p[3] for _index, p in enumerate(new_dataset)},
+                               "_delt_arr": _delt_arr})
 
     def get_submodular(self, data,unlabel_index, acquire_questions_num, model_path='', model_name='', ):
         def greedy_k_center(labeled, unlabeled, amount):
@@ -719,6 +826,9 @@ class Acquisition(object):
                     #                                   model_name=model_name, returned=True)
                     # self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
                     #                     model_name=model_name)
+                elif sub_method == "FEL":
+                    self.get_FEL(data, model_path, acquire_num, model_name=model_name,thisround=round)
+                    # 233
                 elif sub_method == "dsm2RKL":
                     _, unlabeled_index = self.get_RKL(data, model_path,
                                                       int(acquire_num * (max(1.1, 4 - round))),
