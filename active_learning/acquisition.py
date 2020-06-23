@@ -709,8 +709,6 @@ class Acquisition(object):
                     self.get_DALplusIC(data, model_path, acquire_num, model_name=model_name,thisround=round)
                 elif sub_method == 'RS2HEL': # random sampling to ins with high el values
                     self.get_RS2HEL(data, model_path, acquire_num, model_name=model_name,thisround=round)
-                elif sub_method == "BEL":
-                    self.get_BEL(data, model_path, acquire_num, model_name=model_name,thisround=round)
                 elif sub_method == "RKL":
                     # # # 普通RKL
                     self.get_RKL(data, model_path, acquire_num, model_name=model_name,thisround=round)
