@@ -93,6 +93,7 @@ class Trainer(object):
                     lossD = 0.0
 
             ####################################### Validation ###########################################
+            beingBestCount = 0
             if (epoch >= self.eval_begin) and (epoch % self.eval_every == 0):
 
                 best_eval, new_eval, save = self.evaluator(self.model, val_data, best_eval, model_name = self._model_name)
@@ -106,7 +107,11 @@ class Trainer(object):
                 sys.stdout.flush()
 
             print('Epoch %d Complete: Time Taken %d' % (epoch, time.time() - t))
-
+            # 在模型连续5轮不增长时，结束本次训练
+            # 对应情况：在数据量大时，模型在前几个epoch就会收敛，后续的许多epoch都在浪费时间
+            beingBestCount = 0 if save else beingBestCount + 1
+            if beingBestCount >= 5 and epoch > int(num_epochs / 2):
+                break
         # 需要注释掉？
         # _, test_mrr, _ = self.evaluator(torch.load(os.path.join(self.model_name, checkpoint_folder, 'modelweights')),
         #                                 test_data,
