@@ -106,8 +106,8 @@ def main(args):
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 100,
-            "init_question_num": 400,
-            "acquire_question_num_per_round": 400,
+            "init_question_num": 300,
+            "acquire_question_num_per_round": 300,
             "warm_start_random_seed": 0,
             "sample_method": "No-Deterministic+100rFERKL+0",
         }, {
@@ -120,8 +120,8 @@ def main(args):
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 100,
-            "init_question_num": 400,
-            "acquire_question_num_per_round": 400,
+            "init_question_num": 300,
+            "acquire_question_num_per_round": 300,
             "warm_start_random_seed": 16,
             "sample_method": "No-Deterministic+100rFERKL+16",
         }, {
@@ -134,8 +134,8 @@ def main(args):
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 100,
-            "init_question_num": 400,
-            "acquire_question_num_per_round": 400,
+            "init_question_num": 300,
+            "acquire_question_num_per_round": 300,
             "warm_start_random_seed": 32,
             "sample_method": "No-Deterministic+100rFERKL+32",
         }, {
@@ -148,8 +148,8 @@ def main(args):
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 100,
-            "init_question_num": 400,
-            "acquire_question_num_per_round": 400,
+            "init_question_num": 300,
+            "acquire_question_num_per_round": 300,
             "warm_start_random_seed": 64,
             "sample_method": "No-Deterministic+100rFERKL+64",
 
