@@ -110,7 +110,7 @@ def main(args):
         #     "acquire_question_num_per_round": 300,
         #     "warm_start_random_seed": 0,
         #     "sample_method": "No-Deterministic+100rFERKL+0",
-        }, {
+        # }, {
             "model_name": "CNN",
             "group_name": "[mlabs]KIM+???+3e4trn+F1",
             "max_performance": 0.90,
