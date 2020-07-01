@@ -701,6 +701,7 @@ class Acquisition(object):
 
     def get_FELplusRKL(self, dataset, model_path, acquire_document_num,
                 nsamp=100, model_name='', returned=False, thisround=-1,):
+        # 其实函数内部是乘法的，这里误写成加法了
         def rankingLoss4(item):
             item_arr = np.array(item)
             overAllGroundTruth = np.mean(item_arr, axis=0)
@@ -840,6 +841,16 @@ class Acquisition(object):
                                "index2id": {_index: p[3] for _index, p in enumerate(new_dataset)},
                                "_delt_arr": _delt_arr})
 
+    def get_SIM(self, dataset, model_path, acquire_document_num,
+               model_name='', returned=False, thisround=-1,):
+
+        # id that not in train_index
+        new_datapoints = [j for j in range(len(dataset)) if j not in list(self.train_index)]
+
+        self.get_submodular(dataset, new_datapoints, acquire_document_num, model_path=model_path,
+                             model_name=model_name)
+
+
     def get_submodular(self, data,unlabel_index, acquire_questions_num, model_path='', model_name='', ):
         def greedy_k_center(labeled, unlabeled, amount):
         # input:
@@ -932,7 +943,11 @@ class Acquisition(object):
             if method == 'random':
                 self.get_random(data, acquire_num)
             elif method == 'dete':
-                assert 'not progressed ...'
+                if sub_method == "SIM":
+                    self.get_SIM(data,model_path,acquire_num,model_name,thisround=round)
+                    pass
+                else:
+                    assert 'not progressed ...'
             elif method == 'no-dete': # Bayesian neural network based method
                 if sub_method == 'DAL':
                     # 普通DAL
