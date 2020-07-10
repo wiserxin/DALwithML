@@ -473,6 +473,26 @@ class Acquisition(object):
             overall_rl = np.mean(np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1))
             return each_rl - overall_rl
 
+        def rankingLoss5(item):
+            # RKL5
+            positive_num = 10# 超参数
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            # print(overAllGroundTruth)
+
+            # each RKL5
+            sorted_item_arr = np.sort(item_arr)
+            positive_item_arr = sorted_item_arr[:, 0:positive_num]
+            negitive_item_arr = sorted_item_arr[:, positive_num:2 * positive_num]
+            each_rl = np.mean((np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1)))
+
+            # overall RL5
+            sorted_item_arr = item_arr[:, overAllGroundTruth.argsort()]
+            positive_item_arr = sorted_item_arr[:, 0:positive_num]
+            negitive_item_arr = sorted_item_arr[:, positive_num:2 * positive_num]
+            overall_rl = np.mean(np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1))
+            return each_rl - overall_rl
+
         model = torch.load(model_path)
         model.train(True) # 保持 dropout 开启
         tm = time.time()
@@ -540,7 +560,7 @@ class Acquisition(object):
                 # item    shape: nsample * nlabel
                 obj = {}
                 obj["id"] = pt
-                obj["el"] = rankingLoss4(item)
+                obj["el"] = rankingLoss5(item)
 
                 if obj["el"] < -1e-10:
                     print("elo error:",obj["el"])
@@ -548,15 +568,16 @@ class Acquisition(object):
 
                 _delt_arr.append(obj)
                 pt += 1
-        print()
+
 
         if density: # 考虑在所有未标注点中，pt的密度
+            print("\t density ing ...",end='')
             sim_matrix = self.getSimilarityMatrix(new_dataset,model_path,model_name)
             sim = np.mean(sim_matrix,axis=0)
             for pt,sim_t in enumerate(sim):
                 assert (_delt_arr[pt]['id'] == pt)
                 _delt_arr[pt]["el"] *= sim_t
-
+        print()
 
         _delt_arr = sorted(_delt_arr, key=lambda o: o["el"], reverse=True) # 从大到小排序
 
