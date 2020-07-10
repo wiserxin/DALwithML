@@ -560,7 +560,7 @@ class Acquisition(object):
                 # item    shape: nsample * nlabel
                 obj = {}
                 obj["id"] = pt
-                obj["el"] = rankingLoss5(item)
+                obj["el"] = rankingLoss4(item)
 
                 if obj["el"] < -1e-10:
                     print("elo error:",obj["el"])
