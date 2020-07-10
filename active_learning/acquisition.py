@@ -475,21 +475,24 @@ class Acquisition(object):
 
         def rankingLoss5(item):
             # RKL5
-            positive_num = 10# 超参数
+            positive_num = 5# 超参数,意义为 期望有几个positive label
             item_arr = np.array(item)
             overAllGroundTruth = np.mean(item_arr, axis=0)
             # print(overAllGroundTruth)
 
             # each RKL5
             sorted_item_arr = np.sort(item_arr)
-            positive_item_arr = sorted_item_arr[:, 0:positive_num]
-            negitive_item_arr = sorted_item_arr[:, positive_num:2 * positive_num]
+            print(sorted_item_arr)
+            positive_item_arr = sorted_item_arr[:, -positive_num:]
+            negitive_item_arr = sorted_item_arr[:, -2 * positive_num:-positive_num]
+            print(positive_item_arr)
+            print(negitive_item_arr)
             each_rl = np.mean((np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1)))
 
             # overall RL5
             sorted_item_arr = item_arr[:, overAllGroundTruth.argsort()]
-            positive_item_arr = sorted_item_arr[:, 0:positive_num]
-            negitive_item_arr = sorted_item_arr[:, positive_num:2 * positive_num]
+            positive_item_arr = sorted_item_arr[:, -positive_num:]
+            negitive_item_arr = sorted_item_arr[:, -2 * positive_num:-positive_num]
             overall_rl = np.mean(np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1))
             return each_rl - overall_rl
 
