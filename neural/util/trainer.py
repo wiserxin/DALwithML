@@ -41,6 +41,7 @@ class Trainer(object):
         print('********Training Start*******')
 
         optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
+        beingBestCount = 0
         for epoch in range(1, num_epochs + 1):
             t = time.time()
             count = 0
@@ -93,8 +94,7 @@ class Trainer(object):
                     lossD = 0.0
 
             ####################################### Validation ###########################################
-            beingBestCount = 0
-            save = None
+
             if (epoch >= self.eval_begin) and (epoch % self.eval_every == 0):
 
                 best_eval, new_eval, save = self.evaluator(self.model, val_data, best_eval, model_name = self._model_name)
