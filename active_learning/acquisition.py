@@ -406,6 +406,7 @@ class Acquisition(object):
                 nsamp=100,
                 model_name='',
                 returned=False,
+                density = False,
                 thisround=-1,):
 
         def rankingLoss2(item):  # item = nsamples * labels
@@ -548,6 +549,14 @@ class Acquisition(object):
                 _delt_arr.append(obj)
                 pt += 1
         print()
+
+        if density: # 考虑在所有未标注点中，pt的密度
+            sim_matrix = self.getSimilarityMatrix(new_dataset,model_path,model_name)
+            sim = np.mean(sim_matrix,axis=0)
+            for pt,sim_t in enumerate(sim):
+                assert (_delt_arr[pt]['id'] == pt)
+                _delt_arr[pt]["el"] *= sim_t
+
 
         _delt_arr = sorted(_delt_arr, key=lambda o: o["el"], reverse=True) # 从大到小排序
 
@@ -841,6 +850,8 @@ class Acquisition(object):
                                "index2id": {_index: p[3] for _index, p in enumerate(new_dataset)},
                                "_delt_arr": _delt_arr})
 
+
+
     def get_SIM(self, dataset, model_path, acquire_document_num,
                model_name='', returned=False, thisround=-1,):
 
@@ -982,6 +993,11 @@ class Acquisition(object):
                     #                                   model_name=model_name, returned=True)
                     # self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
                     #                     model_name=model_name)
+                elif sub_method == "DRL":
+                    # 考虑 点密度 的 RKL, 看做一种排除异常值的方法？
+                    # el = rkl * density, 密度低的点，对模型提升的贡献不如密度高的大
+                    self.get_RKL(data, model_path, acquire_num, model_name=model_name,density=True,thisround=round)
+
                 elif sub_method == "FEL":
                     self.get_FEL(data, model_path, acquire_num, model_name=model_name,thisround=round)
                     # 233
