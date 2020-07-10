@@ -94,6 +94,7 @@ class Trainer(object):
 
             ####################################### Validation ###########################################
             beingBestCount = 0
+            save = None
             if (epoch >= self.eval_begin) and (epoch % self.eval_every == 0):
 
                 best_eval, new_eval, save = self.evaluator(self.model, val_data, best_eval, model_name = self._model_name)
