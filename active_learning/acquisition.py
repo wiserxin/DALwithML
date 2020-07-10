@@ -482,11 +482,8 @@ class Acquisition(object):
 
             # each RKL5
             sorted_item_arr = np.sort(item_arr)
-            print(sorted_item_arr)
             positive_item_arr = sorted_item_arr[:, -positive_num:]
             negitive_item_arr = sorted_item_arr[:, -2 * positive_num:-positive_num]
-            print(positive_item_arr)
-            print(negitive_item_arr)
             each_rl = np.mean((np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1)))
 
             # overall RL5
@@ -494,7 +491,7 @@ class Acquisition(object):
             positive_item_arr = sorted_item_arr[:, -positive_num:]
             negitive_item_arr = sorted_item_arr[:, -2 * positive_num:-positive_num]
             overall_rl = np.mean(np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1))
-            return 1+each_rl - overall_rl# 应该更好的表征el的式子，不应使用 1+
+            return 1+ each_rl - overall_rl# 应该更好的表征el的式子，不应使用 1+
 
         model = torch.load(model_path)
         model.train(True) # 保持 dropout 开启
