@@ -504,7 +504,7 @@ class Acquisition(object):
                   6:rankingLoss6,
                   }
         rkl = rklDic[rklNo]
-
+        print("RKL",rklNo,end="\t")
 
 
 
