@@ -1021,8 +1021,7 @@ class Acquisition(object):
                     self.get_RS2HEL(data, model_path, acquire_num, model_name=model_name,thisround=round)
                 elif sub_method == "RKL":
                     # # # 普通RKL
-                    # self.get_RKL(data, model_path, acquire_num, model_name=model_name,thisround=round)
-                    self.get_RKL(data, model_path, acquire_num,rklNo=6, model_name=model_name, thisround=round)
+                    self.get_RKL(data, model_path, acquire_num, model_name=model_name,thisround=round)
 
                     # dsm RKL
                     # _, unlabeled_index = self.get_RKL(data, model_path,
@@ -1030,6 +1029,9 @@ class Acquisition(object):
                     #                                   model_name=model_name, returned=True)
                     # self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
                     #                     model_name=model_name)
+                elif sub_method == "RKL6":
+                    #233
+                    self.get_RKL(data, model_path, acquire_num, rklNo=6, model_name=model_name, thisround=round)
                 elif sub_method == "DRL":
                     # 考虑 点密度 的 RKL, 看做一种排除异常值的方法？
                     # el = rkl * density, 密度低的点，对模型提升的贡献不如密度高的大
