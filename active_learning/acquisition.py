@@ -1036,6 +1036,12 @@ class Acquisition(object):
                     # 考虑 点密度 的 RKL, 看做一种排除异常值的方法？
                     # el = rkl * density, 密度低的点，对模型提升的贡献不如密度高的大
                     self.get_RKL(data, model_path, acquire_num, model_name=model_name,density=True,thisround=round)
+                elif sub_method == "smDRL":
+                    _, unlabeled_index = self.get_RKL(data, model_path, 2*acquire_num,
+                                                      model_name=model_name, density=True,
+                                                      thisround=round, returned=True)
+                    self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
+                                        model_name=model_name)
 
                 elif sub_method == "FEL":
                     self.get_FEL(data, model_path, acquire_num, model_name=model_name,thisround=round)
