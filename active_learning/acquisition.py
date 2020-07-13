@@ -406,7 +406,8 @@ class Acquisition(object):
                 nsamp=100,
                 model_name='',
                 returned=False,
-                density = False,
+                rklNo = 4,      # 选取rkl策略，默认是rkl4
+                density = False,#开启则挑选更稠密的区间的点
                 thisround=-1,):
 
         def rankingLoss2(item):  # item = nsamples * labels
@@ -493,6 +494,20 @@ class Acquisition(object):
             overall_rl = np.mean(np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1))
             return 1+ each_rl - overall_rl# 应该更好的表征el的式子，不应使用 1+
 
+        def rankingLoss6(item):
+            return 2.0-rankingLoss5(item)
+
+        # 选取 rkl 策略
+        rklDic = {2:rankingLoss2,
+                  4:rankingLoss4,
+                  5:rankingLoss5,
+                  6:rankingLoss6,
+                  }
+        rkl = rklDic[rklNo]
+
+
+
+
         model = torch.load(model_path)
         model.train(True) # 保持 dropout 开启
         tm = time.time()
@@ -560,7 +575,7 @@ class Acquisition(object):
                 # item    shape: nsample * nlabel
                 obj = {}
                 obj["id"] = pt
-                obj["el"] = rankingLoss4(item)
+                obj["el"] = rkl(item)
 
                 if obj["el"] < -1e-10:
                     print("elo error:",obj["el"])
@@ -1006,7 +1021,8 @@ class Acquisition(object):
                     self.get_RS2HEL(data, model_path, acquire_num, model_name=model_name,thisround=round)
                 elif sub_method == "RKL":
                     # # # 普通RKL
-                    self.get_RKL(data, model_path, acquire_num, model_name=model_name,thisround=round)
+                    # self.get_RKL(data, model_path, acquire_num, model_name=model_name,thisround=round)
+                    self.get_RKL(data, model_path, acquire_num,rklNo=6, model_name=model_name, thisround=round)
 
                     # dsm RKL
                     # _, unlabeled_index = self.get_RKL(data, model_path,
