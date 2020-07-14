@@ -902,7 +902,7 @@ class Acquisition(object):
 
         candidate_set = self.get_submodular(dataset, new_datapoints, candidate_num , model_path=model_path,
                             model_name=model_name,returned=True)
-        candidate_set = list(candidate_set).sort()
+        candidate_set = sorted(list(candidate_set))
         #------------------------------- submodular step end ----------------------------------#
         def rankingLoss4(item):
             item_arr = np.array(item)
@@ -937,8 +937,7 @@ class Acquisition(object):
         new_datapoints = [j for j in range(len(dataset)) if j in candidate_set]
 
         # 防止死循环
-        acquire_document_num = acquire_document_num if acquire_document_num <= len(new_datapoints) else len(
-            new_datapoints)
+        acquire_document_num = acquire_document_num if acquire_document_num <= len(new_datapoints) else len(new_datapoints)
 
         # print('RKL: preparing batch data', end='')
         data_batches = create_batches(new_dataset, batch_size=self.batch_size, order='no')
