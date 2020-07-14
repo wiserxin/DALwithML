@@ -886,6 +886,148 @@ class Acquisition(object):
                                "index2id": {_index: p[3] for _index, p in enumerate(new_dataset)},
                                "_delt_arr": _delt_arr})
 
+    def get_submodular_then_EL(self, dataset, model_path, acquire_document_num,
+               nsamp=100, model_name='', thisround=-1,):
+
+        submodular_k = 3
+        tm = time.time()
+
+        # id that not in train_index
+        new_datapoints = [j for j in range(len(dataset)) if j not in list(self.train_index)]
+
+        # 防止死循环
+        candidate_num = acquire_document_num*submodular_k \
+            if acquire_document_num*submodular_k <= len(new_datapoints) \
+            else len(new_datapoints)
+
+        candidate_set = self.get_submodular(dataset, new_datapoints, candidate_num , model_path=model_path,
+                            model_name=model_name,returned=True)
+        candidate_set = list(candidate_set).sort()
+        #------------------------------- submodular step end ----------------------------------#
+        def rankingLoss4(item):
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            positive_num = np.sum(overAllGroundTruth > 0.5)
+            if positive_num == 0:
+                positive_num = 1
+            elif positive_num == overAllGroundTruth.size:
+                positive_num = overAllGroundTruth.size - 1
+
+            # each RL3
+            sorted_item_arr = np.sort(item_arr)
+            positive_item_arr = sorted_item_arr[:, -positive_num:]
+            negitive_item_arr = sorted_item_arr[:, :-positive_num]
+            each_rl = np.mean((np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1)))
+
+            # overall RL3
+            sorted_item_arr = item_arr[:, overAllGroundTruth.argsort()]
+            positive_item_arr = sorted_item_arr[:, -positive_num:]
+            negitive_item_arr = sorted_item_arr[:, :-positive_num]
+            overall_rl = np.mean(np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1))
+            return each_rl - overall_rl
+
+        rkl=rankingLoss4
+        model = torch.load(model_path)
+        model.train(True)  # 保持 dropout 开启
+
+        # data without id
+        new_dataset = [datapoint for j, datapoint in enumerate(dataset) if j in candidate_set]
+
+        # id that not in train_index
+        new_datapoints = [j for j in range(len(dataset)) if j in candidate_set]
+
+        # 防止死循环
+        acquire_document_num = acquire_document_num if acquire_document_num <= len(new_datapoints) else len(
+            new_datapoints)
+
+        # print('RKL: preparing batch data', end='')
+        data_batches = create_batches(new_dataset, batch_size=self.batch_size, order='no')
+
+        pt = 0
+        _delt_arr = []
+
+        for iter_batch, data in enumerate(data_batches):
+            # print('\rRKL acquire batch {}/{}'.format(iter_batch, len(data_batches)), end='')
+
+            batch_data_numpy = data['data_numpy']
+            batch_data_points = data['data_points']
+
+            X = batch_data_numpy[0]
+            Y = batch_data_numpy[1]
+
+            if self.usecuda:
+                X = Variable(torch.from_numpy(X).long()).cuda(self.cuda_device)
+            else:
+                X = Variable(torch.from_numpy(X).long())
+
+            score_arr = []
+
+            for itr in range(nsamp):
+
+                if model_name == 'BiLSTM':
+                    # output = model(words_q, words_a, wordslen_q, wordslen_a)
+                    pass
+                elif model_name == 'CNN':
+                    output = model(X)
+
+                score = torch.sigmoid(output).data.cpu().numpy().tolist()
+                # score = torch.softmax(output,dim=1).data.cpu().numpy().tolist() # 测试softmax
+                # score = F.logsigmoid(output).data.cpu().numpy().tolist()
+
+                score_arr.append(score)
+
+                # evidence level , using confidence stratgy
+                # score_arr.append(torch.abs(score-0.5))
+
+            new_score_seq = []  # size: btach_size * nsample * nlabel
+            for m in range(len(Y)):
+                tp = []
+                for n in range(nsamp):
+                    tp.append(score_arr[n][m])
+                new_score_seq.append(tp)
+
+            # print("new_score_seq:",len(new_score_seq),len(new_score_seq[0]),len(new_score_seq[0][0]))
+
+            for index, item in enumerate(new_score_seq):
+                # new_xxx shape: batch_size * nsample * nlabel
+                # item    shape: nsample * nlabel
+                obj = {}
+                obj["id"] = pt
+                obj["el"] = rkl(item)
+
+                if obj["el"] < -1e-10:
+                    print("elo error:", obj["el"])
+                    exit()
+
+                _delt_arr.append(obj)
+                pt += 1
+
+        print()
+
+        _delt_arr = sorted(_delt_arr, key=lambda o: o["el"], reverse=True)  # 从大到小排序
+
+        cur_indices = set()
+        i = 0
+
+        while len(cur_indices) < acquire_document_num:
+            try:
+                cur_indices.add(new_datapoints[_delt_arr[i]["id"]])
+                i += 1
+            except:
+                print(acquire_document_num)
+                print(i)
+                print(type(new_datapoints), len(new_datapoints))
+                print(new_datapoints[:10])
+                print(_delt_arr[i])
+                assert False
+
+
+        self.train_index.update(cur_indices)
+        print('STR time consuming： %d seconds:' % (time.time() - tm))
+
+
+
+        pass
 
 
     def get_SIM(self, dataset, model_path, acquire_document_num,
@@ -898,7 +1040,7 @@ class Acquisition(object):
                              model_name=model_name)
 
 
-    def get_submodular(self, data,unlabel_index, acquire_questions_num, model_path='', model_name='', ):
+    def get_submodular(self, data,unlabel_index, acquire_questions_num, model_path='', model_name='', returned=False):
         def greedy_k_center(labeled, unlabeled, amount):
         # input:
         ## labeled features
@@ -937,7 +1079,10 @@ class Acquisition(object):
         unlabel_feature = sample_feature[unlabel]
         sel_indices = greedy_k_center(labeled_feature, unlabel_feature, acquire_questions_num)
         cur_indices = np.array(unlabel)[sel_indices].tolist()
-        self.train_index.update(cur_indices)
+        if returned:
+            return cur_indices
+        else:
+            self.train_index.update(cur_indices)
 
     def getSimilarityMatrix(self, dataset, model_path='', model_name='', batch_size=800,
                             feature_only=False):
@@ -1009,15 +1154,7 @@ class Acquisition(object):
                     #                                  int(acquire_num*( max(2,6-0.5*round) )) ,
                     #                                  model_name=model_name,returned=True)
                     # self.get_submodular(data,unlabeled_index,acquire_num,model_path=model_path,model_name=model_name)
-                elif sub_method == 'MDAL4.3':
-                    if round < 5:
-                        self.get_DALplusIC(data, model_path, acquire_num, model_name=model_name)
-                    else:
-                        self.get_DAL(data, model_path, acquire_num, model_name=model_name)
-                    pass
-                elif sub_method == 'MDAL4.4':
-                    self.get_DALplusIC(data, model_path, acquire_num, model_name=model_name,thisround=round)
-                elif sub_method == 'RS2HEL': # random sampling to ins with high el values
+                elif sub_method == 'RS2HEL': # random sampling to instance with high el values
                     self.get_RS2HEL(data, model_path, acquire_num, model_name=model_name,thisround=round)
                 elif sub_method == "RKL":
                     # # # 普通RKL
@@ -1042,7 +1179,9 @@ class Acquisition(object):
                                                       thisround=round, returned=True)
                     self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
                                         model_name=model_name)
-
+                elif sub_method == "STR":
+                    self.get_submodular_then_EL(data,model_path,acquire_num,model_name=model_name,thisround=round)
+                    #
                 elif sub_method == "FEL":
                     self.get_FEL(data, model_path, acquire_num, model_name=model_name,thisround=round)
                     # 233
