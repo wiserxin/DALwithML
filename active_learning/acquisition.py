@@ -888,14 +888,14 @@ class Acquisition(object):
                 cur_indices.add(new_datapoints[_delt_arr_F1[i]["id"]])
                 cur_indices.add(new_datapoints[_delt_arr_RK[i]["id"]])
                 cur_indices.add(new_datapoints[_delt_arr_ET[i]["id"]])
-            print(" reduency:",len(cur_indices-acquire_document_num),end=' ')
+            print(" reduency:",len(cur_indices)-acquire_document_num,end=' ')
             cur_indices = self.get_submodular(dataset,cur_indices,acquire_document_num,
                                                   model_path=model_path,model_name=model_name,returned=True)
         elif combine_method == "FERKL":
             for i in range(acquire_document_num):
                 cur_indices.add(new_datapoints[_delt_arr_F1[i]["id"]])
                 cur_indices.add(new_datapoints[_delt_arr_RK[i]["id"]])
-            print(" reduency:", len(cur_indices - acquire_document_num), end=' ')
+            print(" reduency:", len(cur_indices) - acquire_document_num, end=' ')
             cur_indices = self.get_submodular(dataset, cur_indices, acquire_document_num,
                                               model_path=model_path, model_name=model_name, returned=True)
         else:
