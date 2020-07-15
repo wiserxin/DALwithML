@@ -888,8 +888,16 @@ class Acquisition(object):
                 cur_indices.add(new_datapoints[_delt_arr_F1[i]["id"]])
                 cur_indices.add(new_datapoints[_delt_arr_RK[i]["id"]])
                 cur_indices.add(new_datapoints[_delt_arr_ET[i]["id"]])
-                cur_indices = self.get_submodular(dataset,cur_indices,acquire_document_num,
+            print(" reduency:",len(cur_indices-acquire_document_num),end=' ')
+            cur_indices = self.get_submodular(dataset,cur_indices,acquire_document_num,
                                                   model_path=model_path,model_name=model_name,returned=True)
+        elif combine_method == "FERKL":
+            for i in range(acquire_document_num):
+                cur_indices.add(new_datapoints[_delt_arr_F1[i]["id"]])
+                cur_indices.add(new_datapoints[_delt_arr_RK[i]["id"]])
+            print(" reduency:", len(cur_indices - acquire_document_num), end=' ')
+            cur_indices = self.get_submodular(dataset, cur_indices, acquire_document_num,
+                                              model_path=model_path, model_name=model_name, returned=True)
         else:
             assert False # not programned
 
@@ -1364,18 +1372,19 @@ class Acquisition(object):
                                         model_name=model_name)
                     print("DARK {} redundancy ...".format(len(unlabeled_index)-acquire_num))
                 elif sub_method == "FERKL":
-                    _, FEL_unlabeled_index = self.get_FEL(data, model_path,
-                                                          acquire_num,
-                                                          model_name=model_name, returned=True)
-                    _, RKL_unlabeled_index = self.get_RKL(data, model_path,
-                                                          acquire_num,
-                                                          model_name=model_name, returned=True)
-                    unlabeled_index = set()
-                    unlabeled_index.update(FEL_unlabeled_index)
-                    unlabeled_index.update(RKL_unlabeled_index)
-                    self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
-                                        model_name=model_name)
-                    print("FERK {} redundancy ...".format(len(unlabeled_index) - acquire_num))
+                    # _, FEL_unlabeled_index = self.get_FEL(data, model_path,
+                    #                                       acquire_num,
+                    #                                       model_name=model_name, returned=True)
+                    # _, RKL_unlabeled_index = self.get_RKL(data, model_path,
+                    #                                       acquire_num,
+                    #                                       model_name=model_name, returned=True)
+                    # unlabeled_index = set()
+                    # unlabeled_index.update(FEL_unlabeled_index)
+                    # unlabeled_index.update(RKL_unlabeled_index)
+                    # self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
+                    #                     model_name=model_name)
+                    # print("FERK {} redundancy ...".format(len(unlabeled_index) - acquire_num))
+                    self.get_FEL_RKL_ETL(data, model_path, acquire_num, model_name=model_name, combine_method="FERKL")
                 elif sub_method == "FERKETL":
                     self.get_FEL_RKL_ETL(data, model_path,acquire_num,model_name=model_name,combine_method="FERKETL")
                     #
