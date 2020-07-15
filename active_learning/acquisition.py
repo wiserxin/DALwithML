@@ -500,11 +500,12 @@ class Acquisition(object):
         def entropyLoss(item):
             item_arr = np.array(item)
             overAllGroundTruth = np.mean(item_arr, axis=0)
-            entropy_arr = -np.log2(item_arr) * item_arr
-            overall_entropy = -np.log2(overAllGroundTruth) * overAllGroundTruth
+            entropy_arr = -np.log2(item_arr) * item_arr - np.log2(1 - item_arr) * (1 - item_arr)
+            overall_entropy = -np.log2(overAllGroundTruth) * overAllGroundTruth - np.log2(1 - overAllGroundTruth) * (
+                        1 - overAllGroundTruth)
             overall_entropy = np.mean(overall_entropy)
             each_entropy = np.mean(entropy_arr)
-            return (overall_entropy - each_entropy)
+            return overall_entropy - each_entropy
 
         # 选取 rkl 策略
         rklDic = {2:rankingLoss2,
@@ -754,6 +755,147 @@ class Acquisition(object):
         self.savedData.append({"added_index": cur_indices,
                                "index2id": {_index: p[3] for _index, p in enumerate(new_dataset)},
                                "_delt_arr": _delt_arr})
+
+    def get_FEL_RKL_ETL(self, dataset, model_path, acquire_document_num,
+                        nsamp=100, model_name='', returned=False, thisround=-1,
+                        combine_method = ""):
+        def rankingLoss4(item):
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            positive_num = np.sum(overAllGroundTruth > 0.5)
+            if positive_num == 0:
+                positive_num = 1
+            elif positive_num == overAllGroundTruth.size:
+                positive_num = overAllGroundTruth.size - 1
+
+            # each RL3
+            sorted_item_arr = np.sort(item_arr)
+            positive_item_arr = sorted_item_arr[:, -positive_num:]
+            negitive_item_arr = sorted_item_arr[:, :-positive_num]
+            each_rl = np.mean((np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1)))
+
+            # overall RL3
+            sorted_item_arr = item_arr[:, overAllGroundTruth.argsort()]
+            positive_item_arr = sorted_item_arr[:, -positive_num:]
+            negitive_item_arr = sorted_item_arr[:, :-positive_num]
+            overall_rl = np.mean(np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1))
+            return each_rl - overall_rl
+
+        def F1Loss(item):
+            from sklearn.metrics import f1_score
+            baseLine = 0.5
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0) > baseLine
+
+            overAllGroundTruth = np.tile(overAllGroundTruth, (item_arr.shape[0], 1))
+            r = 0
+            for am in ['micro', 'macro', 'weighted', 'samples']:
+                r += (1.0 - f1_score(overAllGroundTruth, item_arr > baseLine, average=am))
+            return r
+
+        def entropyLoss(item):
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            entropy_arr = -np.log2(item_arr) * item_arr - np.log2(1 - item_arr) * (1 - item_arr)
+            overall_entropy = -np.log2(overAllGroundTruth) * overAllGroundTruth - np.log2(1 - overAllGroundTruth) * (1 - overAllGroundTruth)
+            overall_entropy = np.mean(overall_entropy)
+            each_entropy = np.mean(entropy_arr)
+            return overall_entropy - each_entropy
+
+        model = torch.load(model_path)
+        model.train(True)  # 保持 dropout 开启
+
+        # data without id
+        new_dataset = [datapoint for j, datapoint in enumerate(dataset) if j not in list(self.train_index)]
+
+        # id that not in train_index
+        new_datapoints = [j for j in range(len(dataset)) if j not in list(self.train_index)]
+
+        # 防止死循环
+        acquire_document_num = acquire_document_num if acquire_document_num <= len(new_datapoints) else len(
+            new_datapoints)
+
+        data_batches = create_batches(new_dataset, batch_size=self.batch_size, order='no')
+
+        pt = 0
+        _delt_arr = []
+
+        for iter_batch, data in enumerate(data_batches):
+            print('\rFEL acquire batch {}/{}'.format(iter_batch, len(data_batches)), end='')
+
+            batch_data_numpy = data['data_numpy']
+            batch_data_points = data['data_points']
+
+            X = batch_data_numpy[0]
+            Y = batch_data_numpy[1]
+
+            if self.usecuda:
+                X = Variable(torch.from_numpy(X).long()).cuda(self.cuda_device)
+            else:
+                X = Variable(torch.from_numpy(X).long())
+
+            score_arr = []
+
+            for itr in range(nsamp):
+
+                if model_name == 'BiLSTM':
+                    # output = model(words_q, words_a, wordslen_q, wordslen_a)
+                    pass
+                elif model_name == 'CNN':
+                    output = model(X)
+
+                score = torch.sigmoid(output).data.cpu().numpy().tolist()
+                # score = torch.softmax(output,dim=1).data.cpu().numpy().tolist() # 测试softmax
+                # score = F.logsigmoid(output).data.cpu().numpy().tolist()
+
+                score_arr.append(score)
+
+                # evidence level , using confidence stratgy
+                # score_arr.append(torch.abs(score-0.5))
+
+            new_score_seq = []  # size: btach_size * nsample * nlabel
+            for m in range(len(Y)):
+                tp = []
+                for n in range(nsamp):
+                    tp.append(score_arr[n][m])
+                new_score_seq.append(tp)
+
+            # print("new_score_seq:",len(new_score_seq),len(new_score_seq[0]),len(new_score_seq[0][0]))
+
+            for index, item in enumerate(new_score_seq):
+                # new_xxx shape: batch_size * nsample * nlabel
+                # item    shape: nsample * nlabel
+                obj = {}
+                obj["id"] = pt
+                obj["elF1"] = F1Loss(item)
+                obj["elRK"] = rankingLoss4(item)
+                obj["elET"] = entropyLoss(item)
+
+                _delt_arr.append(obj)
+                pt += 1
+        print()
+
+# ------------------ combine method -------------------- #
+        _delt_arr_F1 = sorted(_delt_arr, key=lambda o: o["elF1"], reverse=True)  # 从大到小排序
+        _delt_arr_RK = sorted(_delt_arr, key=lambda o: o["elRK"], reverse=True)  # 从大到小排序
+        _delt_arr_ET = sorted(_delt_arr, key=lambda o: o["elET"], reverse=True)  # 从大到小排序
+        cur_indices = set()
+
+        if combine_method == "FERKETL":
+            for i in range(acquire_document_num):
+                cur_indices.add(new_datapoints[_delt_arr_F1[i]["id"]])
+                cur_indices.add(new_datapoints[_delt_arr_RK[i]["id"]])
+                cur_indices.add(new_datapoints[_delt_arr_ET[i]["id"]])
+                cur_indices = self.get_submodular(dataset,cur_indices,acquire_document_num,
+                                                  model_path=model_path,model_name=model_name,returned=True)
+        else:
+            assert False # not programned
+
+        if not returned:
+            self.train_index.update(cur_indices)
+        else:
+            return None,cur_indices
+
 
     def get_FELplusRKL(self, dataset, model_path, acquire_document_num,
                 nsamp=100, model_name='', returned=False, thisround=-1,):
