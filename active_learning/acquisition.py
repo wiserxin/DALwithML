@@ -802,6 +802,9 @@ class Acquisition(object):
             each_entropy = np.mean(entropy_arr)
             return overall_entropy - each_entropy
 
+        tm = time.time()
+        print("FEL RKL ETL combine:",combine_method,end="")
+
         model = torch.load(model_path)
         model.train(True)  # 保持 dropout 开启
 
@@ -873,7 +876,6 @@ class Acquisition(object):
 
                 _delt_arr.append(obj)
                 pt += 1
-        print()
 
 # ------------------ combine method -------------------- #
         _delt_arr_F1 = sorted(_delt_arr, key=lambda o: o["elF1"], reverse=True)  # 从大到小排序
@@ -890,6 +892,8 @@ class Acquisition(object):
                                                   model_path=model_path,model_name=model_name,returned=True)
         else:
             assert False # not programned
+
+        print("",time.time()-tm,'s')
 
         if not returned:
             self.train_index.update(cur_indices)
@@ -1372,6 +1376,9 @@ class Acquisition(object):
                     self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
                                         model_name=model_name)
                     print("FERK {} redundancy ...".format(len(unlabeled_index) - acquire_num))
+                elif sub_method == "FERKETL":
+                    self.get_FEL_RKL_ETL(data, model_path,acquire_num,model_name=model_name,combine_method="FERKETL")
+                    #
                 elif sub_method == "FELplusRKL":
                     # # # 普通
                     self.get_FELplusRKL(data, model_path, acquire_num, model_name=model_name, thisround=round)
