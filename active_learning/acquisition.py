@@ -497,11 +497,22 @@ class Acquisition(object):
         def rankingLoss6(item):
             return 2.0-rankingLoss5(item)
 
+        def entropyLoss(item):
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            entropy_arr = -np.log2(item_arr) * item_arr
+            overall_entropy = -np.log2(overAllGroundTruth) * overAllGroundTruth
+            overall_entropy = np.mean(overall_entropy)
+            each_entropy = np.mean(entropy_arr)
+            return (overall_entropy - each_entropy)
+
         # 选取 rkl 策略
         rklDic = {2:rankingLoss2,
                   4:rankingLoss4,
                   5:rankingLoss5,
                   6:rankingLoss6,
+
+                  'et':entropyLoss,
                   }
         rkl = rklDic[rklNo]
         print("RKL",rklNo,end="\t")
@@ -1181,6 +1192,9 @@ class Acquisition(object):
                 elif sub_method == "STR":
                     self.get_submodular_then_EL(data,model_path,acquire_num,model_name=model_name,thisround=round)
                     #
+                elif sub_method == "ETL":
+                    # 信息熵 Loss
+                    self.get_RKL(data, model_path, acquire_num, model_name=model_name, rklNo='et', thisround=round)
                 elif sub_method == "FEL":
                     self.get_FEL(data, model_path, acquire_num, model_name=model_name,thisround=round)
                     # 233
