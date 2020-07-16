@@ -497,7 +497,7 @@ class Acquisition(object):
         def rankingLoss6(item):
             return 2.0-rankingLoss5(item)
 
-        def entropyLoss(item):
+        def entropyLoss(item,ee=False): # ee: entropy*EL ?
             item_arr = np.array(item)
             overAllGroundTruth = np.mean(item_arr, axis=0)
             entropy_arr = -np.log2(item_arr) * item_arr - np.log2(1 - item_arr) * (1 - item_arr)
@@ -505,7 +505,13 @@ class Acquisition(object):
                         1 - overAllGroundTruth)
             overall_entropy = np.mean(overall_entropy)
             each_entropy = np.mean(entropy_arr)
-            return overall_entropy - each_entropy
+            if ee:
+                return overall_entropy* (overall_entropy - each_entropy)
+            else:
+                return overall_entropy - each_entropy
+
+        def eentropyLoss(item):
+            return entropyLoss(item,ee=True)
 
         # 选取 rkl 策略
         rklDic = {2:rankingLoss2,
@@ -514,6 +520,7 @@ class Acquisition(object):
                   6:rankingLoss6,
 
                   'et':entropyLoss,
+                  'ee':eentropyLoss
                   }
         rkl = rklDic[rklNo]
         print("RKL",rklNo,end="\t")
@@ -824,7 +831,7 @@ class Acquisition(object):
         _delt_arr = []
 
         for iter_batch, data in enumerate(data_batches):
-            print('\rFEL acquire batch {}/{}'.format(iter_batch, len(data_batches)), end='')
+            print('\rCombine acquire batch {}/{}'.format(iter_batch, len(data_batches)), end='')
 
             batch_data_numpy = data['data_numpy']
             batch_data_points = data['data_points']
@@ -1346,9 +1353,17 @@ class Acquisition(object):
                 elif sub_method == "STR":
                     self.get_submodular_then_EL(data,model_path,acquire_num,model_name=model_name,thisround=round)
                     #
+
+                # 信息熵 Loss
                 elif sub_method == "ETL":
                     # 信息熵 Loss
                     self.get_RKL(data, model_path, acquire_num, model_name=model_name, rklNo='et', thisround=round)
+                elif sub_method == "EEL":
+                    # 认为信息熵越大 且 loss 越大 的 越好
+                    # 使用overall_entropy * entropy_EL
+                    self.get_RKL(data, model_path, acquire_num, model_name=model_name, rklNo='ee', thisround=round)
+
+
                 elif sub_method == "FEL":
                     self.get_FEL(data, model_path, acquire_num, model_name=model_name,thisround=round)
                     # 233
