@@ -1201,14 +1201,71 @@ class Acquisition(object):
         pass
 
 
-    def get_SIM(self, dataset, model_path, acquire_document_num,
-               model_name='', returned=False, thisround=-1,):
+    def get_dete(self, dataset, model_path, acquire_document_num,
+               model_name='', dete_method = "SIM", returned=False, thisround=-1,):
 
-        # id that not in train_index
-        new_datapoints = [j for j in range(len(dataset)) if j not in list(self.train_index)]
+    # SIM
+    # ETY
+        tm = time.time()
+        if dete_method == "SIM": # submodular
+            # id that not in train_index
+            new_datapoints = [j for j in range(len(dataset)) if j not in list(self.train_index)]
 
-        self.get_submodular(dataset, new_datapoints, acquire_document_num, model_path=model_path,
-                             model_name=model_name)
+            self.get_submodular(dataset, new_datapoints, acquire_document_num, model_path=model_path,
+                                 model_name=model_name)
+        else:
+            model = torch.load(model_path)
+            model.train(False)  # 保持 dropout 关闭
+
+            # data without id
+            new_dataset = [datapoint for j, datapoint in enumerate(dataset) if j not in list(self.train_index)]
+
+            # id that not in train_index
+            new_datapoints = [j for j in range(len(dataset)) if j not in list(self.train_index)]
+
+            print('dete : preparing batch data', end='')
+            data_batches = create_batches(new_dataset, batch_size=self.batch_size, order='no')
+
+            score_arr = [] # 获取模型对未标记样本的输出
+            for iter_batch, data in enumerate(data_batches):
+                print('\rdete acquire batch {}/{}'.format(iter_batch, len(data_batches)), end='')
+
+                batch_data_numpy = data['data_numpy']
+                batch_data_points = data['data_points']
+
+                X = batch_data_numpy[0]
+                Y = batch_data_numpy[1]
+
+                if self.usecuda:
+                    X = Variable(torch.from_numpy(X).long()).cuda(self.cuda_device)
+                else:
+                    X = Variable(torch.from_numpy(X).long())
+
+                if model_name == 'CNN':
+                    output = model(X)
+                else:
+                    assert False
+
+                score = torch.sigmoid(output).data.cpu().numpy().tolist()
+
+                score_arr.extend(score)
+            assert len(score_arr) == len(new_dataset)
+
+#-----------------------------------------------------------------------#
+            if dete_method == "ETY": # entropy
+                item_arr = np.array(score_arr)
+                entropy_arr = -np.log2(item_arr) * item_arr - np.log2(1 - item_arr) * (1 - item_arr)
+                entropy_arr = np.sum(entropy_arr,axis=1)
+                arg = np.argsort(entropy_arr)[-acquire_document_num:] # entropy最大的几个样本的id
+                cur_indices = set()
+                for i in arg:
+                    cur_indices.add(new_datapoints[i])
+                    self.train_index.update(cur_indices)
+            else:
+                assert False #"Not Programmed"
+
+        print('dete time consuming： %d seconds:' % (time.time() - tm))
+
 
 
     def get_submodular(self, data,unlabel_index, acquire_questions_num, model_path='', model_name='', returned=False):
@@ -1306,11 +1363,7 @@ class Acquisition(object):
             if method == 'random':
                 self.get_random(data, acquire_num)
             elif method == 'dete':
-                if sub_method == "SIM":
-                    self.get_SIM(data,model_path,acquire_num,model_name,thisround=round)
-                    pass
-                else:
-                    assert 'not progressed ...'
+                self.get_dete(data,model_path,acquire_num,model_name,dete_method=sub_method,thisround=round)
             elif method == 'no-dete': # Bayesian neural network based method
                 if sub_method == 'DAL':
                     # 普通DAL
