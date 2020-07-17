@@ -497,6 +497,35 @@ class Acquisition(object):
         def rankingLoss6(item):
             return 2.0-rankingLoss5(item)
 
+        def meanMaxLoss(item):
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            #     print(overAllGroundTruth)
+            positive_num = np.sum(overAllGroundTruth > 0.5)
+            # print(overAllGroundTruth.size)
+            # print(overAllGroundTruth.shape)
+            if positive_num == 0:
+                positive_num = 1
+            elif positive_num == overAllGroundTruth.size:
+                positive_num = overAllGroundTruth.size - 1
+
+            nlabels = item_arr.shape[1]
+            M = np.eye(nlabels)
+            M = 2 * M - 1  # 构建对角线为1 其余为-1 的矩阵
+
+            # overall
+            positive_labels = overAllGroundTruth.argsort()[-positive_num:]
+            overall_loss = np.mean(np.sum(1 - M[positive_labels] * overAllGroundTruth, axis=1))
+            #     print(overall_loss)
+
+            # each
+            sorted_item_arr = np.sort(item_arr)
+            t = nlabels * 1 - np.dot(M[-positive_num:], item_arr.T)
+            t = np.mean(t)
+            each_loss = t
+
+            return each_loss - overall_loss
+
         def entropyLoss(item,ee=False): # ee: entropy*EL ?
             item_arr = np.array(item)
             overAllGroundTruth = np.mean(item_arr, axis=0)
@@ -518,6 +547,8 @@ class Acquisition(object):
                   4:rankingLoss4,
                   5:rankingLoss5,
                   6:rankingLoss6,
+
+                  'mml':meanMaxLoss,
 
                   'et':entropyLoss,
                   'ee':eentropyLoss
@@ -1405,6 +1436,10 @@ class Acquisition(object):
                                         model_name=model_name)
                 elif sub_method == "STR":
                     self.get_submodular_then_EL(data,model_path,acquire_num,model_name=model_name,thisround=round)
+                    #
+
+                elif sub_method == "MML":
+                    self.get_RKL(data, model_path, acquire_num, model_name=model_name, rklNo='mml', thisround=round)
                     #
 
                 # 信息熵 Loss
