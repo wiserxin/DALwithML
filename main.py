@@ -125,32 +125,60 @@ def main(args):
         #     "warm_start_random_seed": 0,
         #     "sample_method": "Deterministic+SIM+0",
             "model_name": "CNN",
-            "group_name": "[mlabs]KIM+???+3e4trn+F1",
+            "group_name": "[mlabs]KIM+???+6e4trn+F1",
             "max_performance": 0.90,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "no-dete",
             "sub_acquire_method": "RKL",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
-            "num_acquisitions_round": 25,
+            "num_acquisitions_round": 50,
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 0,
-            "sample_method": "No-Deterministic+RKL+0-new",
+            "sample_method": "No-Deterministic+RKL+0",
         }, {
             "model_name": "CNN",
-            "group_name": "[mlabs]KIM+???+3e4trn+F1",
+            "group_name": "[mlabs]KIM+???+6e4trn+F1",
             "max_performance": 0.90,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "no-dete",
             "sub_acquire_method": "RKL",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
-            "num_acquisitions_round": 25,
+            "num_acquisitions_round": 50,
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 16,
-            "sample_method": "No-Deterministic+RKL+16-new",
+            "sample_method": "No-Deterministic+RKL+16",
+        }, {
+            "model_name": "CNN",
+            "group_name": "[mlabs]KIM+???+6e4trn+F1",
+            "max_performance": 0.90,
+            "data_path": "../../datasets/rcv2/",
+            "acquire_method": "no-dete",
+            "sub_acquire_method": "RKL",
+            "unsupervised_method": 'submodular',
+            "submodular_k": 2,
+            "num_acquisitions_round": 50,
+            "init_question_num": 1200,
+            "acquire_question_num_per_round": 1200,
+            "warm_start_random_seed": 32,
+            "sample_method": "No-Deterministic+RKL+32",
+        }, {
+            "model_name": "CNN",
+            "group_name": "[mlabs]KIM+???+6e4trn+F1",
+            "max_performance": 0.90,
+            "data_path": "../../datasets/rcv2/",
+            "acquire_method": "no-dete",
+            "sub_acquire_method": "RKL",
+            "unsupervised_method": 'submodular',
+            "submodular_k": 2,
+            "num_acquisitions_round": 50,
+            "init_question_num": 1200,
+            "acquire_question_num_per_round": 1200,
+            "warm_start_random_seed": 64,
+            "sample_method": "No-Deterministic+RKL+64",
 
         }
 
@@ -198,7 +226,7 @@ def main(args):
         train_data = data['train_points']
         val_data = data['test_points']
 
-        train_data  = train_data[:30000]
+        train_data  = train_data[:60000]
         val_data    = val_data[:2000]
 
         #word embedding
@@ -317,7 +345,7 @@ def main(args):
             if "group_name" in config:
                 updateLineChart(str(test_performance[0]), sample_method, gp_name=config["group_name"]+"micro", max=max_performance)
                 updateLineChart(str(test_performance[1]), sample_method, gp_name=config["group_name"]+"macro", max=max_performance)
-                updateLineChart(str(test_performance[2]), sample_method, gp_name=config["group_name"]+"sample",max=max_performance)
+                # updateLineChart(str(test_performance[2]), sample_method, gp_name=config["group_name"]+"sample",max=max_performance)
             else:
                 updateLineChart(str(test_performance), sample_method, max=max_performance)
 
