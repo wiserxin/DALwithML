@@ -65,7 +65,7 @@ class Acquisition(object):
         each_label_count = np.sum(train_Y, axis=0)
         self.label_count = self.label_count + each_label_count
 
-        self.update_train_index(acquired_set)
+        self.train_index.update(acquired_set)
 
     def get_random(self, data, acquire_num, returned=False):
 
