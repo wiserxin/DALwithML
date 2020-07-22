@@ -124,61 +124,20 @@ def main(args):
         #     "acquire_question_num_per_round": 1200,
         #     "warm_start_random_seed": 0,
         #     "sample_method": "Deterministic+SIM+0",
+
             "model_name": "CNN",
-            "group_name": "[mlabs]KIM+???+6e4trn+F1",
+            "group_name": "[mlabs]KIM+???+3e4trn+F1",
             "max_performance": 0.90,
             "data_path": "../../datasets/rcv2/",
-            "acquire_method": "random",
-            "sub_acquire_method": "RKL",
+            "acquire_method": "no-dete",
+            "sub_acquire_method": "RKL7",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
-            "num_acquisitions_round": 50,
+            "num_acquisitions_round": 25,
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 0,
-            "sample_method": "Random+0",
-        }, {
-            "model_name": "CNN",
-            "group_name": "[mlabs]KIM+???+6e4trn+F1",
-            "max_performance": 0.90,
-            "data_path": "../../datasets/rcv2/",
-            "acquire_method": "random",
-            "sub_acquire_method": "RKL",
-            "unsupervised_method": 'submodular',
-            "submodular_k": 2,
-            "num_acquisitions_round": 50,
-            "init_question_num": 1200,
-            "acquire_question_num_per_round": 1200,
-            "warm_start_random_seed": 16,
-            "sample_method": "Random+16",
-        }, {
-            "model_name": "CNN",
-            "group_name": "[mlabs]KIM+???+6e4trn+F1",
-            "max_performance": 0.90,
-            "data_path": "../../datasets/rcv2/",
-            "acquire_method": "random",
-            "sub_acquire_method": "RKL",
-            "unsupervised_method": 'submodular',
-            "submodular_k": 2,
-            "num_acquisitions_round": 50,
-            "init_question_num": 1200,
-            "acquire_question_num_per_round": 1200,
-            "warm_start_random_seed": 32,
-            "sample_method": "Random+32",
-        }, {
-            "model_name": "CNN",
-            "group_name": "[mlabs]KIM+???+6e4trn+F1",
-            "max_performance": 0.90,
-            "data_path": "../../datasets/rcv2/",
-            "acquire_method": "random",
-            "sub_acquire_method": "RKL",
-            "unsupervised_method": 'submodular',
-            "submodular_k": 2,
-            "num_acquisitions_round": 50,
-            "init_question_num": 1200,
-            "acquire_question_num_per_round": 1200,
-            "warm_start_random_seed": 64,
-            "sample_method": "Random+64",
+            "sample_method": "No-Deterministic+RKL7+0",
 
         }
 
@@ -226,7 +185,7 @@ def main(args):
         train_data = data['train_points']
         val_data = data['test_points']
 
-        train_data  = train_data[:60000]
+        train_data  = train_data[:30000]
         val_data    = val_data[:2000]
 
         #word embedding
@@ -242,7 +201,8 @@ def main(args):
                                             seed=warm_start_random_seed,
                                             cuda_device=args.device[0],
                                             batch_size=args.sampling_batch_size,
-                                            submodular_k=config["submodular_k"])
+                                            submodular_k=config["submodular_k"],
+                                            target_size=args.target_size)
 
         checkpoint_path = os.path.join(args.result_path, 'active_checkpoint', config["group_name"], sample_method)
         if not os.path.exists(checkpoint_path):

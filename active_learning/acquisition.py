@@ -18,7 +18,8 @@ class Acquisition(object):
                  cuda_device=0,
                  batch_size=1000,
                  cal_Aleatoric_uncertainty=False,
-                 submodular_k=4):
+                 submodular_k=4,
+                 target_size = 2):
         self.train_data = train_data
         self.document_num = len(train_data)
         self.train_index = set()  #the index of the labeled samples
@@ -31,6 +32,7 @@ class Acquisition(object):
         self.cal_Aleatoric_uncertainty = cal_Aleatoric_uncertainty
         self.submodular_k = submodular_k
         self.savedData = list()
+        self.label_count = np.zeros(target_size) # 存储train_index中的数据，其中涉及到的label的计数
         # for i in range(len(train_data)):
         #     print(i,train_data[i][3])
 
@@ -53,6 +55,18 @@ class Acquisition(object):
         result = [(theDict[i] if i in theDict.keys() else 0) for i in range(103)]
         return result
 
+    def update_train_index(self,acquired_set):
+        # 更新 label_count 和 train_index
+        temp = []
+        for i in acquired_set:
+            temp.append(np.array(self.train_data[i][1].todense()))
+        train_Y = np.squeeze(np.stack(temp))
+        # print(train_Y.shape)
+        each_label_count = np.sum(train_Y, axis=0)
+        self.label_count = self.label_count + each_label_count
+
+        self.update_train_index(acquired_set)
+
     def get_random(self, data, acquire_num, returned=False):
 
         random_indices = self.npr.permutation(self.document_num)
@@ -65,7 +79,7 @@ class Acquisition(object):
                 sample_indices.add(random_indices[i])
             i += 1
         if not returned:
-            self.train_index.update(sample_indices)
+            self.update_train_index(sample_indices)
             # print('now type1:type2 = {}:{}'.format(
             #                     sum([1 if i<200 else 0 for i in self.train_index ]) ,
             #                     sum([1 if i >= 200 else 0 for i in self.train_index]),
@@ -221,7 +235,7 @@ class Acquisition(object):
 
         if not returned:
             # print("DAL acquiring:",sorted(cur_indices))
-            self.train_index.update(cur_indices)
+            self.update_train_index(cur_indices)
             print('DAL time consuming： %d seconds:' % (time.time() - tm))
             # print('now type1:type2 = {}:{}'.format(
             #                     sum([1 if i<200 else 0 for i in self.train_index ]) ,
@@ -385,7 +399,7 @@ class Acquisition(object):
 
         if not returned:
             # print("DAL acquiring:",sorted(cur_indices))
-            self.train_index.update(cur_indices)
+            self.update_train_index(cur_indices)
             print('RS2HEL time consuming： %d seconds:' % (time.time() - tm))
         else:
             sorted_cur_indices = list(cur_indices)
@@ -497,6 +511,42 @@ class Acquisition(object):
         def rankingLoss6(item):
             return 2.0-rankingLoss5(item)
 
+        def rankingLoss7(item,mod=1):
+            weight = self.label_count / np.sum(self.label_count)
+
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            #     print(overAllGroundTruth)
+            positive_num = np.sum(overAllGroundTruth > 0.5)
+            # print(overAllGroundTruth.size)
+            # print(overAllGroundTruth.shape)
+            if positive_num == 0:
+                positive_num = 1
+            elif positive_num == overAllGroundTruth.size:
+                positive_num = overAllGroundTruth.size - 1
+
+            temp = overAllGroundTruth.argsort()
+            overAllGroundTruth = overAllGroundTruth[temp]
+            weight = weight[temp]
+            #     positive_labels = temp[-positive_num:]
+            #     negitive_labels = temp[:-positive_num]
+
+            # overall
+            overAllGroundTruth_t = overAllGroundTruth * weight
+            overall_loss = np.mean(weight[:-positive_num]) * np.mean(overAllGroundTruth_t[-positive_num:]) - \
+                           np.mean(weight[-positive_num:]) * np.mean(overAllGroundTruth_t[:-positive_num])
+
+            # each
+            if mod == 1:
+                sorted_item_arr_t = np.sort(item_arr) * weight
+                each_loss = np.mean(weight[:-positive_num]) * np.mean(sorted_item_arr_t[:, -positive_num:]) - \
+                            np.mean(weight[-positive_num:]) * np.mean(sorted_item_arr_t[:, :-positive_num])
+            elif mod == 2:
+                #         t = item_arr * weight
+                pass
+
+            return each_loss - overall_loss
+
         def meanMaxLoss(item):
             item_arr = np.array(item)
             overAllGroundTruth = np.mean(item_arr, axis=0)
@@ -547,6 +597,7 @@ class Acquisition(object):
                   4:rankingLoss4,
                   5:rankingLoss5,
                   6:rankingLoss6,
+                  7:rankingLoss7,
 
                   'mml':meanMaxLoss,
 
@@ -662,7 +713,7 @@ class Acquisition(object):
                 assert False
 
         if not returned:
-            self.train_index.update(cur_indices)
+            self.update_train_index(cur_indices)
             print('RKL time consuming： %d seconds:' % (time.time() - tm))
         else:
             dataset_pool = []
@@ -784,7 +835,7 @@ class Acquisition(object):
                 assert False
 
         if not returned:
-            self.train_index.update(cur_indices)
+            self.update_train_index(cur_indices)
         else:
             dataset_pool = []
 
@@ -942,7 +993,7 @@ class Acquisition(object):
         print("",time.time()-tm,'s')
 
         if not returned:
-            self.train_index.update(cur_indices)
+            self.update_train_index(cur_indices)
         else:
             return None,cur_indices
 
@@ -1079,7 +1130,7 @@ class Acquisition(object):
                 assert False
 
         if not returned:
-            self.train_index.update(cur_indices)
+            self.update_train_index(cur_indices)
         else:
             dataset_pool = []
 
@@ -1224,7 +1275,7 @@ class Acquisition(object):
                 assert False
 
 
-        self.train_index.update(cur_indices)
+        self.update_train_index(cur_indices)
         print('STR time consuming： %d seconds:' % (time.time() - tm))
 
 
@@ -1291,7 +1342,7 @@ class Acquisition(object):
                 cur_indices = set()
                 for i in arg:
                     cur_indices.add(new_datapoints[i])
-                    self.train_index.update(cur_indices)
+                    self.update_train_index(cur_indices)
             else:
                 assert False #"Not Programmed"
 
@@ -1341,7 +1392,7 @@ class Acquisition(object):
         if returned:
             return cur_indices
         else:
-            self.train_index.update(cur_indices)
+            self.update_train_index(cur_indices)
 
     def getSimilarityMatrix(self, dataset, model_path='', model_name='', batch_size=800,
                             feature_only=False):
@@ -1424,6 +1475,9 @@ class Acquisition(object):
                 elif sub_method == "RKL6":
                     #233
                     self.get_RKL(data, model_path, acquire_num, rklNo=6, model_name=model_name, thisround=round)
+                elif sub_method == "RKL7":
+                    #233
+                    self.get_RKL(data, model_path, acquire_num, rklNo=7, model_name=model_name, thisround=round)
                 elif sub_method == "DRL":
                     # 考虑 点密度 的 RKL, 看做一种排除异常值的方法？
                     # el = rkl * density, 密度低的点，对模型提升的贡献不如密度高的大
