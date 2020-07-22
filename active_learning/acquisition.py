@@ -542,8 +542,8 @@ class Acquisition(object):
             # each
             if mod == 1:
                 sorted_item_arr_t = np.sort(item_arr) * weight
-                each_loss = np.mean(np.mean(weight[:-positive_num])*np.mean(sorted_item_arr_t[:,-positive_num:],axis=1) - \
-                                    np.mean(weight[-positive_num:])*np.mean(sorted_item_arr_t[:,:-positive_num],axis=1) )
+                each_loss = np.mean(weight[:-positive_num])*np.mean(sorted_item_arr_t[-positive_num:]) - \
+                            np.mean(weight[-positive_num:])*np.mean(sorted_item_arr_t[:-positive_num])
             elif mod == 2:
                 #         t = item_arr * weight
                 pass
