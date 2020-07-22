@@ -515,7 +515,7 @@ class Acquisition(object):
             return 2.0-rankingLoss5(item)
 
         def rankingLoss7(item,mod=1):
-            weight = 1-self.label_count / np.sum(self.label_count)
+            weight = 1- self.label_count / np.sum(self.label_count)
 
             item_arr = np.array(item)
             overAllGroundTruth = np.mean(item_arr, axis=0)
@@ -541,7 +541,7 @@ class Acquisition(object):
 
             # each
             if mod == 1:
-                sorted_item_arr_t = np.sort(item_arr) * weight
+                sorted_item_arr_t = np.mean(np.sort(item_arr),axis=0)*weight
                 each_loss = np.mean(weight[:-positive_num])*np.mean(sorted_item_arr_t[-positive_num:]) - \
                             np.mean(weight[-positive_num:])*np.mean(sorted_item_arr_t[:-positive_num])
             elif mod == 2:
@@ -633,7 +633,7 @@ class Acquisition(object):
         elo_count = 0
 
         for iter_batch,data in enumerate(data_batches):
-            print('\rRKL acquire batch {}/{}'.format(iter_batch,len(data_batches)),end='')
+            print('\rRKL acquire batch {}/{} elo num:{}'.format(iter_batch,len(data_batches),elo_count),end='')
 
             batch_data_numpy  = data['data_numpy']
             batch_data_points = data['data_points']
@@ -699,7 +699,7 @@ class Acquisition(object):
             for pt,sim_t in enumerate(sim):
                 assert (_delt_arr[pt]['id'] == pt)
                 _delt_arr[pt]["el"] *= sim_t
-        print("  elo num :",elo_count)
+        print()
 
         _delt_arr = sorted(_delt_arr, key=lambda o: o["el"], reverse=True) # 从大到小排序
 
