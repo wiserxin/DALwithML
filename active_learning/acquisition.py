@@ -515,7 +515,7 @@ class Acquisition(object):
             return 2.0-rankingLoss5(item)
 
         def rankingLoss7(item,mod=1):
-            weight = self.label_count / np.sum(self.label_count)
+            weight = 1-self.label_count / np.sum(self.label_count)
 
             item_arr = np.array(item)
             overAllGroundTruth = np.mean(item_arr, axis=0)
