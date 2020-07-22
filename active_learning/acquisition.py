@@ -64,6 +64,9 @@ class Acquisition(object):
         # print(train_Y.shape)
         each_label_count = np.sum(train_Y, axis=0)
         self.label_count = self.label_count + each_label_count
+        print(self.label_count)
+        print(self.label_count.shape)
+        assert False
 
         self.train_index.update(acquired_set)
 
