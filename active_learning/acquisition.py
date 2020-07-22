@@ -681,7 +681,7 @@ class Acquisition(object):
                 obj["id"] = pt
                 obj["el"] = rkl(item)
 
-                if obj["el"] < -1e-10:
+                if obj["el"] < -1e-6:
                     print("elo error:",obj["el"])
                     exit()
 
