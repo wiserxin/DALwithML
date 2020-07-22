@@ -630,6 +630,7 @@ class Acquisition(object):
 
         pt = 0
         _delt_arr = []
+        elo_count = 0
 
         for iter_batch,data in enumerate(data_batches):
             print('\rRKL acquire batch {}/{}'.format(iter_batch,len(data_batches)),end='')
@@ -681,9 +682,11 @@ class Acquisition(object):
                 obj["id"] = pt
                 obj["el"] = rkl(item)
 
-                if obj["el"] < -1e-6:
-                    print("elo error:",obj["el"])
-                    exit()
+                if obj["el"] < -1e-10:
+                    elo_count += 1
+                    obj["el"] = -obj["el"]
+                    # print("elo error:",obj["el"])
+                    # exit()
 
                 _delt_arr.append(obj)
                 pt += 1
@@ -696,7 +699,7 @@ class Acquisition(object):
             for pt,sim_t in enumerate(sim):
                 assert (_delt_arr[pt]['id'] == pt)
                 _delt_arr[pt]["el"] *= sim_t
-        print()
+        print("  elo num :",elo_count)
 
         _delt_arr = sorted(_delt_arr, key=lambda o: o["el"], reverse=True) # 从大到小排序
 
