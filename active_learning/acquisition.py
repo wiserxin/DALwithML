@@ -550,6 +550,32 @@ class Acquisition(object):
 
             return each_loss - overall_loss
 
+        def rankingLoss9(item):
+            # rkl9 = weight[trueLabels] * rkl4
+
+            weight = 1 - self.label_count / np.sum(self.label_count)
+
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            positive_num = np.sum(overAllGroundTruth > 0.5)
+            if positive_num == 0:
+                positive_num = 1
+            elif positive_num == overAllGroundTruth.size:
+                positive_num = overAllGroundTruth.size - 1
+
+            # each RL3
+            sorted_item_arr = np.sort(item_arr)
+            positive_item_arr = sorted_item_arr[:, -positive_num:]
+            negitive_item_arr = sorted_item_arr[:, :-positive_num]
+            each_rl = np.mean((np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1)))
+
+            # overall RL3
+            sorted_item_arr = item_arr[:, overAllGroundTruth.argsort()]
+            positive_item_arr = sorted_item_arr[:, -positive_num:]
+            negitive_item_arr = sorted_item_arr[:, :-positive_num]
+            overall_rl = np.mean(np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1))
+            return (each_rl - overall_rl) * np.sum(weight[overAllGroundTruth.argsort()[-positive_num:]])
+
         def meanMaxLoss(item):
             item_arr = np.array(item)
             overAllGroundTruth = np.mean(item_arr, axis=0)
@@ -601,6 +627,7 @@ class Acquisition(object):
                   5:rankingLoss5,
                   6:rankingLoss6,
                   7:rankingLoss7,
+                  9:rankingLoss9,
 
                   'mml':meanMaxLoss,
 
@@ -1484,6 +1511,10 @@ class Acquisition(object):
                 elif sub_method == "RKL7":
                     #233
                     self.get_RKL(data, model_path, acquire_num, rklNo=7, model_name=model_name, thisround=round)
+                elif sub_method == "RKL9":
+                    # 233
+                    self.get_RKL(data, model_path, acquire_num, rklNo=9, model_name=model_name, thisround=round)
+
                 elif sub_method == "DRL":
                     # 考虑 点密度 的 RKL, 看做一种排除异常值的方法？
                     # el = rkl * density, 密度低的点，对模型提升的贡献不如密度高的大
