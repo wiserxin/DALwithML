@@ -137,7 +137,7 @@ def main(args):
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 32,
-            "sample_method": "No-Deterministic+RKL9+32",
+            "sample_method": "No-Deterministic+RKL+32",
         },{
             "model_name": "CNN",
             "group_name": "[mlabs]KIM+???+6e4trn+F1",
@@ -151,7 +151,7 @@ def main(args):
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 64,
-            "sample_method": "No-Deterministic+RKL9+64",
+            "sample_method": "No-Deterministic+RKL+64",
 
         }
 
