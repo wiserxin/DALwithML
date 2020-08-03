@@ -56,6 +56,7 @@ class Acquisition(object):
         return result
 
     def update_train_index(self,acquired_set):
+        # 注意调用时应保证 先 self.savedData.append , 再 update_train_index
         # 更新 label_count 和 train_index
         temp = []
         for i in acquired_set:
@@ -69,6 +70,12 @@ class Acquisition(object):
         # assert False
 
         self.train_index.update(acquired_set)
+
+        if len(self.savedData) == 0:
+            self.savedData.append({"train_index":self.train_index})
+        else:
+            self.savedData[-1]["train_index"]=self.train_index
+
 
     def get_random(self, data, acquire_num, returned=False):
 
@@ -400,6 +407,10 @@ class Acquisition(object):
                 print(_delt_arr[i])
                 assert False
 
+        self.savedData.append({"added_index": cur_indices,
+                               "index2id": {_index: p[3] for _index, p in enumerate(new_dataset)},
+                               "_delt_arr": _delt_arr})
+
         if not returned:
             # print("DAL acquiring:",sorted(cur_indices))
             self.update_train_index(cur_indices)
@@ -415,9 +426,6 @@ class Acquisition(object):
 
             return dataset_pool, cur_indices
 
-        self.savedData.append( { "added_index":cur_indices,
-                                 "index2id":{_index:p[3] for _index,p in enumerate(new_dataset)},
-                                 "_delt_arr":_delt_arr } )
 
     def get_RKL(self, dataset, model_path, acquire_document_num,
                 nsamp=100,
@@ -745,6 +753,10 @@ class Acquisition(object):
                 print(_delt_arr[i])
                 assert False
 
+        self.savedData.append({"added_index": cur_indices,
+                               "index2id": {_index: p[3] for _index, p in enumerate(new_dataset)},
+                               "_delt_arr": _delt_arr})
+
         if not returned:
             self.update_train_index(cur_indices)
             print('RKL time consuming： %d seconds:' % (time.time() - tm))
@@ -753,9 +765,7 @@ class Acquisition(object):
 
             return dataset_pool, cur_indices
 
-        self.savedData.append( { "added_index":cur_indices,
-                                 "index2id":{_index:p[3] for _index,p in enumerate(new_dataset)},
-                                 "_delt_arr":_delt_arr } )
+
 
     def get_FEL(self, dataset, model_path, acquire_document_num,
                 nsamp=100, model_name='', returned=False, thisround=-1,):
@@ -1525,6 +1535,19 @@ class Acquisition(object):
                                                       thisround=round, returned=True)
                     self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
                                         model_name=model_name)
+
+                elif sub_method == "dsm1RKL4":
+                    _, unlabeled_index = self.get_RKL(data, model_path, acquire_num*2, model_name=model_name, thisround=round, returned=True)
+                    self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path, model_name=model_name)
+
+                elif sub_method == "dsm2RKL4":
+                    _, unlabeled_index = self.get_RKL(data, model_path, acquire_num*4, model_name=model_name, thisround=round, returned=True)
+                    self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path, model_name=model_name)
+
+                elif sub_method == "dsm3RKL4":
+                    _, unlabeled_index = self.get_RKL(data, model_path, acquire_num*max(1.0,(12-1.5*round)), model_name=model_name, thisround=round, returned=True)
+                    self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path, model_name=model_name)
+
                 elif sub_method == "STR":
                     self.get_submodular_then_EL(data,model_path,acquire_num,model_name=model_name,thisround=round)
                     #
