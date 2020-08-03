@@ -144,14 +144,14 @@ def main(args):
             "max_performance": 0.90,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "dete",
-            "sub_acquire_method": "dsm1RKL",
+            "sub_acquire_method": "dsm2RKL",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 15,
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 0,
-            "sample_method": "No-Deterministic+dsm1RKL+0",
+            "sample_method": "No-Deterministic+dsm2RKL+0",
 
 
         }
