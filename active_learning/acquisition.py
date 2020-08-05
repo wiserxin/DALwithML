@@ -72,9 +72,9 @@ class Acquisition(object):
         self.train_index.update(acquired_set)
 
         if len(self.savedData) == 0:
-            self.savedData.append({"train_index":self.train_index})
+            self.savedData.append({"train_index":list(self.train_index)})
         else:
-            self.savedData[-1]["train_index"]=self.train_index
+            self.savedData[-1]["train_index"]=list(self.train_index)
 
 
     def get_random(self, data, acquire_num, returned=False):
