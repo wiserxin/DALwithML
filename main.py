@@ -144,15 +144,30 @@ def main(args):
             "max_performance": 0.90,
             "data_path": "../../datasets/rcv2/",
             "acquire_method": "no-dete",
-            "sub_acquire_method": "dsm2RKL4",
+            "sub_acquire_method": "dsm4RKL4",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 25,
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
-            "warm_start_random_seed": 8,
-            "sample_method": "No-Deterministic+dsm2RKL4+8",
+            "warm_start_random_seed": 0,
+            "sample_method": "No-Deterministic+dsm4RKL4+0",
 
+        },{
+            "model_name": "CNN",
+            "group_name": "[mlabs]KIM+???+3e4trn+F1",
+            "max_performance": 0.90,
+            "data_path": "../../datasets/rcv2/",
+            "acquire_method": "no-dete",
+            "sub_acquire_method": "dsm4RKL4",
+            "unsupervised_method": 'submodular',
+            "submodular_k": 2,
+            "num_acquisitions_round": 25,
+            "init_question_num": 1200,
+            "acquire_question_num_per_round": 1200,
+            "warm_start_random_seed": 16,
+            "sample_method": "No-Deterministic+dsm4RKL4+16",
+            
         }
 
 
