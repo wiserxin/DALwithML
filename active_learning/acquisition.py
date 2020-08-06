@@ -1035,6 +1035,10 @@ class Acquisition(object):
 
         print("",time.time()-tm,'s')
 
+        self.savedData.append({"added_index": cur_indices,
+                               "index2id": {_index: p[3] for _index, p in enumerate(new_dataset)},
+                               "_delt_arr": _delt_arr})
+
         if not returned:
             self.update_train_index(cur_indices)
         else:
