@@ -1574,6 +1574,11 @@ class Acquisition(object):
                                                       model_name=model_name, thisround=round, returned=True)
                     self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
                                         model_name=model_name)
+                elif sub_method == "dsm9RKL4":
+                    _, unlabeled_index = self.get_RKL(data, model_path, acquire_num * max((0.25*round),1),
+                                                      model_name=model_name, thisround=round, returned=True)
+                    self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
+                                        model_name=model_name)
 
 
 
