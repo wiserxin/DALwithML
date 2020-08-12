@@ -154,4 +154,4 @@ class CNN(nn.Module):
     def features_with_pred(self,x,usecuda=True):
         x = self.features(x,usecuda)
         output = self.linear(x)
-        return torch.cat((x,output))
+        return torch.cat((x,output), 1)
