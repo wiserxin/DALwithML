@@ -150,3 +150,8 @@ class CNN(nn.Module):
         x3 = self.conv_and_pool(x, self.conv15)
         x = torch.cat((x1, x2, x3), 1)
         return x
+
+    def features_with_pred(self,x,usecuda=True):
+        x = self.features(x,usecuda)
+        output = self.linear(x)
+        return torch.cat((x,output))

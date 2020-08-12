@@ -1441,8 +1441,7 @@ class Acquisition(object):
         else:
             self.update_train_index(cur_indices)
 
-    def getSimilarityMatrix(self, dataset, model_path='', model_name='', batch_size=800,
-                            feature_only=False):
+    def getSimilarityMatrix(self, dataset, model_path='', model_name='', batch_size=800, feature_only=False):
         '''
         :param feature_only: 表示返回特征还是相似度矩阵
         '''
@@ -1469,7 +1468,9 @@ class Acquisition(object):
                 # output = model(words_q, words_a, wordslen_q, wordslen_a)
                 pass
             elif model_name == 'CNN':
-                output = model.features(X)
+                # 2020 08 12 修改为 features_with_pred
+                # output = model.features(X)
+                output = model.features_with_pred(X)
             temp_feature.extend(output.data.cpu().numpy().tolist())
 
         features = np.stack(temp_feature, axis=0)
