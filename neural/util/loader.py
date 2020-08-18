@@ -77,10 +77,12 @@ class Loader(object):
                     row_idx.append(i)
                     col_idx.append(y)
                     val_idx.append(1)
-            m = max(row_idx) + 1
+            # m = max(row_idx) + 1
             # n = max(col_idx) + 1
+            m = len(data)
             n = 3954 # eurlex数据集一共有3954个label
             Y = sp.csr_matrix((val_idx, (row_idx, col_idx)), shape=(m, n))
+            print("Y shape:",Y.shape)
             return [x_text, Y, labels]
 
         def pad_sentences(sentences, padding_word="<PAD/>", max_length=500):
