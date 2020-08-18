@@ -32,7 +32,7 @@ def parse_args():
     parser.add_argument('--dropout', type=float, default=0.5, help='')
     parser.add_argument('--word_hidden_dim', type=int, default=75, help='')
     parser.add_argument('--learning_rate', type=float, default=1e-3, help='')
-    parser.add_argument('--target_size', type=int, default=103, help='rcv2:103 ')
+    parser.add_argument('--target_size', type=int, default=103, help='rcv2:103 eurLex:3956')
     parser.add_argument('--top_k', type=int, default=40, help='rcv2:40 , eurLex:100')
     parser.add_argument('--ndcg_num', type=int, default=10, help='k in ndcg@k to evaluate model, origin is 5')
     parser.add_argument('--word_out_channels', type=int, default=200, help='')
@@ -140,33 +140,18 @@ def main(args):
             # "sample_method": "No-Deterministic+RKL+32",
 
             "model_name": "CNN",
-            "group_name": "[mlabs]KIM+???+3e4trn+F1",
+            "group_name": "[mlabs]???+EUR+F1",
             "max_performance": 0.90,
-            "data_path": "../../datasets/rcv2/",
+            "data_path": "../../datasets/eurLex/",
             "acquire_method": "no-dete",
-            "sub_acquire_method": "dsm9RKL4",
+            "sub_acquire_method": "RKL",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 25,
-            "init_question_num": 1200,
-            "acquire_question_num_per_round": 1200,
-            "warm_start_random_seed": 32,
-            "sample_method": "No-Deterministic+ndsm9RKL4+32",
-        },{
-
-            "model_name": "CNN",
-            "group_name": "[mlabs]KIM+???+3e4trn+F1",
-            "max_performance": 0.90,
-            "data_path": "../../datasets/rcv2/",
-            "acquire_method": "no-dete",
-            "sub_acquire_method": "dsm9RKL4",
-            "unsupervised_method": 'submodular',
-            "submodular_k": 2,
-            "num_acquisitions_round": 25,
-            "init_question_num": 1200,
-            "acquire_question_num_per_round": 1200,
-            "warm_start_random_seed": 64,
-            "sample_method": "No-Deterministic+ndsm9RKL4+64",
+            "init_question_num": 400,
+            "acquire_question_num_per_round": 400,
+            "warm_start_random_seed": 0,
+            "sample_method": "No-Deterministic+RKL+0",
         }
 
 
@@ -209,20 +194,27 @@ def main(args):
             os.makedirs(os.path.join(args.result_path, model_name, 'active_checkpoint', acquire_method))
 
         data = list()
+        train_data = list()
+        val_data = list()
+
         if "rcv2" in data_path:
             data = loader.load_rcv2(data_path)
             args.target_size = 103
-        elif "eurlex" in data_path:
+            train_data = data['train_points']
+            val_data = data['test_points']
+            train_data = train_data[:30000]
+            val_data = val_data[:2000]
+        elif "eurLex" in data_path:
             # trn: 11585
             # tst: 3865
             data = loader.load_eurlex(data_path)
             args.target_size = 3954  #
+            train_data = data['train_points']
+            val_data = data['test_points']
+            train_data = train_data[:10000]
+            val_data = val_data[:3865]
 
-        train_data = data['train_points']
-        val_data = data['test_points']
 
-        train_data  = train_data[:30000]
-        val_data    = val_data[:2000]
 
         #word embedding
         word_embeds = data['embed'] if args.use_pretrained_word_embedding else None
