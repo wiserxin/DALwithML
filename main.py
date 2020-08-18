@@ -208,7 +208,13 @@ def main(args):
         if not os.path.exists(os.path.join(args.result_path, model_name, 'active_checkpoint', acquire_method)):
             os.makedirs(os.path.join(args.result_path, model_name, 'active_checkpoint', acquire_method))
 
-        data = loader.load_rcv2(data_path)
+        data = list()
+        if "rcv2" in data_path:
+            data = loader.load_rcv2(data_path)
+            args.target_size = 103
+        elif "eurlex" in data_path:
+            data = loader.load_eurlex(data_path)
+            args.target_size = 3993       # ??????
 
         train_data = data['train_points']
         val_data = data['test_points']

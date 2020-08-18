@@ -43,6 +43,11 @@ class Loader(object):
 
     def load_eurlex(self, datapath, sents_max_len = 500, vocab_size = 50000):
 
+        # 读取已缓存数据
+        if os.path.exists(os.path.join(datapath, 'eurlexLoaded.pkl')):
+            with open(os.path.join(datapath, 'eurlexLoaded.pkl'), 'rb') as f:
+                return pickle.load(f)
+
         def clean_str(string):
             # remove stopwords
             # string = ' '.join([word for word in string.split() if word not in cachedStopWords])
@@ -122,13 +127,18 @@ class Loader(object):
         X_trn = build_input_data(trn_sents_padded, vocabulary)
         X_tst = build_input_data(tst_sents_padded, vocabulary)
 
-        return {'train': (X_trn, Y_trn, Y_trn_o),
+        r = {'train': (X_trn, Y_trn, Y_trn_o),
                 'test' : (X_tst, Y_tst, Y_tst_o),
                'vocab' : (vocabulary, vocabulary_inv, vocabulary_count),
                 'embed': load_word2vec(datapath ,'glove', vocabulary_inv, 300),
                 'train_points': [(X_trn[i], Y_trn[i], Y_trn_o[i])  for i in range(len(Y_trn_o))],
                 'test_points' : [(X_tst[i], Y_tst[i], Y_tst_o[i])  for i in range(len(Y_tst_o))]
                 }
+
+        with open(os.path.join(datapath, 'eurlexLoaded.pkl'), 'wb') as f:
+            pickle.dump(r,f)
+
+        return r
 
 
     def load_rcv2(self,datapath,  sents_max_len = 300, vocab_size = 50000):
