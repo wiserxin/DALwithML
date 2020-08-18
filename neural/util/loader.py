@@ -78,7 +78,8 @@ class Loader(object):
                     col_idx.append(y)
                     val_idx.append(1)
             m = max(row_idx) + 1
-            n = max(col_idx) + 1
+            # n = max(col_idx) + 1
+            n = 3954 # eurlex数据集一共有3954个label
             Y = sp.csr_matrix((val_idx, (row_idx, col_idx)), shape=(m, n))
             return [x_text, Y, labels]
 

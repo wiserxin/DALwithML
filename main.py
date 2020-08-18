@@ -213,8 +213,10 @@ def main(args):
             data = loader.load_rcv2(data_path)
             args.target_size = 103
         elif "eurlex" in data_path:
+            # trn: 11585
+            # tst: 3865
             data = loader.load_eurlex(data_path)
-            args.target_size = 3993       # ??????
+            args.target_size = 3954  #
 
         train_data = data['train_points']
         val_data = data['test_points']
