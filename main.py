@@ -143,15 +143,15 @@ def main(args):
             "group_name": "[mlabs]???+EUR+F1",
             "max_performance": 0.90,
             "data_path": "../../datasets/eurLex/",
-            "acquire_method": "no-dete",
-            "sub_acquire_method": "RKL",
+            "acquire_method": "random",
+            "sub_acquire_method": "",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 25,
             "init_question_num": 400,
             "acquire_question_num_per_round": 400,
             "warm_start_random_seed": 0,
-            "sample_method": "No-Deterministic+RKL+0",
+            "sample_method": "Random+0",
         }
 
 
