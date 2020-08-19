@@ -155,3 +155,99 @@ class CNN(nn.Module):
         x = self.features(x,usecuda)
         output = self.linear(x)
         return torch.cat((x,output), 1)
+
+
+
+
+class xml_cnn(nn.Module):
+    # 需要增加 dropout 层 且重新组织输入的params
+    def __init__(self, params, embedding_weights):
+        super(xml_cnn, self).__init__()
+
+        self.params = params
+
+        stride = params["stride"]
+        emb_dim = embedding_weights.shape[1]
+        hidden_dims = params["hidden_dims"]
+        sequence_length = params["sequence_length"]
+        filter_channels = params["filter_channels"]
+        d_max_pool_p = params["d_max_pool_p"]
+
+        self.filter_sizes = params["filter_sizes"]
+
+        # 層の定義
+        self.lookup = nn.Embedding.from_pretrained(embedding_weights, freeze=False)
+
+        self.conv_layers = nn.ModuleList()
+        self.pool_layers = nn.ModuleList()
+        fin_l_out_size = 0
+
+        # self.dropout_0 = nn.Dropout(p=0.25)
+        # self.dropout_1 = nn.Dropout(p=0.5)
+        self.batch_norm_0 = nn.BatchNorm1d(emb_dim)
+
+        for fsz, n, ssz in zip(self.filter_sizes, d_max_pool_p, stride):
+            conv_n = nn.Conv1d(emb_dim, filter_channels, fsz, stride=ssz)
+            torch.nn.init.kaiming_normal_(conv_n.weight)
+
+            conv_out_size = self.out_size(sequence_length, fsz, stride=ssz)
+            pool_k_size = conv_out_size // n
+            assert conv_out_size / n != 0
+
+            # Dynamic Max-Pooling
+            pool_n = nn.MaxPool1d(pool_k_size, stride=pool_k_size)
+
+            pool_out_size = filter_channels * n
+            fin_l_out_size += pool_out_size
+
+            self.conv_layers.append(conv_n)
+            self.pool_layers.append(pool_n)
+
+        self.l1 = nn.Linear(fin_l_out_size, params["hidden_dims"])
+        self.batch_norm_2 = nn.BatchNorm1d(hidden_dims)
+        self.l2 = nn.Linear(hidden_dims, params["num_of_class"])
+
+        # Heの初期値でWeightsを初期化
+        torch.nn.init.kaiming_normal_(self.l1.weight)
+        torch.nn.init.kaiming_normal_(self.l2.weight)
+
+    # 畳み込み後のTensorのサイズを計算
+    def out_size(self, l_in, kernel_size, padding=0, dilation=1, stride=1):
+        a = l_in + 2 * padding - dilation * (kernel_size - 1) - 1
+        b = int(a / stride)
+        return b + 1
+
+    def forward(self, x):
+        # Embedding層
+        h_non_static = self.lookup.forward(x.permute(1, 0))
+        # h_non_static = self.dropout_0(h_non_static)
+        h_non_static = h_non_static.permute(0, 2, 1)
+
+        h_non_static = self.batch_norm_0(h_non_static)
+
+        h_list = []
+
+        # Conv, Pooling層
+        for i in range(len(self.filter_sizes)):
+            h_n = self.conv_layers[i](h_non_static)
+            h_n = h_n.view(h_n.shape[0], 1, h_n.shape[1] * h_n.shape[2])
+            h_n = self.pool_layers[i](h_n)
+            h_n = F.relu(h_n)
+            h_n = h_n.view(h_n.shape[0], -1)
+            h_list.append(h_n)
+            del h_n
+
+        if len(self.filter_sizes) > 1:
+            h = torch.cat(h_list, 1)
+        else:
+            h = h_list[0]
+
+        # Full Connected層
+        h = F.relu(self.l1(h))
+
+        # h = self.dropout_1(h)
+        h = self.batch_norm_2(h)
+
+        # Output層
+        y = self.l2(h)
+        return y

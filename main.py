@@ -140,46 +140,60 @@ def main(args):
             # "sample_method": "No-Deterministic+RKL+32",
 
             "model_name": "CNN",
-            "group_name": "[mlabs]???+EUR+F1",
+            "group_name": "[mlabs]???+RCV1+F1",
             "max_performance": 0.90,
-            "data_path": "../../datasets/eurLex/",
-            "acquire_method": "random",
-            "sub_acquire_method": "",
+            "data_path": "../../datasets/rcv1/",
+            "acquire_method": "no-dete",
+            "sub_acquire_method": "RKL",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
-            "num_acquisitions_round": 25,
-            "init_question_num": 400,
-            "acquire_question_num_per_round": 400,
-            "warm_start_random_seed": 16,
-            "sample_method": "Random+16",
+            "num_acquisitions_round": 50,
+            "init_question_num": 1200,
+            "acquire_question_num_per_round": 1200,
+            "warm_start_random_seed": 0,
+            "sample_method": "No-Deterministic+RKL+0",
         },{
             "model_name": "CNN",
-            "group_name": "[mlabs]???+EUR+F1",
+            "group_name": "[mlabs]???+RCV1+F1",
             "max_performance": 0.90,
-            "data_path": "../../datasets/eurLex/",
-            "acquire_method": "random",
-            "sub_acquire_method": "",
+            "data_path": "../../datasets/rcv1/",
+            "acquire_method": "no-dete",
+            "sub_acquire_method": "RKL",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
-            "num_acquisitions_round": 25,
-            "init_question_num": 400,
-            "acquire_question_num_per_round": 400,
-            "warm_start_random_seed": 32,
-            "sample_method": "Random+32",
+            "num_acquisitions_round": 50,
+            "init_question_num": 1200,
+            "acquire_question_num_per_round": 1200,
+            "warm_start_random_seed": 16,
+            "sample_method": "No-Deterministic+RKL+16",
         }, {
             "model_name": "CNN",
-            "group_name": "[mlabs]???+EUR+F1",
+            "group_name": "[mlabs]???+RCV1+F1",
             "max_performance": 0.90,
-            "data_path": "../../datasets/eurLex/",
-            "acquire_method": "random",
-            "sub_acquire_method": "",
+            "data_path": "../../datasets/rcv1/",
+            "acquire_method": "no-dete",
+            "sub_acquire_method": "RKL",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
-            "num_acquisitions_round": 25,
-            "init_question_num": 400,
-            "acquire_question_num_per_round": 400,
+            "num_acquisitions_round": 50,
+            "init_question_num": 1200,
+            "acquire_question_num_per_round": 1200,
+            "warm_start_random_seed": 32,
+            "sample_method": "No-Deterministic+RKL+32",
+        }, {
+            "model_name": "CNN",
+            "group_name": "[mlabs]???+RCV1+F1",
+            "max_performance": 0.90,
+            "data_path": "../../datasets/rcv1/",
+            "acquire_method": "no-dete",
+            "sub_acquire_method": "RKL",
+            "unsupervised_method": 'submodular',
+            "submodular_k": 2,
+            "num_acquisitions_round": 50,
+            "init_question_num": 1200,
+            "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 64,
-            "sample_method": "Random+64",
+            "sample_method": "No-Deterministic+RKL+64",
         }
 
 
@@ -241,6 +255,13 @@ def main(args):
             val_data = data['test_points']
             train_data = train_data[:10000]
             val_data = val_data[:3865]
+        elif "rcv1" in data_path:
+            data = loader.load_rcv1(data_path)
+            args.target_size = 103
+            train_data = data['train_points']
+            val_data = data['test_points']
+            train_data = train_data[:60000]
+            val_data = val_data[:]
 
 
 
