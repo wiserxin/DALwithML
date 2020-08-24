@@ -193,6 +193,10 @@ class CNN(nn.Module):
         x1 = self.conv_and_relu(x,self.conv13)
         x2 = self.conv_and_relu(x, self.conv14)
         x3 = self.conv_and_relu(x, self.conv15)
+        print("{} size: {}".format("x", x.size()))
+        print("{} size: {}".format("x1", x1.size()))
+        print("{} size: {}".format("x2", x2.size()))
+        print("{} size: {}".format("x3", x3.size()))
         x = torch.cat((x1, x2, x3), 1)
         x = self.dropout(x)
 
