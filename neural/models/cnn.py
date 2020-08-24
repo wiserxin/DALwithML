@@ -197,7 +197,7 @@ class CNN(nn.Module):
         print("{} size: {}".format("x1", x1.size()))
         print("{} size: {}".format("x2", x2.size()))
         print("{} size: {}".format("x3", x3.size()))
-        x = torch.cat((x1, x2, x3), 1)
+        x = torch.cat((x1, x2, x3), 2)
         x = self.dropout(x)
 
         hidden = self.linear1(x)
