@@ -188,7 +188,7 @@ class CNN(nn.Module):
         x = F.relu(conv(x)).squeeze(3)
         return x
 
-    def forward(self, x):
+    def forward(self, x, usecuda=True):
         x = self.embedding(x).unsqueeze(1)
         x1 = self.conv_and_relu(x,self.conv13)
         x2 = self.conv_and_relu(x, self.conv14)
