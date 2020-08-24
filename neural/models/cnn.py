@@ -184,19 +184,20 @@ class CNN(nn.Module):
         self.linear1 = nn.Linear(hidden_size, 512)
         self.linear2 = nn.Linear(512, output_size)
 
-    def conv_and_relu(self, x, conv):
+    def conv_and_pool(self, x, conv):
         x = F.relu(conv(x)).squeeze(3)
+        x = nn.MaxPool1d(8, stride=4)
         return x
 
     def forward(self, x, usecuda=True):
         x = self.embedding(x).unsqueeze(1)
-        x1 = self.conv_and_relu(x,self.conv13)
-        x2 = self.conv_and_relu(x, self.conv14)
-        x3 = self.conv_and_relu(x, self.conv15)
-        # print("{} size: {}".format("x", x.size()))
-        # print("{} size: {}".format("x1", x1.size()))
-        # print("{} size: {}".format("x2", x2.size()))
-        # print("{} size: {}".format("x3", x3.size()))
+        x1 = self.conv_and_pool(x,self.conv13)
+        x2 = self.conv_and_pool(x, self.conv14)
+        x3 = self.conv_and_pool(x, self.conv15)
+        print("{} size: {}".format("x", x.size()))
+        print("{} size: {}".format("x1", x1.size()))
+        print("{} size: {}".format("x2", x2.size()))
+        print("{} size: {}".format("x3", x3.size()))
         # x  size: torch.Size([400, 1, 300, 300])
         # x1 size: torch.Size([400, 200, 149])
         # x2 size: torch.Size([400, 200, 149])
