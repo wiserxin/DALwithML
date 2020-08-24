@@ -206,7 +206,9 @@ class CNN(nn.Module):
         x = self.dropout(x)
 
         hidden = self.linear1(x)
+        print("{} size: {}".format("hidden", hidden.size()))
         output = self.linear2(hidden)
+        print("{} size: {}".format("output", output.size()))
         return output
 
 
