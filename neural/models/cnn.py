@@ -201,16 +201,41 @@ class CNN(nn.Module):
         # x1 size: torch.Size([400, 200, 149])
         # x2 size: torch.Size([400, 200, 149])
         # x3 size: torch.Size([400, 200, 148])
-        x = torch.cat((x1, x2, x3), 2)
+        # x size: torch.Size([400, 89200])
+        # hidden size: torch.Size([400, 512])
+        # output size: torch.Size([400, 103])
+        x = torch.cat((x1, x2, x3), 2)## [400, 200, 446]
         x = x.view(x.size()[0],-1 )
-        print("{} size: {}".format("x", x.size()))
         x = self.dropout(x)
 
         hidden = self.linear1(x)
-        print("{} size: {}".format("hidden", hidden.size()))
         output = self.linear2(hidden)
-        print("{} size: {}".format("output", output.size()))
+        # print("{} size: {}".format("x", x.size()))
+        # print("{} size: {}".format("hidden", hidden.size()))
+        # print("{} size: {}".format("output", output.size()))
         return output
+
+    def predict(self, x, usecuda=True):
+        x = self.embedding(x).unsqueeze(1)
+        x1 = self.conv_and_relu(x, self.conv13)
+        x2 = self.conv_and_relu(x, self.conv14)
+        x3 = self.conv_and_relu(x, self.conv15)
+        x = torch.cat((x1, x2, x3), 2)
+        x = x.view(x.size()[0], -1)
+        x = self.dropout(x)
+        hidden = self.linear1(x)
+        output = self.linear2(hidden)
+        output = torch.sigmoid(output) > 0.5
+        return output
+
+    def features(self,x,usecuda=True):
+        x = self.embedding(x).unsqueeze(1)
+        x1 = self.conv_and_relu(x, self.conv13)
+        x2 = self.conv_and_relu(x, self.conv14)
+        x3 = self.conv_and_relu(x, self.conv15)
+        x = torch.cat((x1, x2, x3), 2)
+        x = x.view(x.size()[0], -1)
+        return x
 
 
 class xml_cnn2(nn.Module):
