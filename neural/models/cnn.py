@@ -202,7 +202,7 @@ class CNN(nn.Module):
         # x2 size: torch.Size([400, 200, 149])
         # x3 size: torch.Size([400, 200, 148])
         x = torch.cat((x1, x2, x3), 2)
-        x = torch.view(x.size()[0],x.size()[1]*x.size()[2] )
+        x = x.view(x.size()[0],x.size()[1]*x.size()[2] )
         print("{} size: {}".format("x", x.size()))
         x = self.dropout(x)
 
