@@ -646,6 +646,19 @@ class Acquisition(object):
         def eentropyLoss(item):
             return entropyLoss(item,ee=True)
 
+        def BALD(item):
+            item_arr = np.array(item)
+            pos_item_arr = item_arr > 0.5
+            pos_item_code = list()
+            for i in pos_item_arr:
+                temp = 0
+                for j in i:
+                    temp = temp << 1
+                    temp += j
+                pos_item_code.append(temp)
+            delt = stats.mode(pos_item_code)
+            return len(item_arr) - delt[1][0] # 总采样次数 - 出现最多的模式的频次
+
         # 选取 rkl 策略
         rklDic = {2:rankingLoss2,
                   4:rankingLoss4,
@@ -659,7 +672,8 @@ class Acquisition(object):
                   'mml':meanMaxLoss,
 
                   'et':entropyLoss,
-                  'ee':eentropyLoss
+                  'ee':eentropyLoss,
+                  'bald': BALD,
                   }
         rkl = rklDic[rklNo]
         print("RKL",rklNo,end="\t")
@@ -1529,6 +1543,8 @@ class Acquisition(object):
                     # self.get_submodular(data,unlabeled_index,acquire_num,model_path=model_path,model_name=model_name)
                 elif sub_method == 'RS2HEL': # random sampling to instance with high el values
                     self.get_RS2HEL(data, model_path, acquire_num, model_name=model_name,thisround=round)
+                elif sub_method == "BALD":
+                    self.get_RKL(data, model_path, acquire_num, rklNo='bald', model_name=model_name, thisround=round)
                 elif sub_method == "RKL":
                     # # # 普通RKL
                     self.get_RKL(data, model_path, acquire_num, model_name=model_name,thisround=round)
