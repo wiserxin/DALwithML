@@ -177,6 +177,9 @@ class CNN(nn.Module):
         self.conv13 = nn.Conv2d(1, word_out_channels, (3, word_embedding_dim), stride=2)
         self.conv14 = nn.Conv2d(1, word_out_channels, (4, word_embedding_dim), stride=2)
         self.conv15 = nn.Conv2d(1, word_out_channels, (5, word_embedding_dim), stride=2)
+        self.pool13 = nn.MaxPool1d(self.out_size(word_embedding_dim, 3, stride=2), stride=8)
+        self.pool14 = nn.MaxPool1d(self.out_size(word_embedding_dim, 4, stride=2), stride=8)
+        self.pool15 = nn.MaxPool1d(self.out_size(word_embedding_dim, 5, stride=2), stride=8)
 
         self.dropout = nn.Dropout(p=dropout_p)
 
@@ -184,16 +187,27 @@ class CNN(nn.Module):
         self.linear1 = nn.Linear(hidden_size, 512)
         self.linear2 = nn.Linear(512, output_size)
 
-    def conv_and_pool(self, x, conv):
+    def out_size(self, l_in, kernel_size, padding=0, dilation=1, stride=1):
+        a = l_in + 2 * padding - dilation * (kernel_size - 1) - 1
+        b = int(a / stride)
+        return b + 1
+
+    def conv_and_relu(self, x, conv):
         x = F.relu(conv(x)).squeeze(3)
-        x = nn.MaxPool1d(8, stride=4)
         return x
 
     def forward(self, x, usecuda=True):
         x = self.embedding(x).unsqueeze(1)
-        x1 = self.conv_and_pool(x,self.conv13)
-        x2 = self.conv_and_pool(x, self.conv14)
-        x3 = self.conv_and_pool(x, self.conv15)
+        x1 = self.conv_and_relu(x,self.conv13)
+        x2 = self.conv_and_relu(x, self.conv14)
+        x3 = self.conv_and_relu(x, self.conv15)
+        print("{} size: {}".format("x", x.size()))
+        print("{} size: {}".format("x1", x1.size()))
+        print("{} size: {}".format("x2", x2.size()))
+        print("{} size: {}".format("x3", x3.size()))
+        x1 = self.pool13(x1)
+        x2 = self.pool14(x2)
+        x3 = self.pool15(x3)
         print("{} size: {}".format("x", x.size()))
         print("{} size: {}".format("x1", x1.size()))
         print("{} size: {}".format("x2", x2.size()))
