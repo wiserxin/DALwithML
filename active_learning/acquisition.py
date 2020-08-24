@@ -499,6 +499,23 @@ class Acquisition(object):
             overall_rl = np.mean(np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1))
             return each_rl - overall_rl
 
+        def rankingLoss4_first_part(item):
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            positive_num = np.sum(overAllGroundTruth > 0.5)
+            if positive_num == 0:
+                positive_num = 1
+            elif positive_num == overAllGroundTruth.size:
+                positive_num = overAllGroundTruth.size - 1
+
+            # each RL3
+            sorted_item_arr = np.sort(item_arr)
+            positive_item_arr = sorted_item_arr[:, -positive_num:]
+            negitive_item_arr = sorted_item_arr[:, :-positive_num]
+            each_rl = np.mean((np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1)))
+
+            return each_rl
+
         def rankingLoss5(item):
             # RKL5
             positive_num = 5# 超参数,意义为 期望有几个positive label
@@ -636,6 +653,8 @@ class Acquisition(object):
                   6:rankingLoss6,
                   7:rankingLoss7,
                   9:rankingLoss9,
+
+                  '4fp':rankingLoss4_first_part,
 
                   'mml':meanMaxLoss,
 
@@ -1520,6 +1539,9 @@ class Acquisition(object):
                     #                                   model_name=model_name, returned=True)
                     # self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
                     #                     model_name=model_name)
+                elif sub_method == "RKLfp":
+                    self.get_RKL(data, model_path, acquire_num, rklNo='4fp', model_name=model_name, thisround=round)
+
                 elif sub_method == "RKL6":
                     #233
                     self.get_RKL(data, model_path, acquire_num, rklNo=6, model_name=model_name, thisround=round)
