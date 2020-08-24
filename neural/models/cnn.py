@@ -86,9 +86,8 @@ class CNN_ori(nn.Module):
         return F.softmax(output, dim=1)
 
 
-class CNN(nn.Module):
-    # CNN-Kim
-
+# CNN-Kim
+class CNN_KIM(nn.Module):
     def __init__(self, word_vocab_size, word_embedding_dim, word_out_channels, output_size,
                  dropout_p=0.5, pretrained=None, double_embedding=False, cuda_device=0):
         super(CNN, self).__init__()
@@ -156,10 +155,54 @@ class CNN(nn.Module):
         output = self.linear(x)
         return torch.cat((x,output), 1)
 
+# XML-CNN
+class CNN(nn.Module):
+    def __init__(self, word_vocab_size, word_embedding_dim, word_out_channels, output_size,
+                 dropout_p=0.5, pretrained=None, double_embedding=False, cuda_device=0):
+        super(CNN, self).__init__()
+        self.cuda_device = cuda_device
+        self.word_vocab_size = word_vocab_size
+        self.word_embedding_dim = word_embedding_dim
+        self.word_out_channels = word_out_channels
+
+        self.initializer = Initializer()
+        # self.loader = Loader()
+
+        self.embedding = nn.Embedding(word_vocab_size, word_embedding_dim)
+
+        if pretrained is not None:
+            self.embedding.weight = nn.Parameter(torch.FloatTensor(pretrained))
+
+        # CNN
+        self.conv13 = nn.Conv2d(1, word_out_channels, (3, word_embedding_dim), stride=2)
+        self.conv14 = nn.Conv2d(1, word_out_channels, (4, word_embedding_dim), stride=2)
+        self.conv15 = nn.Conv2d(1, word_out_channels, (5, word_embedding_dim), stride=2)
+
+        self.dropout = nn.Dropout(p=dropout_p)
+
+        hidden_size = word_out_channels*3
+        self.linear1 = nn.Linear(hidden_size, 512)
+        self.linear2 = nn.Linear(512, output_size)
+
+    def conv_and_relu(self, x, conv):
+        x = F.relu(conv(x)).squeeze(3)
+        return x
+
+    def forward(self, x):
+        x = self.embedding(x).unsqueeze(1)
+        x1 = self.conv_and_relu(x,self.conv13)
+        x2 = self.conv_and_relu(x, self.conv14)
+        x3 = self.conv_and_relu(x, self.conv15)
+        x = torch.cat((x1, x2, x3), 1)
+        x = self.dropout(x)
+
+        hidden = self.linear1(x)
+        output = self.linear2(hidden)
+        return output
 
 
-
-class xml_cnn(nn.Module):
+class xml_cnn2(nn.Module):
+    # 严格符合定义的
     # 需要增加 dropout 层 且重新组织输入的params
     def __init__(self, params, embedding_weights):
         super(xml_cnn, self).__init__()
