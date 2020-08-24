@@ -180,7 +180,7 @@ class CNN(nn.Module):
 
         self.dropout = nn.Dropout(p=dropout_p)
 
-        hidden_size = 446
+        hidden_size = 89200
         self.linear1 = nn.Linear(hidden_size, 512)
         self.linear2 = nn.Linear(512, output_size)
 
@@ -202,6 +202,7 @@ class CNN(nn.Module):
         # x2 size: torch.Size([400, 200, 149])
         # x3 size: torch.Size([400, 200, 148])
         x = torch.cat((x1, x2, x3), 2)
+        x = torch.view(x.size()[0],x.size()[1]*x.size()[2] )
         print("{} size: {}".format("x", x.size()))
         x = self.dropout(x)
 
