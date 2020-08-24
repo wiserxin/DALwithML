@@ -180,7 +180,7 @@ class CNN(nn.Module):
 
         self.dropout = nn.Dropout(p=dropout_p)
 
-        hidden_size = word_out_channels*3
+        hidden_size = 446
         self.linear1 = nn.Linear(hidden_size, 512)
         self.linear2 = nn.Linear(512, output_size)
 
@@ -193,11 +193,16 @@ class CNN(nn.Module):
         x1 = self.conv_and_relu(x,self.conv13)
         x2 = self.conv_and_relu(x, self.conv14)
         x3 = self.conv_and_relu(x, self.conv15)
-        print("{} size: {}".format("x", x.size()))
-        print("{} size: {}".format("x1", x1.size()))
-        print("{} size: {}".format("x2", x2.size()))
-        print("{} size: {}".format("x3", x3.size()))
+        # print("{} size: {}".format("x", x.size()))
+        # print("{} size: {}".format("x1", x1.size()))
+        # print("{} size: {}".format("x2", x2.size()))
+        # print("{} size: {}".format("x3", x3.size()))
+        # x  size: torch.Size([400, 1, 300, 300])
+        # x1 size: torch.Size([400, 200, 149])
+        # x2 size: torch.Size([400, 200, 149])
+        # x3 size: torch.Size([400, 200, 148])
         x = torch.cat((x1, x2, x3), 2)
+        print("{} size: {}".format("x", x.size()))
         x = self.dropout(x)
 
         hidden = self.linear1(x)
