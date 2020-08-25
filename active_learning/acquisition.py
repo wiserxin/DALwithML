@@ -657,7 +657,7 @@ class Acquisition(object):
                     temp += j
                 pos_item_code.append(temp)
             delt = stats.mode(pos_item_code)
-            return len(item_arr) - delt[1][0] # 总采样次数 - 出现最多的模式的频次
+            return len(item_arr) - delt[1][0] # 总采样次数 - 出现最多的模式的频次;得到的值越大,模型越不确定
 
         # 选取 rkl 策略
         rklDic = {2:rankingLoss2,

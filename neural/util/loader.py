@@ -459,6 +459,188 @@ class Loader(object):
 
 
 
+    def load_stack(self,datapath,  sents_max_len = 300, vocab_size = 50000):
+        # stack oveerflow data
+
+
+        # 读取已缓存数据
+        if os.path.exists( os.path.join(datapath,'stackLoaded.pkl') ):
+            with open(os.path.join(datapath,'stackLoaded.pkl') , 'rb') as f:
+                return pickle.load(f)
+
+
+        def clean_str(string):
+            # remove stopwords
+            # string = ' '.join([word for word in string.split() if word not in cachedStopWords])
+            string = re.sub(r"[^A-Za-z0-9(),!?\'\`]", " ", string)
+            string = re.sub(r"\'s", " \'s", string)
+            string = re.sub(r"\'ve", " \'ve", string)
+            string = re.sub(r"n\'t", " n\'t", string)
+            string = re.sub(r"\'re", " \'re", string)
+            string = re.sub(r"\'d", " \'d", string)
+            string = re.sub(r"\'ll", " \'ll", string)
+            string = re.sub(r",", " , ", string)
+            string = re.sub(r"!", " ! ", string)
+            string = re.sub(r"\(", " \( ", string)
+            string = re.sub(r"\)", " \) ", string)
+            string = re.sub(r"\?", " \? ", string)
+            string = re.sub(r"\s{2,}", " ", string)
+            return string.strip().lower()
+
+        def load_data_and_labels(data,label2id):
+            x_text = [doc['text'] for doc in data]
+            x_text = [s.split(" ") for s in x_text]
+            labels = [doc['catgy'] for doc in data]
+            row_idx, col_idx, val_idx = [], [], []
+            for i in range(len(labels)):
+                l_list = list(set(labels[i]))  # remove duplicate cateories to avoid double count
+                for y in l_list:
+                    row_idx.append(i)
+                    col_idx.append(y)
+                    val_idx.append(1)
+            # m = max(row_idx) + 1
+            # n = max(col_idx) + 1
+            m = len(data)
+            n = len(label2id)
+            Y = sp.csr_matrix((val_idx, (row_idx, col_idx)), shape=(m, n))
+            print('Y shape : {} * {}'.format(m,n))
+            return [x_text, Y, labels]
+
+        def pad_sentences(sentences, padding_word="<PAD/>", max_length=300):
+            # sequence_length = min(max(len(x) for x in sentences), max_length)
+            sequence_length = max_length
+            padded_sentences = []
+            for i in range(len(sentences)):
+                sentence = sentences[i]
+                if len(sentence) < max_length:
+                    num_padding = sequence_length - len(sentence)
+                    new_sentence = sentence + [padding_word] * num_padding
+                else:
+                    new_sentence = sentence[:max_length]
+                padded_sentences.append(new_sentence)
+            return padded_sentences
+
+        def build_vocab(sentences, vocab_size=50000):
+            word_counts = Counter(itertools.chain(*sentences))
+            vocabulary_inv = [x[0] for x in word_counts.most_common(vocab_size)]
+            vocabulary = {x: i for i, x in enumerate(vocabulary_inv)}
+            # append <UNK/> symbol to the vocabulary
+            vocabulary['<UNK/>'] = len(vocabulary)
+            vocabulary_inv.append('<UNK/>')
+            return [vocabulary, vocabulary_inv, word_counts]
+
+        def build_input_data(sentences, vocabulary):
+            x = np.array([
+                [vocabulary[word] if word in vocabulary else vocabulary['<UNK/>'] for word in sentence] for sentence in
+                 sentences])
+            # x = np.array([[vocabulary[word] if word in vocabulary else len(vocabulary) for word in sentence] for sentence in sentences])
+            return x
+
+        # [{'text':"...", 'catgy':['cat1','cat2',...] },]
+        import csv
+        file_names = ['stackdata_utf8.csv']
+        label2id = {}
+
+        counter = 0
+        train = []
+        path = os.path.join(datapath, file_names[0])
+        assert os.path.exists(path)
+        data = []
+        with open(path, 'r', encoding='utf-8') as f:
+            f_csv = csv.reader(f)
+            for row in f_csv:
+                data.append(row)
+
+        # 使用全局所有数据
+        label2id = dict() # {name: [id,count]}
+        temp = []
+        # 第一行是表头 #row:  id	question	answer 	tags
+        # for i in range(1,len(data)):
+        #     text = data[i][1] + ' ' + data[i][2]
+        #     text = clean_str(text)
+        #
+        #     tags = data[i][3]
+        #     # 为了处理c#,需要倒转再倒转
+        #     tags = tags[::-1].split("###")[:-1]
+        #     if len(tags) == 1:
+        #         continue # 跳过只有一个标签的数据
+        #     tags = [ onetag[::-1] for onetag in tags ]
+        #     for onetag in tags:
+        #         if onetag not in label2id.keys():
+        #             label2id[onetag] = [len(label2id),0]
+        #         label2id[onetag][1] += 1
+        #     temp.append({'text':text, 'catgy':[ label2id[onetag][0] for onetag in tags ]})
+
+        # 使用筛选后的label，所有的label出现次数均大于1000，共43个
+
+        # 使用筛选后的数据 46407 条
+        label2id = {".net": 0, "c#": 1, "database": 2, "mysql": 3, "sql-server": 4, "sql-server-2005": 5, "php": 6, "objective-c": 7, "iphone": 8, "web-services": 9, "windows": 10, "python": 11, "sql": 12, "css": 13, "html": 14, "asp.net": 15, "regex": 16, "c++": 17, "javascript": 18, "vb.net": 19, "visual-studio": 20, "asp.net-mvc": 21, "string": 22, "winforms": 23, "ajax": 24, "linq-to-sql": 25, "linq": 26, "performance": 27, "c": 28, "java": 29, "wpf": 30, "oop": 31, "wcf": 32, "multithreading": 33, "ruby": 34, "ruby-on-rails": 35, "tsql": 36, "jquery": 37, "xml": 38, "arrays": 39, "django": 40, "android": 41, "cocoa-touch": 42,}
+        temp = []
+        for i in range(1,len(data)):
+
+            tags = data[i][3]
+            # 分隔符是###,为了处理c#,需要倒转再倒转
+            tags = tags[::-1].split("###")[:-1]
+            if len(tags) == 1:
+                continue # 跳过只有一个标签的数据
+            tags = [ onetag[::-1] for onetag in tags ]
+
+            used_tags = []
+            for onetag in tags:
+                if onetag in label2id.keys():
+                    used_tags.append(onetag)
+            if len(used_tags) <= 1:
+                continue # 跳过筛选后只有一个标签的数据
+
+            text = data[i][1] + ' ' + data[i][2]
+            text = clean_str(text)
+
+            temp.append({'text':text, 'catgy':[ label2id[onetag] for onetag in used_tags ]})
+
+
+        train = temp[:40000]
+        test  = temp[40000:]
+
+        # 看看数据的label分布
+        # [678, 1485, 212, 650, 290, 140, 931, 451, 523, 90, 126, 280, 580, 363, 612, 675, 294, 293, 1015, 151, 116, 205,         167, 208, 270, 107, 158, 131, 194, 424, 186, 116, 88, 149, 195, 229, 137, 860, 249, 201, 131, 156, 109]
+        # [5768, 10494, 1500, 3396, 2825, 1129, 4950, 1830, 2416, 883, 830, 1530, 4087, 2004, 3576, 4833, 1683, 1621, 5710, 1357, 817, 1656, 1089, 1474, 1759, 895, 1244, 1143, 960, 2242, 900, 811, 680, 1034, 1149, 1205, 1103, 4658, 1497, 1359, 790, 380, 1089]
+        #
+        # count = [0 for i in range(43)]
+        # for i in test:
+        #     for j in i['catgy']:
+        #         count[j] += 1
+        # print(count)
+        #
+        # count = [0 for i in range(43)]
+        # for i in train:
+        #     for j in i['catgy']:
+        #         count[j] += 1
+        # print(count)
+
+
+        trn_sents, Y_trn, Y_trn_o = load_data_and_labels(train,label2id)
+        tst_sents, Y_tst, Y_tst_o = load_data_and_labels(test,label2id)
+
+
+        trn_sents_padded = pad_sentences(trn_sents, max_length=sents_max_len)
+        tst_sents_padded = pad_sentences(tst_sents, max_length=sents_max_len)
+
+        vocabulary, vocabulary_inv, vocabulary_count = build_vocab(trn_sents_padded + tst_sents_padded, vocab_size=vocab_size)
+
+        X_trn = build_input_data(trn_sents_padded, vocabulary)
+        X_tst = build_input_data(tst_sents_padded, vocabulary)
+
+        r =  {'train': (X_trn, Y_trn, Y_trn_o),
+                'test' : (X_tst, Y_tst, Y_tst_o),
+               'vocab' : (vocabulary, vocabulary_inv, vocabulary_count),
+                'embed': load_word2vec(datapath ,'glove', vocabulary_inv, 300),
+                'train_points': [(X_trn[i], Y_trn[i], Y_trn_o[i], i)  for i in range(len(Y_trn_o))],
+                'test_points' : [(X_tst[i], Y_tst[i], Y_tst_o[i], i)  for i in range(len(Y_tst_o))]
+                }
+        with open(os.path.join(datapath, 'stackLoaded.pkl'), 'wb') as f:
+            pickle.dump(r,f)
+        return r
+
 
 
 
