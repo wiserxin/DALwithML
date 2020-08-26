@@ -946,6 +946,24 @@ class Acquisition(object):
             overall_rl = np.mean(np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1))
             return each_rl - overall_rl
 
+        def rankingLoss4_first_part(item):
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            positive_num = np.sum(overAllGroundTruth > 0.5)
+            if positive_num == 0:
+                positive_num = 1
+            elif positive_num == overAllGroundTruth.size:
+                positive_num = overAllGroundTruth.size - 1
+
+            # each RL3
+            sorted_item_arr = np.sort(item_arr)
+            positive_item_arr = sorted_item_arr[:, -positive_num:]
+            negitive_item_arr = sorted_item_arr[:, :-positive_num]
+            each_rl = np.mean((np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1)))
+
+            return each_rl
+
+
         def F1Loss(item):
             from sklearn.metrics import f1_score
             baseLine = 0.5
@@ -1037,6 +1055,7 @@ class Acquisition(object):
                 obj["id"] = pt
                 obj["elF1"] = F1Loss(item)
                 obj["elRK"] = rankingLoss4(item)
+                obj["elRKfp"]  = rankingLoss4_first_part(item)
                 obj["elET"] = entropyLoss(item)
 
                 _delt_arr.append(obj)
@@ -1045,10 +1064,10 @@ class Acquisition(object):
 # ------------------ combine method -------------------- #
         _delt_arr_F1 = sorted(_delt_arr, key=lambda o: o["elF1"], reverse=True)  # 从大到小排序
         _delt_arr_RK = sorted(_delt_arr, key=lambda o: o["elRK"], reverse=True)  # 从大到小排序
-        _delt_arr_ET = sorted(_delt_arr, key=lambda o: o["elET"], reverse=True)  # 从大到小排序
         cur_indices = set()
 
         if combine_method == "FERKETL":
+            _delt_arr_ET = sorted(_delt_arr, key=lambda o: o["elET"], reverse=True)  # 从大到小排序
             for i in range(acquire_document_num):
                 cur_indices.add(new_datapoints[_delt_arr_F1[i]["id"]])
                 cur_indices.add(new_datapoints[_delt_arr_RK[i]["id"]])
@@ -1060,6 +1079,14 @@ class Acquisition(object):
             for i in range(acquire_document_num):
                 cur_indices.add(new_datapoints[_delt_arr_F1[i]["id"]])
                 cur_indices.add(new_datapoints[_delt_arr_RK[i]["id"]])
+            print(" reduency:", len(cur_indices) - acquire_document_num, end=' ')
+            cur_indices = self.get_submodular(dataset, cur_indices, acquire_document_num,
+                                              model_path=model_path, model_name=model_name, returned=True)
+        elif combine_method == "FERKfpL":
+            _delt_arr_RKfp = sorted(_delt_arr, key=lambda o: o["elRKfp"], reverse=True)  # 从大到小排序
+            for i in range(acquire_document_num):
+                cur_indices.add(new_datapoints[_delt_arr_F1[i]["id"]])
+                cur_indices.add(new_datapoints[_delt_arr_RKfp[i]["id"]])
             print(" reduency:", len(cur_indices) - acquire_document_num, end=' ')
             cur_indices = self.get_submodular(dataset, cur_indices, acquire_document_num,
                                               model_path=model_path, model_name=model_name, returned=True)
