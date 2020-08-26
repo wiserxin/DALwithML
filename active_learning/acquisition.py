@@ -659,6 +659,22 @@ class Acquisition(object):
             delt = stats.mode(pos_item_code)
             return len(item_arr) - delt[1][0] # 总采样次数 - 出现最多的模式的频次;得到的值越大,模型越不确定
 
+        def varRatios(item):
+            # Var Ratios
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            positive_num = np.sum(overAllGroundTruth > 0.5)
+            if positive_num == 0:
+                positive_num = 1
+            elif positive_num == overAllGroundTruth.size:
+                positive_num = overAllGroundTruth.size - 1
+
+            sorted_overAllGroundTruth = sorted(overAllGroundTruth)
+            positive_item = sorted_overAllGroundTruth[-positive_num:]
+            return 1-np.mean(positive_item) # 1 减去 正标签的出现概率
+
+
+
         # 选取 rkl 策略
         rklDic = {2:rankingLoss2,
                   4:rankingLoss4,
@@ -674,6 +690,7 @@ class Acquisition(object):
                   'et':entropyLoss,
                   'ee':eentropyLoss,
                   'bald': BALD,
+                  'vrs' : varRatios
                   }
         rkl = rklDic[rklNo]
         print("RKL",rklNo,end="\t")
@@ -1572,6 +1589,8 @@ class Acquisition(object):
                     self.get_RS2HEL(data, model_path, acquire_num, model_name=model_name,thisround=round)
                 elif sub_method == "BALD":
                     self.get_RKL(data, model_path, acquire_num, rklNo='bald', model_name=model_name, thisround=round)
+                elif sub_method == "VRS":
+                    self.get_RKL(data, model_path, acquire_num, rklNo='vrs', model_name=model_name, thisround=round)
                 elif sub_method == "RKL":
                     # # # 普通RKL
                     self.get_RKL(data, model_path, acquire_num, model_name=model_name,thisround=round)
@@ -1612,41 +1631,39 @@ class Acquisition(object):
                 elif sub_method == "dsm2RKL4":
                     _, unlabeled_index = self.get_RKL(data, model_path, acquire_num*4, model_name=model_name, thisround=round, returned=True)
                     self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path, model_name=model_name)
-                elif sub_method == "dsm3RKL4":
-                    _, unlabeled_index = self.get_RKL(data, model_path, acquire_num*max(1.0,(12-1.5*round)), model_name=model_name, thisround=round, returned=True)
-                    self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path, model_name=model_name)
-                elif sub_method == "dsm4RKL4":
-                    _, unlabeled_index = self.get_RKL(data, model_path, acquire_num*max(1.0,(3-0.2*round)), model_name=model_name, thisround=round, returned=True)
-                    self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path, model_name=model_name)
-                elif sub_method == "dsm5RKL4":
-                    temp = [2,2,2,2,2,2,2,2,2,2, 1.5,1.5,1.5,1.5,1.5, 1,1,1,1,1,1,1,1,1,1 ]
-                    _, unlabeled_index = self.get_RKL(data, model_path, acquire_num*temp[round], model_name=model_name, thisround=round, returned=True)
-                    self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path, model_name=model_name)
-                elif sub_method == "dsm6RKL4":
-                    temp = [2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 2, 2, 2, 2, 1.5, 1.5, 1.5, 1, 1, 1, 1, 1, 1]
-                    _, unlabeled_index = self.get_RKL(data, model_path, acquire_num * temp[round],
-                                                      model_name=model_name, thisround=round, returned=True)
-                    self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
-                                        model_name=model_name)
-                elif sub_method == "dsm7RKL4":
-                    temp = [2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4,  2, 2, 2, 2, 1.5, 1.5, 1.5, 1.5, 1, 1, 1, 1, 1]
-                    _, unlabeled_index = self.get_RKL(data, model_path, acquire_num * temp[round],
-                                                      model_name=model_name, thisround=round, returned=True)
-                    self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
-                                        model_name=model_name)
-                elif sub_method == "dsm8RKL4":
-                    temp = [2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 2, 2, 2, 2, 4,4,4,4 , 4,4,4,4, 4 ]
-                    _, unlabeled_index = self.get_RKL(data, model_path, acquire_num * temp[round],
-                                                      model_name=model_name, thisround=round, returned=True)
-                    self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
-                                        model_name=model_name)
-                elif sub_method == "dsm9RKL4":
-                    _, unlabeled_index = self.get_RKL(data, model_path, acquire_num * max((0.25*round),1),
-                                                      model_name=model_name, thisround=round, returned=True)
-                    self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
-                                        model_name=model_name)
-
-
+                # elif sub_method == "dsm3RKL4":
+                #     _, unlabeled_index = self.get_RKL(data, model_path, acquire_num*max(1.0,(12-1.5*round)), model_name=model_name, thisround=round, returned=True)
+                #     self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path, model_name=model_name)
+                # elif sub_method == "dsm4RKL4":
+                #     _, unlabeled_index = self.get_RKL(data, model_path, acquire_num*max(1.0,(3-0.2*round)), model_name=model_name, thisround=round, returned=True)
+                #     self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path, model_name=model_name)
+                # elif sub_method == "dsm5RKL4":
+                #     temp = [2,2,2,2,2,2,2,2,2,2, 1.5,1.5,1.5,1.5,1.5, 1,1,1,1,1,1,1,1,1,1 ]
+                #     _, unlabeled_index = self.get_RKL(data, model_path, acquire_num*temp[round], model_name=model_name, thisround=round, returned=True)
+                #     self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path, model_name=model_name)
+                # elif sub_method == "dsm6RKL4":
+                #     temp = [2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 2, 2, 2, 2, 1.5, 1.5, 1.5, 1, 1, 1, 1, 1, 1]
+                #     _, unlabeled_index = self.get_RKL(data, model_path, acquire_num * temp[round],
+                #                                       model_name=model_name, thisround=round, returned=True)
+                #     self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
+                #                         model_name=model_name)
+                # elif sub_method == "dsm7RKL4":
+                #     temp = [2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4,  2, 2, 2, 2, 1.5, 1.5, 1.5, 1.5, 1, 1, 1, 1, 1]
+                #     _, unlabeled_index = self.get_RKL(data, model_path, acquire_num * temp[round],
+                #                                       model_name=model_name, thisround=round, returned=True)
+                #     self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
+                #                         model_name=model_name)
+                # elif sub_method == "dsm8RKL4":
+                #     temp = [2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 2, 2, 2, 2, 4,4,4,4 , 4,4,4,4, 4 ]
+                #     _, unlabeled_index = self.get_RKL(data, model_path, acquire_num * temp[round],
+                #                                       model_name=model_name, thisround=round, returned=True)
+                #     self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
+                #                         model_name=model_name)
+                # elif sub_method == "dsm9RKL4":
+                #     _, unlabeled_index = self.get_RKL(data, model_path, acquire_num * max((0.25*round),1),
+                #                                       model_name=model_name, thisround=round, returned=True)
+                #     self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
+                #                         model_name=model_name)
 
 
                 elif sub_method == "STR":

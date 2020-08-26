@@ -13,6 +13,87 @@ import codecs
 import pickle
 import itertools
 import scipy.sparse as sp
+import string
+
+def removePunctuation(text):
+    temp = []
+    for c in text:
+        if c not in string.punctuation:
+            temp.append(c)
+    newText = ''.join(temp)
+    return newText
+
+def clean_str(string):
+    # remove stopwords
+    # string = ' '.join([word for word in string.split() if word not in cachedStopWords])
+    string = removePunctuation(string)
+    string = re.sub(r"[^A-Za-z0-9(),!?\'\`]", " ", string)
+    string = re.sub(r"\'s", " \'s", string)
+    string = re.sub(r"\'ve", " \'ve", string)
+    string = re.sub(r"n\'t", " n\'t", string)
+    string = re.sub(r"\'re", " \'re", string)
+    string = re.sub(r"\'d", " \'d", string)
+    string = re.sub(r"\'ll", " \'ll", string)
+    string = re.sub(r",", " , ", string)
+    string = re.sub(r"!", " ! ", string)
+    string = re.sub(r"\(", " \( ", string)
+    string = re.sub(r"\)", " \) ", string)
+    string = re.sub(r"\?", " \? ", string)
+    string = re.sub(r"\s{2,}", " ", string)
+    return string.strip().lower()
+
+
+def load_data_and_labels(data, label2id):
+    x_text = [doc['text'] for doc in data]
+    x_text = [s.split(" ") for s in x_text]
+    labels = [doc['catgy'] for doc in data]
+    row_idx, col_idx, val_idx = [], [], []
+    for i in range(len(labels)):
+        l_list = list(set(labels[i]))  # remove duplicate cateories to avoid double count
+        for y in l_list:
+            row_idx.append(i)
+            col_idx.append(y)
+            val_idx.append(1)
+    # m = max(row_idx) + 1
+    # n = max(col_idx) + 1
+    m = len(data)
+    n = len(label2id)
+    Y = sp.csr_matrix((val_idx, (row_idx, col_idx)), shape=(m, n))
+    print('Y shape : {} * {}'.format(m, n))
+    return [x_text, Y, labels]
+
+
+def pad_sentences(sentences, padding_word="<PAD/>", max_length=300):
+    # sequence_length = min(max(len(x) for x in sentences), max_length)
+    sequence_length = max_length
+    padded_sentences = []
+    for i in range(len(sentences)):
+        sentence = sentences[i]
+        if len(sentence) < max_length:
+            num_padding = sequence_length - len(sentence)
+            new_sentence = sentence + [padding_word] * num_padding
+        else:
+            new_sentence = sentence[:max_length]
+        padded_sentences.append(new_sentence)
+    return padded_sentences
+
+
+def build_vocab(sentences, vocab_size=50000):
+    word_counts = Counter(itertools.chain(*sentences))
+    vocabulary_inv = [x[0] for x in word_counts.most_common(vocab_size)]
+    vocabulary = {x: i for i, x in enumerate(vocabulary_inv)}
+    # append <UNK/> symbol to the vocabulary
+    vocabulary['<UNK/>'] = len(vocabulary)
+    vocabulary_inv.append('<UNK/>')
+    return [vocabulary, vocabulary_inv, word_counts]
+
+
+def build_input_data(sentences, vocabulary):
+    x = np.array([
+        [vocabulary[word] if word in vocabulary else vocabulary['<UNK/>'] for word in sentence] for sentence in
+        sentences])
+    # x = np.array([[vocabulary[word] if word in vocabulary else len(vocabulary) for word in sentence] for sentence in sentences])
+    return x
 
 
 class Loader(object):
@@ -457,8 +538,6 @@ class Loader(object):
         return r
 
 
-
-
     def load_stack(self,datapath,  sents_max_len = 300, vocab_size = 50000):
         # stack oveerflow data
 
@@ -467,74 +546,6 @@ class Loader(object):
         if os.path.exists( os.path.join(datapath,'stackLoaded.pkl') ):
             with open(os.path.join(datapath,'stackLoaded.pkl') , 'rb') as f:
                 return pickle.load(f)
-
-
-        def clean_str(string):
-            # remove stopwords
-            # string = ' '.join([word for word in string.split() if word not in cachedStopWords])
-            string = re.sub(r"[^A-Za-z0-9(),!?\'\`]", " ", string)
-            string = re.sub(r"\'s", " \'s", string)
-            string = re.sub(r"\'ve", " \'ve", string)
-            string = re.sub(r"n\'t", " n\'t", string)
-            string = re.sub(r"\'re", " \'re", string)
-            string = re.sub(r"\'d", " \'d", string)
-            string = re.sub(r"\'ll", " \'ll", string)
-            string = re.sub(r",", " , ", string)
-            string = re.sub(r"!", " ! ", string)
-            string = re.sub(r"\(", " \( ", string)
-            string = re.sub(r"\)", " \) ", string)
-            string = re.sub(r"\?", " \? ", string)
-            string = re.sub(r"\s{2,}", " ", string)
-            return string.strip().lower()
-
-        def load_data_and_labels(data,label2id):
-            x_text = [doc['text'] for doc in data]
-            x_text = [s.split(" ") for s in x_text]
-            labels = [doc['catgy'] for doc in data]
-            row_idx, col_idx, val_idx = [], [], []
-            for i in range(len(labels)):
-                l_list = list(set(labels[i]))  # remove duplicate cateories to avoid double count
-                for y in l_list:
-                    row_idx.append(i)
-                    col_idx.append(y)
-                    val_idx.append(1)
-            # m = max(row_idx) + 1
-            # n = max(col_idx) + 1
-            m = len(data)
-            n = len(label2id)
-            Y = sp.csr_matrix((val_idx, (row_idx, col_idx)), shape=(m, n))
-            print('Y shape : {} * {}'.format(m,n))
-            return [x_text, Y, labels]
-
-        def pad_sentences(sentences, padding_word="<PAD/>", max_length=300):
-            # sequence_length = min(max(len(x) for x in sentences), max_length)
-            sequence_length = max_length
-            padded_sentences = []
-            for i in range(len(sentences)):
-                sentence = sentences[i]
-                if len(sentence) < max_length:
-                    num_padding = sequence_length - len(sentence)
-                    new_sentence = sentence + [padding_word] * num_padding
-                else:
-                    new_sentence = sentence[:max_length]
-                padded_sentences.append(new_sentence)
-            return padded_sentences
-
-        def build_vocab(sentences, vocab_size=50000):
-            word_counts = Counter(itertools.chain(*sentences))
-            vocabulary_inv = [x[0] for x in word_counts.most_common(vocab_size)]
-            vocabulary = {x: i for i, x in enumerate(vocabulary_inv)}
-            # append <UNK/> symbol to the vocabulary
-            vocabulary['<UNK/>'] = len(vocabulary)
-            vocabulary_inv.append('<UNK/>')
-            return [vocabulary, vocabulary_inv, word_counts]
-
-        def build_input_data(sentences, vocabulary):
-            x = np.array([
-                [vocabulary[word] if word in vocabulary else vocabulary['<UNK/>'] for word in sentence] for sentence in
-                 sentences])
-            # x = np.array([[vocabulary[word] if word in vocabulary else len(vocabulary) for word in sentence] for sentence in sentences])
-            return x
 
         # [{'text':"...", 'catgy':['cat1','cat2',...] },]
         import csv
@@ -642,10 +653,80 @@ class Loader(object):
         return r
 
 
+    def load_aapd(self, datapath, sents_max_len=300, vocab_size=50000):
 
+        # 读取已缓存数据
+        if os.path.exists(os.path.join(datapath, 'stackLoaded.pkl')):
+            with open(os.path.join(datapath, 'stackLoaded.pkl'), 'rb') as f:
+                return pickle.load(f)
 
+        # [{'text':"...", 'catgy':['cat1','cat2',...] },]
+        file_names = ['aapd_doc','aapd_tag']
+        path = os.path.join(datapath, file_names[0])
+        assert os.path.exists(path)
+        with open(path) as f1:
+            docs = f1.readlines()
 
+        path = os.path.join(datapath, file_names[1])
+        assert os.path.exists(path)
+        with open(path) as f1:
+            tags = f1.readlines()
 
+        assert len(docs) == len(tags)
+
+        label2id = dict()  # {name: [id,count]}
+        data = []
+        for text,tag in zip(docs,tags):
+            tag = tag.strip().split()
+            if len(tag) == 1:
+                continue
+            for onetag in tag:
+                if onetag not in label2id.keys():
+                    label2id[onetag] = [len(label2id),0]
+                label2id[onetag][1] += 1
+
+            text = clean_str(text)
+            data.append({'text': text, 'catgy': [label2id[onetag][0] for onetag in tag]})
+
+        train = data[:30000]
+        test = data[30000:33000]
+
+        # 看看数据的label分布
+        # [1108, 261, 873, 9580, 9580, 367, 1523, 1594, 2762, 528, 271, 1500, 707, 4408, 1715, 1268, 2645, 1695, 515, 552, 1668, 534, 370, 2229, 1856, 1224, 706, 1881, 2739, 660, 1118, 2283, 391, 1967, 890, 261, 571, 520, 198, 931, 579, 216, 486, 231, 635, 474, 742, 378, 207, 399, 479, 479, 198, 222]
+        # [117, 21, 83, 964, 964, 28, 165, 155, 270, 59, 24, 168, 78, 454, 183, 107, 282, 180, 44, 50, 158, 49, 50, 195, 175, 125, 58, 173, 256, 60, 102, 224, 42, 187, 95, 26, 70, 62, 21, 97, 47, 12, 45, 21, 68, 48, 80, 32, 22, 34, 46, 46, 24, 22]
+        # count = [0 for i in range(len(label2id))]
+        # for i in train:
+        #     for j in i['catgy']:
+        #         count[j] += 1
+        # print(count)
+        # count = [0 for i in range(len(label2id))]
+        # for i in test:
+        #     for j in i['catgy']:
+        #         count[j] += 1
+        # print(count)
+
+        trn_sents, Y_trn, Y_trn_o = load_data_and_labels(train, label2id)
+        tst_sents, Y_tst, Y_tst_o = load_data_and_labels(test, label2id)
+
+        trn_sents_padded = pad_sentences(trn_sents, max_length=sents_max_len)
+        tst_sents_padded = pad_sentences(tst_sents, max_length=sents_max_len)
+
+        vocabulary, vocabulary_inv, vocabulary_count = build_vocab(trn_sents_padded + tst_sents_padded,
+                                                                   vocab_size=vocab_size)
+
+        X_trn = build_input_data(trn_sents_padded, vocabulary)
+        X_tst = build_input_data(tst_sents_padded, vocabulary)
+
+        r = {'train': (X_trn, Y_trn, Y_trn_o),
+             'test': (X_tst, Y_tst, Y_tst_o),
+             'vocab': (vocabulary, vocabulary_inv, vocabulary_count),
+             'embed': load_word2vec(datapath, 'glove', vocabulary_inv, 300),
+             'train_points': [(X_trn[i], Y_trn[i], Y_trn_o[i], i) for i in range(len(Y_trn_o))],
+             'test_points': [(X_tst[i], Y_tst[i], Y_tst_o[i], i) for i in range(len(Y_tst_o))]
+             }
+        with open(os.path.join(datapath, 'aapdLoaded.pkl'), 'wb') as f:
+            pickle.dump(r, f)
+        return r
 
 
 

@@ -139,33 +139,76 @@ def main(args):
             # "warm_start_random_seed": 32,
             # "sample_method": "No-Deterministic+RKL+32",
 
+            # "model_name": "CNN",
+            # "group_name": "[mlabs]stack+F1",
+            # "max_performance": 0.90,
+            # "data_path": "../../datasets/stack/",
+            # "acquire_method": "no-dete",
+            # "sub_acquire_method": "FERKfpL",
+            # "unsupervised_method": 'submodular',
+            # "submodular_k": 2,
+            # "num_acquisitions_round": 25,
+            # "init_question_num": 1200,
+            # "acquire_question_num_per_round": 1200,
+            # "warm_start_random_seed": 0,
+            # "sample_method": "No-Deterministic+KIM_FERKfpL+0",
+        # },{
             "model_name": "CNN",
-            "group_name": "[mlabs]stack+F1",
+            "group_name": "[mlabs]aapd+F1",
             "max_performance": 0.90,
-            "data_path": "../../datasets/stack/",
+            "data_path": "../../datasets/aapd/",
             "acquire_method": "no-dete",
-            "sub_acquire_method": "FERKfpL",
+            "sub_acquire_method": "FERKL",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 25,
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 0,
-            "sample_method": "No-Deterministic+KIM_FERKfpL+0",
-        },{
+            "sample_method": "No-Deterministic+KIM_FERKL+0",
+        }, {
             "model_name": "CNN",
-            "group_name": "[mlabs]KIM+???+3e4trn+F1",
+            "group_name": "[mlabs]aapd+F1",
             "max_performance": 0.90,
-            "data_path": "../../datasets/rcv2/",
+            "data_path": "../../datasets/aapd/",
             "acquire_method": "no-dete",
-            "sub_acquire_method": "FERKfpL",
+            "sub_acquire_method": "BALD",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 25,
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 0,
-            "sample_method": "No-Deterministic+FERKfpL+0",
+            "sample_method": "No-Deterministic+KIM_BALD+0",
+        }, {
+            "model_name": "CNN",
+            "group_name": "[mlabs]aapd+F1",
+            "max_performance": 0.90,
+            "data_path": "../../datasets/aapd/",
+            "acquire_method": "dete",
+            "sub_acquire_method": "SIM",
+            "unsupervised_method": 'submodular',
+            "submodular_k": 2,
+            "num_acquisitions_round": 25,
+            "init_question_num": 1200,
+            "acquire_question_num_per_round": 1200,
+            "warm_start_random_seed": 0,
+            "sample_method": "Deterministic+KIM_SIM+0",
+        }, {
+            "model_name": "CNN",
+            "group_name": "[mlabs]aapd+F1",
+            "max_performance": 0.90,
+            "data_path": "../../datasets/aapd/",
+            "acquire_method": "Random",
+            "sub_acquire_method": "",
+            "unsupervised_method": 'submodular',
+            "submodular_k": 2,
+            "num_acquisitions_round": 25,
+            "init_question_num": 1200,
+            "acquire_question_num_per_round": 1200,
+            "warm_start_random_seed": 0,
+            "sample_method": "Random+KIM-0",
+
         }
 
 
@@ -241,6 +284,14 @@ def main(args):
             val_data = data['test_points']
             train_data = train_data[:30000]
             val_data = val_data[:]
+        elif "aapd" in data_path:
+            data = loader.load_aapd(data_path)
+            args.target_size = 54
+            train_data = data['train_points']
+            val_data = data['test_points']
+            train_data = train_data[:30000]
+            val_data = val_data[:]
+
 
 
 

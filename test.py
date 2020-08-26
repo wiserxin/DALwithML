@@ -61,12 +61,20 @@ Loader = Loader()
 
 #########################################  load stack 测试 #######################################
 
-stack_path = r"../../datasets/stackOverflow/"
-data,label2id = Loader.load_stack(stack_path,)
-print(len(data),len(label2id))
-count = 0
-for key in label2id.keys():
-    if label2id[key][1] > 1000:
-        print("\"{}\":{}".format(key,count),end=",")
-        count += 1
-print(count)
+# load stack data
+# stack_path = r"../../datasets/stackOverflow/"
+# data,label2id = Loader.load_stack(stack_path,)
+# print(len(data),len(label2id))
+# count = 0
+# for key in label2id.keys():
+#     if label2id[key][1] > 1000:
+#         print("\"{}\":{}".format(key,count),end=",")
+#         count += 1
+# print(count)
+
+# load aapd data
+aapd_path = r"../../datasets/aapd/"
+docs,label2id,a = Loader.load_aapd(aapd_path)
+print(a)
+print(len(label2id))
+print(label2id)
