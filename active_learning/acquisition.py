@@ -1706,6 +1706,9 @@ class Acquisition(object):
                 elif sub_method == "FERKETL":
                     self.get_FEL_RKL_ETL(data, model_path,acquire_num,model_name=model_name,combine_method="FERKETL")
                     #
+                elif sub_method == "FERKfpL":
+                    self.get_FEL_RKL_ETL(data, model_path,acquire_num,model_name=model_name,combine_method="FERKfpL")
+                    #
                 elif sub_method == "FELplusRKL":
                     # # # 普通
                     self.get_FELplusRKL(data, model_path, acquire_num, model_name=model_name, thisround=round)
