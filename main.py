@@ -193,8 +193,8 @@ def main(args):
             "num_acquisitions_round": 25,
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
-            "warm_start_random_seed": 16,
-            "sample_method": "NO-Deterministic+KIM_FEVRL+16",
+            "warm_start_random_seed": 0,
+            "sample_method": "NO-Deterministic+KIM_FEVRL+0",
 
 
         }
