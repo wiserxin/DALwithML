@@ -1474,8 +1474,20 @@ class Acquisition(object):
     def get_dete(self, dataset, model_path, acquire_document_num,
                model_name='', dete_method = "SIM", returned=False, thisround=-1,):
 
-    # SIM
-    # ETY
+        # SIM
+        # ETY
+        # VRS
+        # STD
+
+        def mean_STD(item):
+            # Mean-STD
+            item_arr = np.array(item)
+            item_arr_pow2 = item_arr ** 2
+            E1 = np.mean(item_arr_pow2, axis=0)
+            E2 = np.mean(item_arr, axis=0) ** 2
+            mean_STD = np.mean(E1 - E2)
+            return mean_STD
+
         tm = time.time()
         if dete_method == "SIM": # submodular
             # id that not in train_index
@@ -1544,7 +1556,16 @@ class Acquisition(object):
                     sorted_overAllGroundTruth = sorted(overAllGroundTruth)
                     positive_item = sorted_overAllGroundTruth[-positive_num:]
                     varRatios_arr.append(1-np.mean(positive_item))
-                arg = np.argsort(varRatios_arr)[-acquire_document_num:]  # entropy最大的几个样本的id
+                arg = np.argsort(varRatios_arr)[-acquire_document_num:]  # ratios 最大的几个样本的id
+                cur_indices = set()
+                for i in arg:
+                    cur_indices.add(new_datapoints[i])
+                    self.update_train_index(cur_indices)
+
+            elif dete_method == "STD": # mean-STD
+                item_arr = np.array(score_arr)
+                mean_STD_arr = [mean_STD(item) for item in item_arr]
+                arg = np.argsort(mean_STD_arr)[-acquire_document_num:]  # mean-STD 最大的几个样本的id
                 cur_indices = set()
                 for i in arg:
                     cur_indices.add(new_datapoints[i])
