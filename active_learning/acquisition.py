@@ -1467,6 +1467,25 @@ class Acquisition(object):
                 for i in arg:
                     cur_indices.add(new_datapoints[i])
                     self.update_train_index(cur_indices)
+
+            elif dete_method == "VRS": # var Ratios
+                item_arr = np.array(score_arr)
+                varRatios_arr = list()
+                for overAllGroundTruth in item_arr:
+                    positive_num = np.sum(overAllGroundTruth > 0.5)
+                    if positive_num == 0:
+                        positive_num = 1
+                    elif positive_num == overAllGroundTruth.size:
+                        positive_num = overAllGroundTruth.size - 1
+                    sorted_overAllGroundTruth = sorted(overAllGroundTruth)
+                    positive_item = sorted_overAllGroundTruth[-positive_num:]
+                    varRatios_arr.append(1-np.mean(positive_item))
+                arg = np.argsort(varRatios_arr)[-acquire_document_num:]  # entropy最大的几个样本的id
+                cur_indices = set()
+                for i in arg:
+                    cur_indices.add(new_datapoints[i])
+                    self.update_train_index(cur_indices)
+
             else:
                 assert False #"Not Programmed"
 
