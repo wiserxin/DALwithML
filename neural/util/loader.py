@@ -656,8 +656,8 @@ class Loader(object):
     def load_aapd(self, datapath, sents_max_len=300, vocab_size=50000):
 
         # 读取已缓存数据
-        if os.path.exists(os.path.join(datapath, 'stackLoaded.pkl')):
-            with open(os.path.join(datapath, 'stackLoaded.pkl'), 'rb') as f:
+        if os.path.exists(os.path.join(datapath, 'aapdLoaded.pkl')):
+            with open(os.path.join(datapath, 'aapdLoaded.pkl'), 'rb') as f:
                 return pickle.load(f)
 
         # [{'text':"...", 'catgy':['cat1','cat2',...] },]
