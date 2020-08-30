@@ -1485,7 +1485,7 @@ class Acquisition(object):
             item_arr_pow2 = item_arr ** 2
             E1 = np.mean(item_arr_pow2, axis=0)
             E2 = np.mean(item_arr, axis=0) ** 2
-            mean_STD = np.mean(E1 - E2)
+            mean_STD = np.mean(np.sqrt(E1 - E2))
             return mean_STD
 
         tm = time.time()
