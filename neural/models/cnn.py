@@ -174,16 +174,16 @@ class CNN(nn.Module):
             self.embedding.weight = nn.Parameter(torch.FloatTensor(pretrained))
 
         # CNN
-        self.conv13 = nn.Conv2d(1, word_out_channels, (3, word_embedding_dim), stride=2)
-        self.conv14 = nn.Conv2d(1, word_out_channels, (4, word_embedding_dim), stride=2)
-        self.conv15 = nn.Conv2d(1, word_out_channels, (5, word_embedding_dim), stride=2)
-        self.pool13 = nn.MaxPool1d(self.out_size(word_embedding_dim, 3, stride=2)//4, stride=16)
-        self.pool14 = nn.MaxPool1d(self.out_size(word_embedding_dim, 4, stride=2)//4, stride=16)
-        self.pool15 = nn.MaxPool1d(self.out_size(word_embedding_dim, 5, stride=2)//4, stride=16)
+        self.conv13 = nn.Conv2d(1, word_out_channels, (4, word_embedding_dim), stride=2)
+        self.conv14 = nn.Conv2d(1, word_out_channels, (8, word_embedding_dim), stride=2)
+        self.conv15 = nn.Conv2d(1, word_out_channels, (12, word_embedding_dim), stride=2)
+        self.pool13 = nn.MaxPool1d(self.out_size(word_embedding_dim, 4, stride=2)//4, stride=16)
+        self.pool14 = nn.MaxPool1d(self.out_size(word_embedding_dim, 8, stride=2)//4, stride=16)
+        self.pool15 = nn.MaxPool1d(self.out_size(word_embedding_dim, 12, stride=2)//4, stride=16)
 
         self.dropout = nn.Dropout(p=dropout_p)
 
-        hidden_size = 4600
+        hidden_size = 4400
         self.linear1 = nn.Linear(hidden_size, 512)
         self.linear2 = nn.Linear(512, output_size)
 

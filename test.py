@@ -30,7 +30,7 @@ Loader = Loader()
 data = Loader.load_aapd( datapath=aapd_path, vocab_size=30000)
 train_data = data['train_points']
 val_data = data['test_points']
-train_data = train_data[:30000]
+train_data = train_data[:8000]
 val_data = val_data[:]
 
 
@@ -43,7 +43,7 @@ model = CNN(  word_vocab_size = 30000
             )
 model = nn.DataParallel(model).cuda()
 
-trainer = Trainer(model,
+trainer = Trainer(model.module,
                   r'./result',
                   "CNN",
                   top_k=40,
