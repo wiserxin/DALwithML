@@ -183,7 +183,7 @@ class CNN(nn.Module):
 
         self.dropout = nn.Dropout(p=dropout_p)
 
-        hidden_size = 2400
+        hidden_size = 1200
         self.linear1 = nn.Linear(hidden_size, 512)
         self.linear2 = nn.Linear(512, output_size)
 
