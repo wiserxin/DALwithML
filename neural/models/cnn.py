@@ -177,9 +177,9 @@ class CNN(nn.Module):
         self.conv13 = nn.Conv2d(1, word_out_channels, (2, word_embedding_dim), stride=1)
         self.conv14 = nn.Conv2d(1, word_out_channels, (4, word_embedding_dim), stride=1)
         self.conv15 = nn.Conv2d(1, word_out_channels, (8, word_embedding_dim), stride=1)
-        self.pool13 = nn.MaxPool1d(self.out_size(word_embedding_dim, 2, stride=1)//4,)
-        self.pool14 = nn.MaxPool1d(self.out_size(word_embedding_dim, 4, stride=1)//4,)
-        self.pool15 = nn.MaxPool1d(self.out_size(word_embedding_dim, 8, stride=1)//4,)
+        self.pool13 = nn.MaxPool1d(self.out_size(word_embedding_dim, 2, stride=1)//2,)
+        self.pool14 = nn.MaxPool1d(self.out_size(word_embedding_dim, 4, stride=1)//2,)
+        self.pool15 = nn.MaxPool1d(self.out_size(word_embedding_dim, 8, stride=1)//2,)
 
         self.dropout = nn.Dropout(p=dropout_p)
 
