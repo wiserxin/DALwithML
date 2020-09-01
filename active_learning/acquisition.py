@@ -1650,8 +1650,9 @@ class Acquisition(object):
                 pass
             elif model_name == 'CNN':
                 # 2020 08 12 修改为 features_with_pred
-                # output = model.features(X)
-                output = model.features_with_pred(X)
+                # 2020 09 02 又改回来啦
+                output = model.features(X)
+                # output = model.features_with_pred(X)
             temp_feature.extend(output.data.cpu().numpy().tolist())
 
         features = np.stack(temp_feature, axis=0)
