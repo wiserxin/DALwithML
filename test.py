@@ -30,7 +30,7 @@ Loader = Loader()
 data = Loader.load_aapd( datapath=aapd_path, vocab_size=30000)
 train_data = data['train_points']
 val_data = data['test_points']
-train_data = train_data[:8000]
+train_data = train_data[:30000]
 val_data = val_data[:]
 
 
