@@ -53,7 +53,7 @@ trainer = Trainer(model.module,
 test_performance = trainer.train_supervisedLearning(40,
                                                     train_data,
                                                     val_data,
-                                                    0.004,
+                                                    0.001,
                                                     checkpoint_path=r'./result',
                                                     batch_size=512,
                                                     )
