@@ -257,7 +257,8 @@ class CNN(nn.Module):
         x3 = self.pool15(x3)
         x = torch.cat((x1, x2, x3), 2)
         x = x.view(x.size()[0], -1)
-        return x
+        hidden = self.linear1(x)
+        return hidden
 
 
 class xml_cnn2(nn.Module):
