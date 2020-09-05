@@ -24,39 +24,42 @@ def theLoss(x, target):
 eurlex_path = r"../../datasets/eurLex/"
 rcv2_path = r"../../datasets/rcv2/"
 aapd_path = r"../../datasets/aapd/"
+stack_path = r"../../datasets/stack/"
 
 Loader = Loader()
 # data = Loader.load_rcv2( datapath=rcv2_path, vocab_size=30000)
 data = Loader.load_aapd( datapath=aapd_path, vocab_size=30000)
-train_data = data['train_points']
-val_data = data['test_points']
-train_data = train_data[:30000]
-val_data = val_data[:]
 
-
-
-model = CNN(  word_vocab_size = 30000
-            , word_embedding_dim = 300
-            , word_out_channels = 200
-            , output_size = 54
-            , pretrained = data['embed']
-            )
-model = nn.DataParallel(model).cuda()
-
-trainer = Trainer(model.module,
-                  r'./result',
-                  "CNN",
-                  top_k=40,
-                  eval_begin= 1
-                  )
-
-test_performance = trainer.train_supervisedLearning(40,
-                                                    train_data,
-                                                    val_data,
-                                                    0.001,
-                                                    checkpoint_path=r'./result',
-                                                    batch_size=512,
-                                                    )
+# 跑模型
+# train_data = data['train_points']
+# val_data = data['test_points']
+# train_data = train_data[:30000]
+# val_data = val_data[:]
+#
+#
+#
+# model = CNN(  word_vocab_size = 30000
+#             , word_embedding_dim = 300
+#             , word_out_channels = 200
+#             , output_size = 54
+#             , pretrained = data['embed']
+#             )
+# model = nn.DataParallel(model).cuda()
+#
+# trainer = Trainer(model.module,
+#                   r'./result',
+#                   "CNN",
+#                   top_k=40,
+#                   eval_begin= 1
+#                   )
+#
+# test_performance = trainer.train_supervisedLearning(40,
+#                                                     train_data,
+#                                                     val_data,
+#                                                     0.001,
+#                                                     checkpoint_path=r'./result',
+#                                                     batch_size=512,
+#                                                     )
 
 
 #########################################  load stack 测试 #######################################
