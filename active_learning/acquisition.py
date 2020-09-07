@@ -1772,6 +1772,13 @@ class Acquisition(object):
                 #     self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
                 #                         model_name=model_name)
 
+                elif sub_method == "dsm1FEL":
+
+                    _, unlabeled_index = self.get_FEL(data, model_path, acquire_num * 2, model_name=model_name,
+                                                      thisround=round, returned=True)
+
+                    self.get_submodular(data, unlabeled_index, acquire_num, model_path=model_path,
+                                        model_name=model_name)
 
                 elif sub_method == "STR":
                     self.get_submodular_then_EL(data,model_path,acquire_num,model_name=model_name,thisround=round)
