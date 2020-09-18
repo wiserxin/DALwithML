@@ -1024,6 +1024,20 @@ class Acquisition(object):
             each_entropy = np.mean(entropy_arr)
             return overall_entropy - each_entropy
 
+        def varRatios(item): # 非EL方法的
+            # Var Ratios
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            positive_num = np.sum(overAllGroundTruth > 0.5)
+            if positive_num == 0:
+                positive_num = 1
+            elif positive_num == overAllGroundTruth.size:
+                positive_num = overAllGroundTruth.size - 1
+
+            sorted_overAllGroundTruth = sorted(overAllGroundTruth)
+            positive_item = sorted_overAllGroundTruth[-positive_num:]
+            return 1-np.mean(positive_item) # 1 减去 正标签的出现概率
+
         def varRatiosLoss(item):
             # EL in var Ratios
             item_arr = np.array(item)
@@ -1123,8 +1137,10 @@ class Acquisition(object):
                     obj["elRK"] = rankingLoss4(item)
                 if "ET" in combine_method:
                     obj["elET"] = entropyLoss(item)
-                if "VR" in combine_method:
+                if "VRL" in combine_method:
                     obj["elVR"] = varRatiosLoss(item)
+                if "VRS" in combine_method:
+                    obj["VRS"] = varRatios(item)
 
                 _delt_arr.append(obj)
                 pt += 1
@@ -1165,6 +1181,15 @@ class Acquisition(object):
         elif combine_method == "FEVRL":
             _delt_arr_F1 = sorted(_delt_arr, key=lambda o: o["elF1"], reverse=True)  # 从大到小排序
             _delt_arr_VR = sorted(_delt_arr, key=lambda o: o["elVR"], reverse=True)  # 从大到小排序
+            for i in range(acquire_document_num):
+                cur_indices.add(new_datapoints[_delt_arr_F1[i]["id"]])
+                cur_indices.add(new_datapoints[_delt_arr_VR[i]["id"]])
+            print(" reduency:", len(cur_indices) - acquire_document_num, end=' ')
+            cur_indices = self.get_submodular(dataset, cur_indices, acquire_document_num,
+                                              model_path=model_path, model_name=model_name, returned=True)
+        elif combine_method == "FEVRS":
+            _delt_arr_F1 = sorted(_delt_arr, key=lambda o: o["elF1"], reverse=True)  # 从大到小排序
+            _delt_arr_VR = sorted(_delt_arr, key=lambda o: o["VRS"], reverse=True)  # 从大到小排序
             for i in range(acquire_document_num):
                 cur_indices.add(new_datapoints[_delt_arr_F1[i]["id"]])
                 cur_indices.add(new_datapoints[_delt_arr_VR[i]["id"]])
@@ -1845,6 +1870,9 @@ class Acquisition(object):
                     self.get_FELplusRKL(data, model_path, acquire_num, model_name=model_name, thisround=round)
                 elif sub_method == "FEVRL":
                     self.get_FEL_RKL_ETL(data, model_path,acquire_num,model_name=model_name,combine_method="FEVRL")
+                    pass
+                elif sub_method == "FEVRS":
+                    self.get_FEL_RKL_ETL(data, model_path,acquire_num,model_name=model_name,combine_method="FEVRS")
                     pass
                 else:
                     assert 'not progressed'
