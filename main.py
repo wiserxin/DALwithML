@@ -195,7 +195,7 @@ def main(args):
         #     "acquire_question_num_per_round": 1200,
         #     "warm_start_random_seed": 0,
         #     "sample_method": "No-Deterministic+kim_RKL8.1+0",
-        }, {
+        # }, {
             "model_name": "CNN",
             "group_name": "[mlabs]aapd+F1",
             "max_performance": 0.90,
