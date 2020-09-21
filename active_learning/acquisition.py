@@ -436,6 +436,7 @@ class Acquisition(object):
                 thisround=-1,):
 
         def rankingLoss2(item):  # item = nsamples * labels
+            # 使用ground truth 给每个forward pass筛选，计算所有的 neg_label > pos_label 对 的 sum(neg_label-pos_label)
             item_arr = np.array(item)
             overAllGroundTruth = np.mean(item_arr, axis=0) > 0.5
             positiveItems = item_arr[:, overAllGroundTruth]
@@ -574,6 +575,49 @@ class Acquisition(object):
                 pass
 
             return each_loss - overall_loss
+
+        def rankingLoss8(item, mod=2):
+            # 思路：
+            # 1 仅计算所有的 pos 与 最大的 neg label 间的差值作为Loss？？？
+            #   loss =  1 - mean(pos-neg_highest)  值越大越应选中
+            #   因为 pos 与 neg 越接近  该样本越不确定
+            #   然后 就 el = Loss_each - Loss_overall
+            # 2 或者使用 Loss*RKL4  试试 ？就变相的给RKL4加权了
+            #   认为 Loss 和 var Ratios 即 vrs 的效果应一致，可以测试一下
+            #   即使用 mod 0
+            #
+            # mod  |  效果
+            #  0   |  返回 overall RL
+            #  1   |  返回 each  RL
+            #  2   |  返回 el  RL = each RL - overall RL
+            #  3   |  返回 RKL4 * overall RL
+
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            positive_num = np.sum(overAllGroundTruth > 0.5)
+            if positive_num == 0:
+                positive_num = 1
+            elif positive_num == overAllGroundTruth.size:
+                positive_num = overAllGroundTruth.size - 1
+
+            # each RL8
+            sorted_item_arr = np.sort(item_arr)
+            positive_item_arr = sorted_item_arr[:, -positive_num:]
+            negitive_item_arr = sorted_item_arr[:, :-positive_num]
+            biggest_negitive_item = negitive_item_arr[:,-1]
+            each_rl = 1 - np.mean((np.mean(positive_item_arr, axis=1) - biggest_negitive_item ))
+
+            # overall RL8
+            sorted_overAllGroundTruth = np.sort(overAllGroundTruth)
+            positive_item_arr = sorted_overAllGroundTruth[-positive_num:]
+            biggest_negitive_item = sorted_overAllGroundTruth[-positive_num-1]
+            overall_rl = 1 - np.mean( np.mean(positive_item_arr) - biggest_negitive_item )
+
+            returnList = [overall_rl, each_rl, each_rl-overall_rl, rankingLoss4(item)*overall_rl]
+            return returnList[mod]
+
+
+
 
         def rankingLoss9(item):
             # rkl9 = weight[trueLabels] * rkl4
