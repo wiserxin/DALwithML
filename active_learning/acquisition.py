@@ -590,7 +590,7 @@ class Acquisition(object):
             # mod  |  效果
             #  0   |  返回 overall RL
             #  1   |  返回 each  RL
-            #  2   |  返回 el  RL = each RL - overall RL
+            #  2   |  返回 el  RL = each RL - overall RL      # 这个 el 有缺陷, elo number 接近半数
             #  3   |  返回 RKL4 * overall RL
 
             item_arr = np.array(item)
