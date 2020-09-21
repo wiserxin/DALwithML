@@ -432,6 +432,7 @@ class Acquisition(object):
                 model_name='',
                 returned=False,
                 rklNo = 4,      # 选取rkl策略，默认是rkl4
+                rklMod = -1,
                 density = False,#开启则挑选更稠密的区间的点
                 thisround=-1,):
 
@@ -674,7 +675,9 @@ class Acquisition(object):
 
             return each_loss - overall_loss
 
-        def entropyLoss(item,ee=False): # ee: entropy*EL ?
+        def entropyLoss(item,mod=False):
+            # ee: entropy*EL ?
+            ee = mod
             item_arr = np.array(item)
             overAllGroundTruth = np.mean(item_arr, axis=0)
             entropy_arr = -np.log2(item_arr) * item_arr - np.log2(1 - item_arr) * (1 - item_arr)
@@ -688,7 +691,7 @@ class Acquisition(object):
                 return overall_entropy - each_entropy
 
         def eentropyLoss(item):
-            return entropyLoss(item,ee=True)
+            return entropyLoss(item,mod=True)
 
         def BALD(item):
             item_arr = np.array(item)
@@ -746,6 +749,7 @@ class Acquisition(object):
                   5:rankingLoss5,
                   6:rankingLoss6,
                   7:rankingLoss7,
+                  8:rankingLoss8,
                   9:rankingLoss9,
 
                   '4fp':rankingLoss4_first_part,
@@ -831,7 +835,7 @@ class Acquisition(object):
                 # item    shape: nsample * nlabel
                 obj = {}
                 obj["id"] = pt
-                obj["el"] = rkl(item)
+                obj["el"] = rkl(item) if rklMod==-1 else rkl(item,mod=rklMod)
 
                 if obj["el"] < -1e-10:
                     elo_count += 1
@@ -1789,6 +1793,20 @@ class Acquisition(object):
                 elif sub_method == "RKL9":
                     # 233
                     self.get_RKL(data, model_path, acquire_num, rklNo=9, model_name=model_name, thisround=round)
+
+                elif sub_method == "RKL8.0":
+                    # 233
+                    self.get_RKL(data, model_path, acquire_num, rklNo=8, rklMod=0, model_name=model_name, thisround=round)
+                elif sub_method == "RKL8.1":
+                    # 233
+                    self.get_RKL(data, model_path, acquire_num, rklNo=8, rklMod=1, model_name=model_name, thisround=round)
+                elif sub_method == "RKL8.2":
+                    # 233
+                    self.get_RKL(data, model_path, acquire_num, rklNo=8, rklMod=2, model_name=model_name, thisround=round)
+                elif sub_method == "RKL8.3":
+                    # 233
+                    self.get_RKL(data, model_path, acquire_num, rklNo=8, rklMod=3, model_name=model_name, thisround=round)
+
 
                 elif sub_method == "DRL":
                     # 考虑 点密度 的 RKL, 看做一种排除异常值的方法？
