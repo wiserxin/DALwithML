@@ -912,6 +912,19 @@ class Acquisition(object):
                 r += (1.0 - f1_score(overAllGroundTruth, item_arr > baseLine, average=am))
             return r
 
+        def F1Loss_fixed(item):
+            from sklearn.metrics import f1_score
+            baseLine = 0.5
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0) > baseLine
+
+            overAllGroundTruth = np.tile(overAllGroundTruth, (item_arr.shape[0], 1)) # 复制出多行
+            r = 0
+            for am in ['micro', 'macro']:
+                r += (f1_score(overAllGroundTruth, overAllGroundTruth, average=am) -
+                      f1_score(overAllGroundTruth, item_arr > baseLine, average=am))
+            return r
+
         model = torch.load(model_path)
         model.train(True)  # 保持 dropout 开启
 
