@@ -577,7 +577,7 @@ class Acquisition(object):
 
             return each_loss - overall_loss
 
-        def rankingLoss8(item, mod=2):
+        def rankingLoss8(item, mod=0):
             # 思路：
             # 1 仅计算所有的 pos 与 最大的 neg label 间的差值作为Loss？？？
             #   loss =  1 - mean(pos-neg_highest)  值越大越应选中
@@ -592,6 +592,9 @@ class Acquisition(object):
             #  1   |  返回 each  RL
             #  2   |  返回 el  RL = each RL - overall RL      # 这个 el 有缺陷, elo number 接近半数
             #  3   |  返回 RKL4 * overall RL
+            #  4   |  返回 overall ( 1-min(pos) )
+            #  5   |  返回 overall ( min(pos) - max(neg) )
+            #  6   |  返回 each    ( min(pos) - max(neg) )
 
             item_arr = np.array(item)
             overAllGroundTruth = np.mean(item_arr, axis=0)
@@ -605,17 +608,22 @@ class Acquisition(object):
             sorted_item_arr = np.sort(item_arr)
             positive_item_arr = sorted_item_arr[:, -positive_num:]
             negitive_item_arr = sorted_item_arr[:, :-positive_num]
-            biggest_negitive_item = negitive_item_arr[:,-1]
-            each_rl = 1 - np.mean((np.mean(positive_item_arr, axis=1) - biggest_negitive_item ))
+            lowest_positive_item  = positive_item_arr[:,0]
+            highest_negitive_item = negitive_item_arr[:,-1]
+            each_rl = 1 - np.mean((np.mean(positive_item_arr, axis=1) - highest_negitive_item ))
 
             # overall RL8
             sorted_overAllGroundTruth = np.sort(overAllGroundTruth)
             positive_item_arr = sorted_overAllGroundTruth[-positive_num:]
-            biggest_negitive_item = sorted_overAllGroundTruth[-positive_num-1]
-            overall_rl = 1 - np.mean( np.mean(positive_item_arr) - biggest_negitive_item )
+            lowest_positive_item  = sorted_overAllGroundTruth[-positive_num]
+            highest_negitive_item = sorted_overAllGroundTruth[-positive_num-1]
+            overall_rl = 1 - np.mean( np.mean(positive_item_arr) - highest_negitive_item )
 
-            returnList = [overall_rl, each_rl, each_rl-overall_rl, rankingLoss4(item)*overall_rl]
-            return returnList[mod]
+            returnList = ["overall_rl", "each_rl", "each_rl-overall_rl", "rankingLoss4(item)*overall_rl", # 0 1 2 3
+                          "1-lowest_positive_item", "lowest_positive_item-highest_negitive_item",       # 4 5
+                          "np.mean(lowest_positive_item-highest_negitive_item)",                        # 6
+                          ]
+            return eval(returnList[mod])
 
 
 
@@ -1806,7 +1814,15 @@ class Acquisition(object):
                 elif sub_method == "RKL8.3":
                     # 233
                     self.get_RKL(data, model_path, acquire_num, rklNo=8, rklMod=3, model_name=model_name, thisround=round)
-
+                elif sub_method == "RKL8.4":
+                    # 233
+                    self.get_RKL(data, model_path, acquire_num, rklNo=8, rklMod=4, model_name=model_name, thisround=round)
+                elif sub_method == "RKL8.5":
+                    # 233
+                    self.get_RKL(data, model_path, acquire_num, rklNo=8, rklMod=5, model_name=model_name, thisround=round)
+                elif sub_method == "RKL8.6":
+                    # 233
+                    self.get_RKL(data, model_path, acquire_num, rklNo=8, rklMod=6, model_name=model_name, thisround=round)
 
                 elif sub_method == "DRL":
                     # 考虑 点密度 的 RKL, 看做一种排除异常值的方法？
