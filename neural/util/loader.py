@@ -728,7 +728,14 @@ class Loader(object):
             pickle.dump(r, f)
         return r
 
-
+    def load_aapd_section(self, datapath, sents_max_len=300, vocab_size=50000, mode="A"):
+        # 读取已缓存数据
+        pkl_name = 'aapdLoaded_{}.pkl'.format(mode)
+        if os.path.exists(os.path.join(datapath, pkl_name)):
+            with open(os.path.join(datapath, 'aapdLoaded.pkl'), 'rb') as f:
+                return pickle.load(f)
+        else:
+            assert "No such dataset !"==True
 
     def load_yahoo(self, datapath, pretrained, word_dim = 100, answer_count = 5):
 

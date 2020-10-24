@@ -169,89 +169,60 @@ def main(args):
             # "sample_method": "Deterministic+KIM_VRS+0",
 
             "model_name": "CNN",
-            "group_name": "[mlabs]aapd+F1",
+            "group_name": "[mlabs]aapd+dataDistribution",
             "max_performance": 0.90,
-            "data_path": "../../datasets/aapd/",
+            "data_path": "../../datasets/aapd/A",
             "acquire_method": "no-dete",
-            "sub_acquire_method": "RKL8.4",
+            "sub_acquire_method": "VRS",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 25,
-            "init_question_num": 1200,
-            "acquire_question_num_per_round": 1200,
-            "warm_start_random_seed": 16,
-            "sample_method": "No-Deterministic+kim_RKL8.4+16",
-        }, {
-            "model_name": "CNN",
-            "group_name": "[mlabs]aapd+F1",
-            "max_performance": 0.90,
-            "data_path": "../../datasets/aapd/",
-            "acquire_method": "no-dete",
-            "sub_acquire_method": "RKL8.5",
-            "unsupervised_method": 'submodular',
-            "submodular_k": 2,
-            "num_acquisitions_round": 25,
-            "init_question_num": 1200,
-            "acquire_question_num_per_round": 1200,
-            "warm_start_random_seed": 16,
-            "sample_method": "No-Deterministic+kim_RKL8.5+16",
-        }, {
-            "model_name": "CNN",
-            "group_name": "[mlabs]aapd+F1",
-            "max_performance": 0.90,
-            "data_path": "../../datasets/aapd/",
-            "acquire_method": "no-dete",
-            "sub_acquire_method": "RKL8.6",
-            "unsupervised_method": 'submodular',
-            "submodular_k": 2,
-            "num_acquisitions_round": 25,
-            "init_question_num": 1200,
-            "acquire_question_num_per_round": 1200,
-            "warm_start_random_seed": 16,
-            "sample_method": "No-Deterministic+kim_RKL8.6+16",
-        },{
-            "model_name": "CNN",
-            "group_name": "[mlabs]aapd+F1",
-            "max_performance": 0.90,
-            "data_path": "../../datasets/aapd/",
-            "acquire_method": "no-dete",
-            "sub_acquire_method": "RKL8.4",
-            "unsupervised_method": 'submodular',
-            "submodular_k": 2,
-            "num_acquisitions_round": 25,
-            "init_question_num": 1200,
-            "acquire_question_num_per_round": 1200,
+            "init_question_num": 400,
+            "acquire_question_num_per_round": 400,
             "warm_start_random_seed": 0,
-            "sample_method": "No-Deterministic+kim_RKL8.4+0",
+            "sample_method": "No-Deterministic+kim_VRS_A+0",
         }, {
             "model_name": "CNN",
-            "group_name": "[mlabs]aapd+F1",
+            "group_name": "[mlabs]aapd+dataDistribution",
             "max_performance": 0.90,
-            "data_path": "../../datasets/aapd/",
+            "data_path": "../../datasets/aapd/B",
             "acquire_method": "no-dete",
-            "sub_acquire_method": "RKL8.5",
+            "sub_acquire_method": "VRS",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 25,
-            "init_question_num": 1200,
-            "acquire_question_num_per_round": 1200,
+            "init_question_num": 400,
+            "acquire_question_num_per_round": 400,
             "warm_start_random_seed": 0,
-            "sample_method": "No-Deterministic+kim_RKL8.5+0",
+            "sample_method": "No-Deterministic+kim_VRS_B+0",
         }, {
             "model_name": "CNN",
-            "group_name": "[mlabs]aapd+F1",
+            "group_name": "[mlabs]aapd+dataDistribution",
             "max_performance": 0.90,
-            "data_path": "../../datasets/aapd/",
+            "data_path": "../../datasets/aapd/C",
             "acquire_method": "no-dete",
-            "sub_acquire_method": "RKL8.6",
+            "sub_acquire_method": "VRS",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 25,
-            "init_question_num": 1200,
-            "acquire_question_num_per_round": 1200,
+            "init_question_num": 400,
+            "acquire_question_num_per_round": 400,
             "warm_start_random_seed": 0,
-            "sample_method": "No-Deterministic+kim_RKL8.6+0",
-
+            "sample_method": "No-Deterministic+kim_VRS_C+0",
+        }, {
+            "model_name": "CNN",
+            "group_name": "[mlabs]aapd+dataDistribution",
+            "max_performance": 0.90,
+            "data_path": "../../datasets/aapd/D",
+            "acquire_method": "no-dete",
+            "sub_acquire_method": "VRS",
+            "unsupervised_method": 'submodular',
+            "submodular_k": 2,
+            "num_acquisitions_round": 25,
+            "init_question_num": 400,
+            "acquire_question_num_per_round": 400,
+            "warm_start_random_seed": 0,
+            "sample_method": "No-Deterministic+kim_VRS_D+0",
         }
 
 
@@ -328,12 +299,23 @@ def main(args):
             train_data = train_data[:30000]
             val_data = val_data[:]
         elif "aapd" in data_path:
-            data = loader.load_aapd(data_path)
-            args.target_size = 54
-            train_data = data['train_points']
-            val_data = data['test_points']
-            train_data = train_data[:30000]
-            val_data = val_data[:3000]
+            if data_path[-1] != "/":
+                #"../../datasets/aapd/A"
+                data = loader.load_aapd_section(data_path[:-1],mode=data_path[-1])
+                args.target_size = 25
+                train_data = data['train_points']
+                val_data = data['test_points']
+                train_data = train_data[:10000] if len(train_data)>10000 else train_data.extend(val_data)
+                # 针对 B , 有train-6706	 val-5457, 故有else中的操作
+                val_data = val_data[-2000:]
+            else:
+                # "../../datasets/aapd/"
+                data = loader.load_aapd(data_path)
+                args.target_size = 54
+                train_data = data['train_points']
+                val_data = data['test_points']
+                train_data = train_data[:30000]
+                val_data = val_data[:3000]
 
 
 
