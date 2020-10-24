@@ -64,7 +64,7 @@ class Acquisition(object):
         train_Y = np.squeeze(np.stack(temp))
         # print(train_Y.shape)
         each_label_count = np.sum(train_Y, axis=0)
-        print(self.label_count.shape, each_label_count.shape)
+        # print(self.label_count.shape, each_label_count.shape)
         self.label_count = self.label_count + each_label_count
         # print(self.label_count)
         # print(self.label_count.shape)

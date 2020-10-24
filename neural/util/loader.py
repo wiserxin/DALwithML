@@ -732,7 +732,7 @@ class Loader(object):
         # 读取已缓存数据
         pkl_name = 'aapdLoaded_{}.pkl'.format(mode)
         if os.path.exists(os.path.join(datapath, pkl_name)):
-            with open(os.path.join(datapath, 'aapdLoaded.pkl'), 'rb') as f:
+            with open(os.path.join(datapath, pkl_name), 'rb') as f:
                 return pickle.load(f)
         else:
             assert "No such dataset !"==True
