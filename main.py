@@ -171,20 +171,6 @@ def main(args):
             "model_name": "CNN",
             "group_name": "[mlabs]aapd+dataDistribution",
             "max_performance": 0.90,
-            "data_path": "../../datasets/aapd/A",
-            "acquire_method": "no-dete",
-            "sub_acquire_method": "VRS",
-            "unsupervised_method": 'submodular',
-            "submodular_k": 2,
-            "num_acquisitions_round": 25,
-            "init_question_num": 400,
-            "acquire_question_num_per_round": 400,
-            "warm_start_random_seed": 0,
-            "sample_method": "No-Deterministic+kim_VRS_A+0",
-        }, {
-            "model_name": "CNN",
-            "group_name": "[mlabs]aapd+dataDistribution",
-            "max_performance": 0.90,
             "data_path": "../../datasets/aapd/B",
             "acquire_method": "no-dete",
             "sub_acquire_method": "VRS",
@@ -305,7 +291,7 @@ def main(args):
                 args.target_size = 25
                 train_data = data['train_points']
                 val_data = data['test_points']
-                train_data = train_data[:10000] if len(train_data)>10000 else train_data.extend(val_data)
+                train_data = train_data[:10000] if len(train_data)>10000 else (train_data+val_data)[:10000]
                 # 针对 B , 有train-6706	 val-5457, 故有else中的操作
                 val_data = val_data[-2000:]
             else:
