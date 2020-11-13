@@ -750,8 +750,12 @@ class Acquisition(object):
 
             return each_ratios - overall_ratios
 
-        def label_instance_wise(item):
+        def label_instance_wise(item,mode=0):
             #  liw : label-instance-wise
+            #  0 : lab * ins
+            #  1 : label + ins
+            #  2 : ins
+            #  3 : label
 
             # 方案 1 ：
             # label wise 仅考虑一个样本的不同forward pass， 此时对于 *pos* label，给出label-wise的计算值 。
@@ -808,7 +812,14 @@ class Acquisition(object):
 
             # print(instance_wise_pos_value)
 
-            value = 1-label_wise_value * instance_wise_pos_value
+            if mode == 0:
+                value = 1-label_wise_value * instance_wise_pos_value
+            elif mode == 1:
+                value = 2-label_wise_value - instance_wise_pos_value
+            elif mode == 3:
+                value = 1-instance_wise_pos_value
+            elif mode == 4:
+                value = 1-label_wise_value
             return value
 
 
@@ -1855,7 +1866,13 @@ class Acquisition(object):
                 elif sub_method == "VRL":
                     self.get_RKL(data, model_path, acquire_num, rklNo='vrl', model_name=model_name, thisround=round)
                 elif sub_method == "LIW":
-                    self.get_RKL(data, model_path, acquire_num, rklNo='liw', model_name=model_name, thisround=round)
+                    self.get_RKL(data, model_path, acquire_num, rklNo='liw', model_name=model_name, thisround=round, rklMod=0)
+                elif sub_method == "LIW1":
+                    self.get_RKL(data, model_path, acquire_num, rklNo='liw', model_name=model_name, thisround=round, rklMod=1)
+                elif sub_method == "LIW2":
+                    self.get_RKL(data, model_path, acquire_num, rklNo='liw', model_name=model_name, thisround=round, rklMod=2)
+                elif sub_method == "LIW3":
+                    self.get_RKL(data, model_path, acquire_num, rklNo='liw', model_name=model_name, thisround=round, rklMod=3)
                 elif sub_method == "RKL":
                     # # # 普通RKL
                     self.get_RKL(data, model_path, acquire_num, model_name=model_name,thisround=round)
