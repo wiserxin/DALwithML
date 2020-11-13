@@ -750,6 +750,66 @@ class Acquisition(object):
 
             return each_ratios - overall_ratios
 
+        def label_instance_wise(item):
+            #  liw : label-instance-wise
+
+            # 方案 1 ：
+            # label wise 仅考虑一个样本的不同forward pass， 此时对于 *pos* label，给出label-wise的计算值 。
+            # (因为之前的vrs实验中仅使用pos的效果就足够了)
+            # 而instance-wise的值由均值（overAllGroundTruth给出）
+
+            baseline = 0.5
+            item_arr = np.array(item)
+
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            # print(overAllGroundTruth)
+            positive_num = np.sum(overAllGroundTruth > baseline)
+            # print(overAllGroundTruth.size)
+            # print(overAllGroundTruth.shape)
+            if positive_num == 0:
+                positive_num = 1
+            elif positive_num == overAllGroundTruth.size:
+                positive_num = overAllGroundTruth.size - 1
+            # print(overAllGroundTruth)
+
+            overAllGroundTruth_argsort = np.argsort(overAllGroundTruth)  # 按值由小到大 给出 index
+            # print(overAllGroundTruth_argsort)
+
+            label_wise_value = overAllGroundTruth[overAllGroundTruth_argsort[-positive_num]] - \
+                               overAllGroundTruth[overAllGroundTruth_argsort[-positive_num - 1]]
+
+            pos_args = overAllGroundTruth_argsort[-positive_num:]
+            # neg_args = overAllGroundTruth_argsort[:-positive_num]
+
+            # print("-"*30)
+            # -------------------------------------------------------------------- #
+            # 把一个instance的几个dropout视为不同的instance，并以此为矩阵计算
+            # 共有j个label（item的列数），则应计算j个value，我们选用其中 pos_num个
+            # instance－wise value
+            # forward-wise value
+            temp = item_arr.transpose()[pos_args, :]
+            item_arr_TF = temp > baseline
+            # print(item_arr_TF)
+
+            item_arr_T = temp * item_arr_TF
+            # print(item_arr_T)
+            item_arr_T += (item_arr_T == 0)  # change all neg into 1 to get the min pos value
+            # print(item_arr_T)
+
+            item_arr_F = temp * (item_arr_TF == 0)
+            # print(item_arr_F)
+            # change all pos into 0 to get the max neg value
+
+            # note that ,
+            # if one column has no pos, means that it is very confident to be neg
+            # so we let min pos be 1 , to get a higher value of min_pos-max_neg, and less possible to be chosen
+            instance_wise_pos_value = np.min(item_arr_T, axis=1) - np.max(item_arr_F, axis=1)
+            instance_wise_pos_value = np.mean(instance_wise_pos_value)
+
+            # print(instance_wise_pos_value)
+
+            value = 1-label_wise_value * instance_wise_pos_value
+            return value
 
 
         # 选取 rkl 策略
@@ -770,6 +830,7 @@ class Acquisition(object):
                   'bald': BALD,
                   'vrs' : varRatios,
                   'vrl' : varRatiosLoss,
+                  'liw' : label_instance_wise,
                   }
         rkl = rklDic[rklNo]
         print("RKL",rklNo,end="\t")
@@ -1793,6 +1854,8 @@ class Acquisition(object):
                     self.get_RKL(data, model_path, acquire_num, rklNo='vrs', model_name=model_name, thisround=round)
                 elif sub_method == "VRL":
                     self.get_RKL(data, model_path, acquire_num, rklNo='vrl', model_name=model_name, thisround=round)
+                elif sub_method == "LIW":
+                    self.get_RKL(data, model_path, acquire_num, rklNo='liw', model_name=model_name, thisround=round)
                 elif sub_method == "RKL":
                     # # # 普通RKL
                     self.get_RKL(data, model_path, acquire_num, model_name=model_name,thisround=round)
