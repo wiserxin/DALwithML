@@ -812,13 +812,13 @@ class Acquisition(object):
 
             # print(instance_wise_pos_value)
 
-            if mode == 0:
+            if mod == 0:
                 value = 1-label_wise_value * instance_wise_pos_value
-            elif mode == 1:
+            elif mod == 1:
                 value = 2-label_wise_value - instance_wise_pos_value
-            elif mode == 3:
+            elif mod == 3:
                 value = 1-instance_wise_pos_value
-            elif mode == 4:
+            elif mod == 4:
                 value = 1-label_wise_value
             return value
 
