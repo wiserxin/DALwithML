@@ -816,9 +816,9 @@ class Acquisition(object):
                 value = 1-label_wise_value * instance_wise_pos_value
             elif mod == 1:
                 value = 2-label_wise_value - instance_wise_pos_value
-            elif mod == 3:
+            elif mod == 2:
                 value = 1-instance_wise_pos_value
-            elif mod == 4:
+            elif mod == 3:
                 value = 1-label_wise_value
             return value
 

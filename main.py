@@ -168,21 +168,7 @@ def main(args):
             # "warm_start_random_seed": 0,
             # "sample_method": "Deterministic+KIM_VRS+0",
 
-            "model_name": "CNN",
-            "group_name": "[mlabs]aapd+F1",
-            "max_performance": 0.90,
-            "data_path": "../../datasets/aapd/",
-            "acquire_method": "no-dete",
-            "sub_acquire_method": "LIW1",
-            "unsupervised_method": 'submodular',
-            "submodular_k": 2,
-            "num_acquisitions_round": 25,
-            "init_question_num": 1200,
-            "acquire_question_num_per_round": 1200,
-            "warm_start_random_seed": 0,
-            "sample_method": "No-Deterministic+kim_LIW1+0",
 
-        }, {
 
             "model_name": "CNN",
             "group_name": "[mlabs]aapd+F1",
