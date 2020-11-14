@@ -750,7 +750,7 @@ class Acquisition(object):
 
             return each_ratios - overall_ratios
 
-        def label_instance_wise(item,mode=0):
+        def label_instance_wise(item,mod=0):
             #  liw : label-instance-wise
             #  0 : lab * ins
             #  1 : label + ins
