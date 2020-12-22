@@ -822,6 +822,90 @@ class Acquisition(object):
                 value = 1-label_wise_value
             return value
 
+        def variance_analysis(item):
+            '''
+            func:   方差分解分析
+            return:
+                s1: 认为是多次试验的随机误差，即dropout引起的离差平方和
+                    实验中体现为模型的鲁棒性？
+                s2: 认为是描述因素各个水平效应的影响，实验中体现为
+                    pos label 间的差异程度、neg label 间的差异程度
+            notes:  这种方法应当设计用在单标签分类问题 即
+                    同一个label,不同样本,不同dropout，这样的可解释性更强
+                    我在使用中，把label 和样本 对调，由此的可解释性差了一些，
+                    而且label数量远小于样本数量，可能导致置信度更差
+            '''
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+
+            s1_arr = np.var(item_arr, axis=0)  # S_e / n
+            s2_arr = np.var(overAllGroundTruth)
+            # s3_arr = np.var(item_arr,axis=1) # 统计书上没有特殊的解释，直观上是一个样本内部多个标签之间的差异程度。
+            # 其长度为dropout次数
+
+            # S_e / n / m
+            # 认为是多次试验的随机误差，即dropout引起的离差平方和
+            s1 = np.mean(s1_arr)
+
+            # S_A / n / m
+            # 认为是描述因素各个水平效应的影响，即同类label间的差异程度
+            s2 = s2_arr  # S_A / n / m
+
+            s = np.var(item_arr)
+            # print(s1_arr)
+            # print(s1)
+            # print(s2_arr)
+            # print(s2)
+            # print(s,"=",s1,"+",s2)
+            return s1, s2
+
+        def meanVarLoss(item, mod=(0.4,0.3,0.3)):
+            '''
+            input:
+                mod : (w_m, w_s1, w_s2)
+                w_m : 均值权重
+                w_s1: s1权重
+                w_s2: s2权重
+            return:
+                w_m*( (1-(pm-nm))**2 ) + w_s1*( ps1 + ns1 ) + w_s2*(ps2+ns2)
+                (1-(pm-nm))**2 : 为了使得方差和均值处在一个数量级，对均值取了平方
+                ps1 + ns1      : dropout引起的离差平方和
+                ps2+ns2        : label 间的差异程度
+
+            '''
+
+            # 方差越大，该样本模型预测的越不确定
+            # 均值差越小，该样本模型预测的越不确定
+
+            # 使用方差分解的话，在el中的这种 求each 处理方式应该是无法解释的。
+            # 感觉可以尝试但基本无法拿来写文章
+            # 把 item_array 按照各自内部的顺序分成 pos 和 neg 两个 arr
+            # item_arr = np.array(item)
+            # sorted_item_arr = np.sort(item_arr)
+            # positive_item_arr = sorted_item_arr[:,-positive_num:]
+            # negitive_item_arr = sorted_item_arr[:,:-positive_num]
+
+            # 把 item_array 按照overAllGroundTruth分成 pos 和 neg 两个 arr
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            positive_num = np.sum(overAllGroundTruth > 0.5)
+
+            positive_num = 1 if positive_num == 0 else positive_num
+            positive_num = overAllGroundTruth.size - 1 if positive_num == overAllGroundTruth.size else positive_num
+
+            sorted_item_arr = item_arr[:, overAllGroundTruth.argsort()]
+            positive_item_arr = sorted_item_arr[:, -positive_num:]
+            negitive_item_arr = sorted_item_arr[:, :-positive_num]
+
+            pm = np.mean(positive_item_arr)
+            nm = np.mean(negitive_item_arr)
+
+            ps1, ps2 = variance_analysis(positive_item_arr)
+            ns1, ns2 = variance_analysis(negitive_item_arr)
+
+            w_m, w_s1, w_s2 = mod
+            # 为了使得方差和均值处在一个数量级，对均值取了平方
+            return w_m * ((1 - (pm - nm)) ** 2) + w_s1 * (ps1 + ns1) + w_s2 * (ps2 + ns2)
 
         # 选取 rkl 策略
         rklDic = {2:rankingLoss2,
@@ -842,6 +926,7 @@ class Acquisition(object):
                   'vrs' : varRatios,
                   'vrl' : varRatiosLoss,
                   'liw' : label_instance_wise,
+                  'mvl' : meanVarLoss,
                   }
         rkl = rklDic[rklNo]
         print("RKL",rklNo,end="\t")
@@ -1873,6 +1958,8 @@ class Acquisition(object):
                     self.get_RKL(data, model_path, acquire_num, rklNo='liw', model_name=model_name, thisround=round, rklMod=2)
                 elif sub_method == "LIW3":
                     self.get_RKL(data, model_path, acquire_num, rklNo='liw', model_name=model_name, thisround=round, rklMod=3)
+                elif sub_method == "MVL":
+                    self.get_RKL(data, model_path, acquire_num, rklNo='mvl', model_name=model_name, thisround=round)
                 elif sub_method == "RKL":
                     # # # 普通RKL
                     self.get_RKL(data, model_path, acquire_num, model_name=model_name,thisround=round)
