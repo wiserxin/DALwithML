@@ -106,15 +106,36 @@ class VisionResult():
         count = 0
         while (count < self.round):
             try:
-                self.performance.append(float(fileContent[count + 1].split('\t')[1]))
+                self.performance.append( eval( fileContent[count + 1].split('\t')[1] ) )
                 count += 1
             except:
+                print("Exception! check what's wrong ...")
                 break
         print("{}:{} - Round{}:{}".format(self.group_name, self.sample_method, len(self.performance), self.round))
 
     def send(self,max_performance=0.90):
+        '''
+        used for one performance
+        shape of self.performance is 1 * round
+
+        :param max_performance:
+        :return:
+        '''
         for i in self.performance:
             updateLineChart(str(i), self.sample_method, gp_name=self.group_name, max=max_performance)
+
+    def send_multi(self,max_performance=0.90):
+        '''
+        used for multi performance
+        shape of self.performance is 3 * round
+
+        :param max_performance:
+        :return:
+        '''
+        for i in self.performance:
+            updateLineChart(str(i[0]), self.sample_method, gp_name=self.group_name + "micro", max=max_performance)
+            updateLineChart(str(i[1]), self.sample_method, gp_name=self.group_name + "macro", max=max_performance)
+            # updateLineChart(str(i[2]), self.sample_method, gp_name=self.group_name + "sample", max=max_performance)
 
 
 if __name__ == '__main__':
