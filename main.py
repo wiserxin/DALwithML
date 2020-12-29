@@ -175,14 +175,14 @@ def main(args):
             "max_performance": 0.90,
             "data_path": "../../datasets/aapd/",
             "acquire_method": "no-dete",
-            "sub_acquire_method": "VL",
+            "sub_acquire_method": "MVL1",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 25,
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 0,
-            "sample_method": "No-Deterministic+kim_VL+0",
+            "sample_method": "No-Deterministic+kim_MVL1+0",
 
         }, {
             "model_name": "CNN",
@@ -190,28 +190,28 @@ def main(args):
             "max_performance": 0.90,
             "data_path": "../../datasets/aapd/",
             "acquire_method": "no-dete",
-            "sub_acquire_method": "VL",
+            "sub_acquire_method": "MVL1",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 25,
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 16,
-            "sample_method": "No-Deterministic+kim_VL+16",
+            "sample_method": "No-Deterministic+kim_MVL1+16",
         },{
             "model_name": "CNN",
             "group_name": "[mlabs]aapd+F1",
             "max_performance": 0.90,
             "data_path": "../../datasets/aapd/",
             "acquire_method": "no-dete",
-            "sub_acquire_method": "VL",
+            "sub_acquire_method": "MVL1",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 25,
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 32,
-            "sample_method": "No-Deterministic+kim_VL+32",
+            "sample_method": "No-Deterministic+kim_MVL1+32",
 
         }, {
 
@@ -220,14 +220,14 @@ def main(args):
             "max_performance": 0.90,
             "data_path": "../../datasets/aapd/",
             "acquire_method": "no-dete",
-            "sub_acquire_method": "VL",
+            "sub_acquire_method": "MVL1",
             "unsupervised_method": 'submodular',
             "submodular_k": 2,
             "num_acquisitions_round": 25,
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 64,
-            "sample_method": "No-Deterministic+kim_VL+64",
+            "sample_method": "No-Deterministic+kim_MVL1+64",
 
         }
 
@@ -346,8 +346,8 @@ def main(args):
         if not os.path.exists(checkpoint_path):
             os.makedirs(checkpoint_path)
 
-        with open(visual_data_path, 'a') as f:
-            print(config["group_name"],sample_method,num_acquisitions_round,sep='\t',file=f)
+        # with open(visual_data_path, 'a') as f:
+        #     print(config["group_name"],sample_method,num_acquisitions_round,sep='\t',file=f)
 
         method_result = []  # Record the performance results of each method during active learning
         ####################################### acquire data and retrain ###########################################
@@ -449,23 +449,23 @@ def main(args):
 
             method_result.append(test_performance)
 
-            if not os.path.exists(visual_data_path): # 被zip.sh删掉了,需要重新创建，并写头信息
-                with open(visual_data_path, 'a') as f:
-                    print(config["group_name"], sample_method, num_acquisitions_round, sep='\t', file=f)
-            with open(visual_data_path, 'a') as f:
-                print("acq round {} : \t {}"
-                      .format(i,test_performance),
-                      file=f)
+            # if not os.path.exists(visual_data_path): # 被zip.sh删掉了,需要重新创建，并写头信息
+            #     with open(visual_data_path, 'a') as f:
+            #         print(config["group_name"], sample_method, num_acquisitions_round, sep='\t', file=f)
+            # with open(visual_data_path, 'a') as f:
+            #     print("acq round {} : \t {}"
+            #           .format(i,test_performance),
+            #           file=f)
 
         print("acquire_method: {}，sub_acquire_method: {}, warm_start_random_seed{}"
               .format(acquire_method, sub_acquire_method, warm_start_random_seed))
         print(method_result)
-        with open(visual_data_path,'a') as f:
-            print("acquire_method: {},sub_acquire_method: {}, warm_start_random_seed{}"
-                  .format(acquire_method, sub_acquire_method, warm_start_random_seed),
-                  file=f )
-            print(method_result, file=f )
-            print('', file=f)
+        # with open(visual_data_path,'a') as f:
+        #     print("acquire_method: {},sub_acquire_method: {}, warm_start_random_seed{}"
+        #           .format(acquire_method, sub_acquire_method, warm_start_random_seed),
+        #           file=f )
+        #     print(method_result, file=f )
+        #     print('', file=f)
 
         allMethods_results.append(method_result)
         shutil.rmtree(checkpoint_path)
