@@ -141,4 +141,5 @@ class VisionResult():
 if __name__ == '__main__':
     for txt in walkFile(r'../result/'):
         perf = VisionResult(txt)
-        perf.send(max_performance=0.90)
+        # perf.send(max_performance=0.90)
+        perf.send_multi(max_performance=0.90)
