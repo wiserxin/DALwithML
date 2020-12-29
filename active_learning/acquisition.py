@@ -1964,6 +1964,10 @@ class Acquisition(object):
                     delt = 0.02*round
                     delt = 0.3 if delt > 0.3 else delt
                     self.get_RKL(data, model_path, acquire_num, rklNo='mvl', model_name=model_name, thisround=round, rklMod=(0.4+2*delt,0.3-delt,0.3-delt))
+                elif sub_method == "MVL2":
+                    delt = 0.02*round
+                    delt = 0.3 if delt > 0.3 else delt
+                    self.get_RKL(data, model_path, acquire_num, rklNo='mvl', model_name=model_name, thisround=round, rklMod=(0.4,0.3+delt,0.3-delt))
                 elif sub_method == "VL":
                     self.get_RKL(data, model_path, acquire_num, rklNo='mvl', model_name=model_name, thisround=round, rklMod=(0.0,0.5,0.5))
                 elif sub_method == "RKL":
