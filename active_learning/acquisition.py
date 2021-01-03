@@ -903,9 +903,17 @@ class Acquisition(object):
             ps1, ps2 = variance_analysis(positive_item_arr)
             ns1, ns2 = variance_analysis(negitive_item_arr)
 
-            w_m, w_s1, w_s2 = mod
-            # 为了使得方差和均值处在一个数量级，对均值取了平方
-            return w_m * ((1 - (pm - nm)) ** 2) + w_s1 * (ps1 + ns1) + w_s2 * (ps2 + ns2)
+            if len(mod) == 3:
+                w_m, w_s1, w_s2 = mod
+                # 为了使得方差和均值处在一个数量级，对均值取了平方
+                return w_m * ((1 - (pm - nm)) ** 2) + w_s1 * (ps1 + ns1) + w_s2 * (ps2 + ns2)
+            elif len(mod) == 6:
+                # an example is (0.4,0, 0.3,0, 0.3,0)
+                # each in len==3 splitted into 2 parts: pos and neg
+                w_m_p, w_m_n, w_s1_p, w_s1_n, w_s2_p, w_s2_n = mod
+                return w_m_p*((1-pm)**2) + w_m_n*((nm-0)**2) + w_s1_p*ps1 + w_s1_n*ns1 + w_s2_p*ps2 + w_s2_n+ns2
+            else:
+                assert not "defined!"
 
         # 选取 rkl 策略
         rklDic = {2:rankingLoss2,
@@ -1958,6 +1966,8 @@ class Acquisition(object):
                     self.get_RKL(data, model_path, acquire_num, rklNo='liw', model_name=model_name, thisround=round, rklMod=2)
                 elif sub_method == "LIW3":
                     self.get_RKL(data, model_path, acquire_num, rklNo='liw', model_name=model_name, thisround=round, rklMod=3)
+                elif sub_method == "VL":
+                    self.get_RKL(data, model_path, acquire_num, rklNo='mvl', model_name=model_name, thisround=round, rklMod=(0.0,0.5,0.5))
                 elif sub_method == "MVL":
                     self.get_RKL(data, model_path, acquire_num, rklNo='mvl', model_name=model_name, thisround=round)
                 elif sub_method == "MVL1":
@@ -1968,8 +1978,10 @@ class Acquisition(object):
                     delt = 0.02*round
                     delt = 0.3 if delt > 0.3 else delt
                     self.get_RKL(data, model_path, acquire_num, rklNo='mvl', model_name=model_name, thisround=round, rklMod=(0.4,0.3+delt,0.3-delt))
-                elif sub_method == "VL":
-                    self.get_RKL(data, model_path, acquire_num, rklNo='mvl', model_name=model_name, thisround=round, rklMod=(0.0,0.5,0.5))
+                elif sub_method == "MVL3":
+                    self.get_RKL(data, model_path, acquire_num, rklNo='mvl', model_name=model_name, thisround=round, rklMod=(0.4,0, 0.3,0, 0.3,0 ))
+
+
                 elif sub_method == "RKL":
                     # # # 普通RKL
                     self.get_RKL(data, model_path, acquire_num, model_name=model_name,thisround=round)
