@@ -53,3 +53,14 @@ VL仅考察方差，rkl仅考察均值。
     delt = 0.3 if delt > 0.3 else delt
     weight = (0.4,0.3+delt,0.3-delt)
 ```
+
+#### MVL3 
+使用权重(0.4,0, 0.3,0, 0.3,0 )  
+仅考察pos的信息,观察效果  
+1-pos_m + pos_s1 + pos_s2  
+与MVL4相比去掉了neg_mean的考察  
+
+#### MVL4 
+使用权重(0.4, 0.3,0, 0.3,0 )  
+与MVL相比去掉了neg_s1,neg_s2的考察
+

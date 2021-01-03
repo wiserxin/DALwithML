@@ -907,11 +907,14 @@ class Acquisition(object):
                 w_m, w_s1, w_s2 = mod
                 # 为了使得方差和均值处在一个数量级，对均值取了平方
                 return w_m * ((1 - (pm - nm)) ** 2) + w_s1 * (ps1 + ns1) + w_s2 * (ps2 + ns2)
+            elif len(mod) == 5:
+                w_m, w_s1_p, w_s1_n, w_s2_p, w_s2_n = mod
+                return w_m*((1-(pm-nm))**2) + w_s1_p*ps1 + w_s1_n*ns1 + w_s2_p*ps2 + w_s2_n*ns2
             elif len(mod) == 6:
                 # an example is (0.4,0, 0.3,0, 0.3,0)
                 # each in len==3 splitted into 2 parts: pos and neg
                 w_m_p, w_m_n, w_s1_p, w_s1_n, w_s2_p, w_s2_n = mod
-                return w_m_p*((1-pm)**2) + w_m_n*((nm-0)**2) + w_s1_p*ps1 + w_s1_n*ns1 + w_s2_p*ps2 + w_s2_n+ns2
+                return w_m_p*((1-pm)**2) + w_m_n*((nm-0)**2) + w_s1_p*ps1 + w_s1_n*ns1 + w_s2_p*ps2 + w_s2_n*ns2
             else:
                 assert not "defined!"
 
@@ -1980,6 +1983,9 @@ class Acquisition(object):
                     self.get_RKL(data, model_path, acquire_num, rklNo='mvl', model_name=model_name, thisround=round, rklMod=(0.4,0.3+delt,0.3-delt))
                 elif sub_method == "MVL3":
                     self.get_RKL(data, model_path, acquire_num, rklNo='mvl', model_name=model_name, thisround=round, rklMod=(0.4,0, 0.3,0, 0.3,0 ))
+                elif sub_method == "MVL3":
+                    self.get_RKL(data, model_path, acquire_num, rklNo='mvl', model_name=model_name, thisround=round, rklMod=(0.4, 0.3, 0, 0.3, 0))
+
 
 
                 elif sub_method == "RKL":
