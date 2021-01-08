@@ -737,6 +737,82 @@ class Loader(object):
         else:
             assert "No such dataset !"==True
 
+
+    def load_agnews(self, datapath, sents_max_len=200, vocab_size=50000):
+
+        # 读取已缓存数据
+        if os.path.exists(os.path.join(datapath, 'agnewsLoaded.pkl')):
+            with open(os.path.join(datapath, 'agnewsLoaded.pkl'), 'rb') as f:
+                return pickle.load(f)
+
+        # [{'text':"...", 'catgy':['cat1','cat2',...] },]
+        file_names = ['train.csv','test.csv']
+        path = os.path.join(datapath, file_names[0])
+        assert os.path.exists(path)
+        with open(path) as f1:
+            train = f1.readlines()
+
+        path = os.path.join(datapath, file_names[1])
+        assert os.path.exists(path)
+        with open(path) as f1:
+            test = f1.readlines()
+
+
+
+        data = []
+        label2id = {"1":[0,0], "2":[1,0], "3":[2,0], "4":[3,0]}   # {name: [id,count]}
+        for line in train:
+            temp = line[1:-2]
+            temp = temp.split("\",\"")
+
+            label2id[temp[0]][1] += 1
+            tag = label2id[temp[0]][0]
+
+            text = temp[1] + " " + temp[2]
+            text = clean_str(text)
+            data.append({'text': text, 'catgy': [tag]} )
+        # train = data[:30000] #Counter({'1': 7804, '4': 7790, '2': 7360, '3': 7046})
+        train = data
+
+        data = []
+        label2id = {"1":[0,0], "2":[1,0], "3":[2,0], "4":[3,0]}   # {name: [id,count]}
+        for line in test:
+            temp = line[1:-2]
+            temp = temp.split("\",\"")
+
+            label2id[temp[0]][1] += 1
+            tag = label2id[temp[0]][0]
+
+            text = temp[1] + " " + temp[2]
+            text = clean_str(text)
+            data.append({'text': text, 'catgy': [tag]} )
+        # test = data[:3000] # Counter({'4': 776, '2': 775, '1': 747, '3': 702})
+        test = data
+
+
+        trn_sents, Y_trn, Y_trn_o = load_data_and_labels(train, label2id)
+        tst_sents, Y_tst, Y_tst_o = load_data_and_labels(test, label2id)
+
+        trn_sents_padded = pad_sentences(trn_sents, max_length=sents_max_len)
+        tst_sents_padded = pad_sentences(tst_sents, max_length=sents_max_len)
+
+        vocabulary, vocabulary_inv, vocabulary_count = build_vocab(trn_sents_padded + tst_sents_padded,
+                                                                   vocab_size=vocab_size)
+
+        X_trn = build_input_data(trn_sents_padded, vocabulary)
+        X_tst = build_input_data(tst_sents_padded, vocabulary)
+
+        r = {'train': (X_trn, Y_trn, Y_trn_o),
+             'test': (X_tst, Y_tst, Y_tst_o),
+             'vocab': (vocabulary, vocabulary_inv, vocabulary_count),
+             'embed': load_word2vec(datapath, 'glove', vocabulary_inv, 300),
+             'train_points': [(X_trn[i], Y_trn[i], Y_trn_o[i], i) for i in range(len(Y_trn_o))],
+             'test_points': [(X_tst[i], Y_tst[i], Y_tst_o[i], i) for i in range(len(Y_tst_o))]
+             }
+        with open(os.path.join(datapath, 'agnewsLoaded.pkl'), 'wb') as f:
+            pickle.dump(r, f)
+        return r
+
     def load_yahoo(self, datapath, pretrained, word_dim = 100, answer_count = 5):
 
         trainpath = os.path.join(datapath, 'train.txt')

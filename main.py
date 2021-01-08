@@ -322,6 +322,14 @@ def main(args):
                 val_data = data['test_points']
                 train_data = train_data[:30000]
                 val_data = val_data[:3000]
+        elif "ag_news" in data_path:
+            # 单标签任务
+            data = loader.load_agnews(data_path)
+            args.target_size = 4
+            train_data = data['train_points']
+            val_data = data['test_points']
+            train_data = train_data[:30000]
+            val_data = val_data[:]
 
 
 
