@@ -308,3 +308,56 @@ class Evaluator(object):
         model.train(True)
 
         return best_result, tst_result, save
+
+    def evaluate_with_single_label_datapoints_F1(self,model, dataset, best_result = (.0, .0), model_name='CNN',):
+        if best_result == 0.0:
+            best_result = (0.0,0.0,0.0)
+
+        model.train(False)
+        batchs = create_batches(dataset,self.batch_size)
+
+        Y_true = None
+        Y_pred = None
+
+        for i,batch_data in enumerate(batchs):
+            batch_data = batch_data['data_numpy']
+            X_batch = batch_data[0]
+            Y_batch = batch_data[1]
+
+            X_batch = torch.from_numpy(X_batch).long()
+            X_batch = X_batch.cuda() if self.usecuda else X_batch
+            Y_batch = Variable(torch.from_numpy(Y_batch).int())
+
+            Y_batch_pred = model.predict(X_batch)
+            if Y_batch_pred.shape[1] >= Y_batch.shape[1]:
+                Y_batch_pred = Y_batch_pred[:, :Y_batch.shape[1]]
+
+            Y_true = Y_batch.detach().cpu().numpy() if Y_true is None else np.vstack((Y_true,Y_batch.detach().cpu() .numpy()))
+            Y_pred = Y_batch_pred.detach().cpu().numpy() if Y_pred is None else  np.vstack((Y_pred,Y_batch_pred.detach().cpu().numpy()))
+
+            # print("\rEvaluating: {}/{} ({:.1f}%)".format(i, len(batchs), i * 100 / len(batchs)), end=' ')
+
+        best_result_micro,best_result_macro,best_result_sample = best_result
+
+        # 把矩阵转换成 单标签的向量，理论上nonzero比较快
+        Y_true = Y_true.nonzero()[:,1]
+        Y_pred = Y_pred.argmax(dim=1)
+
+        tst_result_micro = f1_score(Y_true, Y_pred , average = 'micro')
+        tst_result_macro = f1_score(Y_true, Y_pred , average = 'macro')
+        tst_result_sample= f1_score(Y_true, Y_pred , average='samples')
+
+        save = ((tst_result_micro > best_result_micro) or
+                (tst_result_macro > best_result_macro) or
+                (tst_result_sample > best_result_sample))
+
+        best_result_micro = tst_result_micro if tst_result_micro > best_result_micro else best_result_micro
+        best_result_macro = tst_result_macro if tst_result_macro > best_result_macro else best_result_macro
+        best_result_sample = tst_result_sample if tst_result_sample > best_result_sample else best_result_sample
+
+        best_result = (best_result_micro,best_result_macro,best_result_sample)
+        tst_result  = (tst_result_micro,tst_result_macro,tst_result_sample)
+
+        model.train(True)
+
+        return best_result, tst_result, save

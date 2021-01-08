@@ -24,7 +24,7 @@ class Trainer(object):
         self.lossfunc = nn.CrossEntropyLoss()
         self.cuda_device = cuda_device
         self.evaluator = Evaluator(result_path, model_name,top_k=top_k,
-                                   cuda_device = self.cuda_device,ndcg_num=ndcg_num).evaluate_with_datapoints_F1
+                                   cuda_device = self.cuda_device,ndcg_num=ndcg_num).evaluate_with_single_label_datapoints_F1
 
 
     ##############################################################################
@@ -62,6 +62,7 @@ class Trainer(object):
                 X = Variable(torch.from_numpy(X).long()).cuda(self.cuda_device)
                 Y = Variable(torch.from_numpy(Y).float()).cuda(self.cuda_device)
                 Y = Y.nonzero()[:, 1] # 把矩阵形如 [[1,0,0,0],...] 转化为 向量形如 [0,...]
+                # 使用 temp.argmax(dim=1) 也可以
 
 
                 if self._model_name in ['BiLSTM']:
