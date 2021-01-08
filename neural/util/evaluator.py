@@ -339,9 +339,9 @@ class Evaluator(object):
 
         best_result_micro,best_result_macro,best_result_sample = best_result
 
-        # 把矩阵转换成 单标签的向量，理论上nonzero比较快
-        Y_true = Y_true.nonzero()[:,1]
-        Y_pred = Y_pred.argmax(dim=1)
+        # 把矩阵转换成 单标签的向量 数据类型为numpy.array
+        Y_true = Y_true.argmax(axis=1)
+        Y_pred = Y_pred.argmax(axis=1)
 
         tst_result_micro = f1_score(Y_true, Y_pred , average = 'micro')
         tst_result_macro = f1_score(Y_true, Y_pred , average = 'macro')
