@@ -21,7 +21,7 @@ class Trainer(object):
         self.model_name = os.path.join(result_path, model_name)
         self._model_name = model_name
         self.usecuda = usecuda
-        self.lossfunc = nn.MultiLabelSoftMarginLoss()
+        self.lossfunc = nn.CrossEntropyLoss()
         self.cuda_device = cuda_device
         self.evaluator = Evaluator(result_path, model_name,top_k=top_k,
                                    cuda_device = self.cuda_device,ndcg_num=ndcg_num).evaluate_with_datapoints_F1

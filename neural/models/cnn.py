@@ -130,6 +130,7 @@ class CNN(nn.Module):
         output = self.linear(x)
         return output
         # 得到的是概率值，如果要预测值，需要sigmoid后，经过阈值筛选得到 (0,1)值
+        # 单标签需要使用softmax
 
     def predict(self, x, usecuda=True):
         x = self.embedding(x).unsqueeze(1)
@@ -139,7 +140,7 @@ class CNN(nn.Module):
         x = torch.cat((x1, x2, x3), 1)
         x = self.dropout(x)
         output = self.linear(x)
-        output = torch.sigmoid(output) > 0.5
+        output = F.softmax(output,dim=1)
         return output
 
     def features(self,x,usecuda=True):
@@ -244,7 +245,7 @@ class CNN_XML(nn.Module):
         x = self.dropout(x)
         hidden = self.linear1(x)
         output = self.linear2(hidden)
-        output = torch.sigmoid(output) > 0.5
+        output = F.softmax(output,dim=1)
         return output
 
     def features(self,x,usecuda=True):
