@@ -61,6 +61,7 @@ class Trainer(object):
 
                 X = Variable(torch.from_numpy(X).long()).cuda(self.cuda_device)
                 Y = Variable(torch.from_numpy(Y).float()).cuda(self.cuda_device)
+                Y = Y.nonzero()[:, 1] # 把矩阵形如 [[1,0,0,0],...] 转化为 向量形如 [0,...]
 
 
                 if self._model_name in ['BiLSTM']:
@@ -69,11 +70,9 @@ class Trainer(object):
                 elif self._model_name in ['CNN']:
                     output = self.model(X, usecuda=self.usecuda)
 
-                print('output:',output.size(),'\n',output)
-                print(output[0])
-                print('Y:',Y.size(),'\n',Y)
-                print(Y[0])
-                assert False
+                # print('output:',output.size(),'\n',output)
+                # print('Y:',Y.size(),'\n',Y)
+                # assert False
 
                 loss = self.lossfunc(output, Y )
                 lossD += loss.item() / len(Y_o)
