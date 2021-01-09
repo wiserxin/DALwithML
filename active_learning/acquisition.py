@@ -1160,7 +1160,7 @@ class Acquisition(object):
                 # item    shape: nsample * nlabel
                 obj = {}
                 obj["id"] = pt
-                obj["el"] = F1Loss(item)
+                obj["el"] = F1Loss_fixed(item)
 
                 if obj["el"] < -1e-10:
                     print("elo error:", obj["el"])
