@@ -1249,7 +1249,7 @@ class Acquisition(object):
 
             overAllGroundTruth = np.tile(overAllGroundTruth, (item_arr.shape[0], 1))
             r = 0
-            for am in ['micro', 'macro', 'weighted', 'samples']:
+            for am in ['micro', 'macro']:
                 r += (1.0 - f1_score(overAllGroundTruth, item_arr > baseLine, average=am))
             return r
 
@@ -1342,8 +1342,8 @@ class Acquisition(object):
                 elif model_name == 'CNN':
                     output = model(X)
 
-                score = torch.sigmoid(output).data.cpu().numpy().tolist()
-                # score = torch.softmax(output,dim=1).data.cpu().numpy().tolist() # 测试softmax
+                # score = torch.sigmoid(output).data.cpu().numpy().tolist()
+                score = torch.softmax(output,dim=1).data.cpu().numpy().tolist() # 测试softmax
                 # score = F.logsigmoid(output).data.cpu().numpy().tolist()
 
                 score_arr.append(score)
