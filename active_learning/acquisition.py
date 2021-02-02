@@ -918,6 +918,23 @@ class Acquisition(object):
             else:
                 assert not "defined!"
 
+        def F_variance_analysis(item):
+            # F 分布 F(k-1,n-k), F值过大拒绝
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            positive_num = np.sum(overAllGroundTruth > 0.5)
+
+            positive_num = 1 if positive_num == 0 else positive_num
+            positive_num = overAllGroundTruth.size - 1 if positive_num == overAllGroundTruth.size else positive_num
+
+            positive_columns = overAllGroundTruth.argsort()[-positive_num:]
+            item_arr[:, positive_columns] = 1 - item_arr[:, positive_columns]
+            s_dropout, s_labels = variance_analysis(item_arr)
+
+            n,k = np.shape(item)
+            n = n*k
+            return (s_labels/(k-1)) / (s_dropout/(n-k))
+
         # 选取 rkl 策略
         rklDic = {2:rankingLoss2,
                   4:rankingLoss4,
@@ -938,6 +955,7 @@ class Acquisition(object):
                   'vrl' : varRatiosLoss,
                   'liw' : label_instance_wise,
                   'mvl' : meanVarLoss,
+                  'fva' : F_variance_analysis,
                   }
         rkl = rklDic[rklNo]
         print("RKL",rklNo,end="\t")
@@ -1991,6 +2009,8 @@ class Acquisition(object):
                     self.get_RKL(data, model_path, acquire_num, rklNo='mvl', model_name=model_name, thisround=round, rklMod=(0.4,0, 0.3,0.3, 0,0 ))
                 elif sub_method == "MVL7":
                     self.get_RKL(data, model_path, acquire_num, rklNo='mvl', model_name=model_name, thisround=round, rklMod=(0.4,0.4, 0.3,0.3, 0.3,0))
+                elif sub_method == "FVA":
+                    self.get_RKL(data, model_path, acquire_num, rklNo='fva', model_name=model_name, thisround=round )
 
 
 
