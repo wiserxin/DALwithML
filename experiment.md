@@ -57,7 +57,7 @@ VL仅考察方差，rkl仅考察均值。
 #### MVL3 
 使用权重(0.4,0, 0.3,0, 0.3,0 )  
 仅考察pos的信息,观察效果  
-1-pos_m + pos_s1 + pos_s2  
+(1-pos_m) + pos_s1 + pos_s2  
 与MVL4相比去掉了neg_mean的考察  
 
 #### MVL4 
@@ -67,12 +67,16 @@ VL仅考察方差，rkl仅考察均值。
 #### MVL5 
 使用权重(0.4,0, 0.3,0, 0,0 )  
 仅考察pos的信息,观察效果  
-1-pos_m + pos_s1 
+(1-pos_m) + pos_s1  
 与MVL3相比去掉了pos_s2的考察  
 
 #### MVL6 
 使用权重(0.4,0, 0.3,0.3, 0,0 )    
-1-pos_m + pos_s1 + neg_s1
+(1-pos_m) + pos_s1 + neg_s1  
 与MVL5相比增加了neg_s1的考察  
 此时更关注该样本在dropout下的扰动情况
 
+#### MVL7
+(0.4,0.4, 0.3,0.3, 0.3,0)
+(1-pos_m) + neg_m + pos_s1 + neg_s1 + pos_s2  
+仅不考察neg_s2,即neg label不同造成的扰动

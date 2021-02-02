@@ -1989,6 +1989,8 @@ class Acquisition(object):
                     self.get_RKL(data, model_path, acquire_num, rklNo='mvl', model_name=model_name, thisround=round, rklMod=(0.4,0, 0.3,0, 0,0 ))
                 elif sub_method == "MVL6":
                     self.get_RKL(data, model_path, acquire_num, rklNo='mvl', model_name=model_name, thisround=round, rklMod=(0.4,0, 0.3,0.3, 0,0 ))
+                elif sub_method == "MVL7":
+                    self.get_RKL(data, model_path, acquire_num, rklNo='mvl', model_name=model_name, thisround=round, rklMod=(0.4,0.4, 0.3,0.3, 0.3,0))
 
 
 
