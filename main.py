@@ -313,6 +313,10 @@ def main(args):
         acquire_question_num_per_round = config["acquire_question_num_per_round"] if "acquire_question_num_per_round" in config else 100 #Number of samples collected per round
         warm_start_random_seed = config["warm_start_random_seed"]  # the random seed for selecting the initial training set
         sample_method = config["sample_method"]
+        # wheather using TextAttack generate more samples
+        using_generated_data = config["using_generated_data"] if "using_generated_data" in config else False
+        generated_per_sample = config["generated_per_sample"] if "generated_per_sample" in config else 3
+
         visual_data_path = os.path.join("result", sample_method + ".txt")
 
         loader = Loader()
@@ -382,6 +386,9 @@ def main(args):
                 val_data = data['test_points']
                 train_data = train_data[:30000]
                 val_data = val_data[:3000]
+                if using_generated_data:
+                    generated_data = loader.load_aapd_generated(data_path)
+                    generated_train_data = generated_data['train_points']
 
 
 
@@ -451,6 +458,14 @@ def main(args):
             sorted_train_index.sort()
             labeled_train_data = [train_data[i] for i in sorted_train_index]
 
+            sorted_generated_train_index = list()
+            labeled_generated_train_data = list()
+            if using_generated_data:
+                for one_train_index in sorted_train_index:
+                    for generated_counter in range(0,generated_per_sample):
+                        sorted_train_index.append(generated_per_sample*one_train_index+generated_counter)
+                labeled_generated_train_data = [ generated_train_data[i] for i in sorted_generated_train_index ]
+
             print("Labeled training samples: {}".format(len(acquisition_function.train_index)))
 
             # -------------------------------------train--------------------------------------
@@ -485,8 +500,9 @@ def main(args):
                               ndcg_num=args.ndcg_num
                               )
 
+            # labeled_generated_train_data is [] when using_generated_data==False,so using "extend" here
             test_performance = trainer.train_supervisedLearning(args.num_epochs,
-                                                                labeled_train_data,
+                                                                labeled_train_data.extend(labeled_generated_train_data),
                                                                 val_data,
                                                                 args.learning_rate,
                                                                 checkpoint_path=checkpoint_path,
