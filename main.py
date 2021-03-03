@@ -213,6 +213,7 @@ def main(args):
 
         ####################################### initial setting ###########################################
         config["submodular_k"] = 2 if "submodular_k" not in config else config["submodular_k"]
+        config["unsupervised_method"] = '' if "unsupervised_method"  not in config else config["unsupervised_method"]
 
         data_path = config["data_path"]
         model_name = config["model_name"] if "model_name" in config else 'CNN'
