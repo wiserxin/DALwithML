@@ -25,7 +25,7 @@ def parse_args():
     parser.add_argument('--answer_count', type=int, default=5, help='the amount of answer for each quesiton')
     parser.add_argument('--num_epochs', type=int, default=40, help='training epoch')
     parser.add_argument('--use_pretrained_word_embedding', type=bool, default=True, help='')
-    parser.add_argument('--batch_size', type=int, default=400, help='')
+    parser.add_argument('--batch_size', type=int, default=800, help='')
     parser.add_argument('--sampling_batch_size', type=int, default=800, help='')
     parser.add_argument('--word_embedding_dim', type=int, default=300, help='')
     parser.add_argument('--pretrained_word_embedding', default="../../datasets/rcv2/glove.6B.300d.txt", help='')

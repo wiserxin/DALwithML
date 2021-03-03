@@ -49,7 +49,9 @@ class Trainer(object):
 
             train_batches = create_batches(train_data, batch_size=batch_size, order='random')
 
+            print("batch size is ",batch_size)
             for i, batch_data in enumerate(np.random.permutation(train_batches)):
+                print("batch",i)
 
                 batch_data = batch_data['data_numpy']
                 self.model.zero_grad()
