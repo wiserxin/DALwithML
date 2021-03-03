@@ -368,7 +368,7 @@ def main(args):
             sorted_train_index = list(new_train_index)
             sorted_train_index.sort()
             labeled_train_data = [train_data[i] for i in sorted_train_index]
-
+            print("Labeled training samples: {}".format(len(acquisition_function.train_index)))
             sorted_generated_train_index = list()
             labeled_generated_train_data = list()
             if using_generated_data:
@@ -380,8 +380,8 @@ def main(args):
                                                 for generated_counter in range(0, generated_per_sample)]
 
                 labeled_generated_train_data = [ generated_train_data[i] for i in sorted_generated_train_index ]
-
-            print("Labeled training samples: {}".format(len(acquisition_function.train_index)))
+                labeled_train_data.extend(labeled_generated_train_data)
+                print("total samples with TA generated: {}".format(len(labeled_train_data)))
 
             # -------------------------------------train--------------------------------------
 
@@ -415,8 +415,6 @@ def main(args):
                               ndcg_num=args.ndcg_num
                               )
 
-            # labeled_generated_train_data is [] when using_generated_data==False,so using "extend" here
-            labeled_train_data.extend(labeled_generated_train_data)
             test_performance = trainer.train_supervisedLearning(args.num_epochs,
                                                                 labeled_train_data,
                                                                 val_data,
