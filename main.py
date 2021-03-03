@@ -212,6 +212,8 @@ def main(args):
         print("-------------------{}-{}-------------------".format(config["group_name"], config["sample_method"]))
 
         ####################################### initial setting ###########################################
+        config["submodular_k"] = 2 if "submodular_k" not in config else config["submodular_k"]
+
         data_path = config["data_path"]
         model_name = config["model_name"] if "model_name" in config else 'CNN'
         num_acquisitions_round = config["num_acquisitions_round"]
