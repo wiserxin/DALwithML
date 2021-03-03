@@ -61,6 +61,8 @@ class Trainer(object):
                 Y = batch_data[1]
                 Y_o = batch_data[2]
 
+                print("X shape is {}\tY shape is {}".format(X.shape,Y.shape))
+
                 X = Variable(torch.from_numpy(X).long()).cuda(self.cuda_device)
                 Y = Variable(torch.from_numpy(Y).float()).cuda(self.cuda_device)
 
