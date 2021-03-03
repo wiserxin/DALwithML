@@ -538,7 +538,7 @@ class Loader(object):
         return r
 
 
-    def load_stack(self,datapath,  sents_max_len = 300, vocab_size = 50000):
+    def load_stack(self,datapath,  sents_max_len = 300, vocab_size = 50000, generate_per_sample = 3):
         # stack oveerflow data
 
 
@@ -586,7 +586,7 @@ class Loader(object):
 
         # 使用筛选后的数据 46407 条
         label2id = {".net": 0, "c#": 1, "database": 2, "mysql": 3, "sql-server": 4, "sql-server-2005": 5, "php": 6, "objective-c": 7, "iphone": 8, "web-services": 9, "windows": 10, "python": 11, "sql": 12, "css": 13, "html": 14, "asp.net": 15, "regex": 16, "c++": 17, "javascript": 18, "vb.net": 19, "visual-studio": 20, "asp.net-mvc": 21, "string": 22, "winforms": 23, "ajax": 24, "linq-to-sql": 25, "linq": 26, "performance": 27, "c": 28, "java": 29, "wpf": 30, "oop": 31, "wcf": 32, "multithreading": 33, "ruby": 34, "ruby-on-rails": 35, "tsql": 36, "jquery": 37, "xml": 38, "arrays": 39, "django": 40, "android": 41, "cocoa-touch": 42,}
-        temp = []
+        temp = list()
         for i in range(1,len(data)):
 
             tags = data[i][3]
@@ -612,6 +612,10 @@ class Loader(object):
         train = temp[:40000]
         test  = temp[40000:]
 
+        from .txtgeneretor import generateStack
+        train_g = generateStack(train,generate_per_sample)
+        test_g = generateStack(test,generate_per_sample)
+        assert False #这一部分先放下，重新考虑并本地生成对应的TA数据集
         # 看看数据的label分布
         # [678, 1485, 212, 650, 290, 140, 931, 451, 523, 90, 126, 280, 580, 363, 612, 675, 294, 293, 1015, 151, 116, 205,         167, 208, 270, 107, 158, 131, 194, 424, 186, 116, 88, 149, 195, 229, 137, 860, 249, 201, 131, 156, 109]
         # [5768, 10494, 1500, 3396, 2825, 1129, 4950, 1830, 2416, 883, 830, 1530, 4087, 2004, 3576, 4833, 1683, 1621, 5710, 1357, 817, 1656, 1089, 1474, 1759, 895, 1244, 1143, 960, 2242, 900, 811, 680, 1034, 1149, 1205, 1103, 4658, 1497, 1359, 790, 380, 1089]
@@ -628,32 +632,44 @@ class Loader(object):
         #         count[j] += 1
         # print(count)
 
-
         trn_sents, Y_trn, Y_trn_o = load_data_and_labels(train,label2id)
         tst_sents, Y_tst, Y_tst_o = load_data_and_labels(test,label2id)
-
+        trn_sents_g, Y_trn_g, Y_trn_o_g = load_data_and_labels(train_g, label2id)
+        tst_sents_g, Y_tst_g, Y_tst_o_g = load_data_and_labels(test_g, label2id)
 
         trn_sents_padded = pad_sentences(trn_sents, max_length=sents_max_len)
         tst_sents_padded = pad_sentences(tst_sents, max_length=sents_max_len)
+        trn_sents_padded_g = pad_sentences(trn_sents_g, max_length=sents_max_len)
+        tst_sents_padded_g = pad_sentences(tst_sents_g, max_length=sents_max_len)
 
-        vocabulary, vocabulary_inv, vocabulary_count = build_vocab(trn_sents_padded + tst_sents_padded, vocab_size=vocab_size)
+        vocabulary, vocabulary_inv, vocabulary_count = build_vocab(trn_sents_padded + tst_sents_padded + trn_sents_padded_g + tst_sents_padded_g,
+                                                                   vocab_size=vocab_size)
 
         X_trn = build_input_data(trn_sents_padded, vocabulary)
         X_tst = build_input_data(tst_sents_padded, vocabulary)
+        X_trn_g = build_input_data(trn_sents_padded_g, vocabulary)
+        X_tst_g = build_input_data(tst_sents_padded_g, vocabulary)
 
-        r =  {'train': (X_trn, Y_trn, Y_trn_o),
+        r =  {  'train': (X_trn, Y_trn, Y_trn_o),
                 'test' : (X_tst, Y_tst, Y_tst_o),
-               'vocab' : (vocabulary, vocabulary_inv, vocabulary_count),
-                'embed': load_word2vec(datapath ,'glove', vocabulary_inv, 300),
                 'train_points': [(X_trn[i], Y_trn[i], Y_trn_o[i], i)  for i in range(len(Y_trn_o))],
-                'test_points' : [(X_tst[i], Y_tst[i], Y_tst_o[i], i)  for i in range(len(Y_tst_o))]
+                'test_points' : [(X_tst[i], Y_tst[i], Y_tst_o[i], i)  for i in range(len(Y_tst_o))],
+
+                'train_g': (X_trn_g, Y_trn_g, Y_trn_o_g),
+                'test_g': (X_tst_g, Y_tst_g, Y_tst_o_g),
+                'train_points_g': [(X_trn_g[i], Y_trn_g[i], Y_trn_o_g[i], i) for i in range(len(Y_trn_o_g))],
+                'test_points_g': [(X_tst_g[i], Y_tst_g[i], Y_tst_o_g[i], i) for i in range(len(Y_tst_o_g))],
+
+                'vocab': (vocabulary, vocabulary_inv, vocabulary_count),
+                'embed': load_word2vec(datapath, 'glove', vocabulary_inv, 300),
+                'generate_per_sample':generate_per_sample,
+
                 }
         with open(os.path.join(datapath, 'stackLoaded.pkl'), 'wb') as f:
             pickle.dump(r,f)
         return r
 
-
-    def load_aapd(self, datapath, sents_max_len=300, vocab_size=30000):
+    def load_aapd(self, datapath, sents_max_len=300, vocab_size=50000, generate_per_sample=3):
 
         # 读取已缓存数据
         if os.path.exists(os.path.join(datapath, 'aapdLoaded.pkl')):
@@ -661,21 +677,32 @@ class Loader(object):
                 return pickle.load(f)
 
         # [{'text':"...", 'catgy':['cat1','cat2',...] },]
-        file_names = ['aapd_doc','aapd_tag']
+        # load ori data
+        file_names = ['aapd_doc','aapd_tag','generated_aapd_doc_3','generated_aapd_tag_3']
         path = os.path.join(datapath, file_names[0])
         assert os.path.exists(path)
         with open(path) as f1:
             docs = f1.readlines()
-
         path = os.path.join(datapath, file_names[1])
         assert os.path.exists(path)
         with open(path) as f1:
             tags = f1.readlines()
-
         assert len(docs) == len(tags)
 
+        # load generated data
+        path = os.path.join(datapath, file_names[2])
+        assert os.path.exists(path)
+        with open(path) as f1:
+            docs_g = f1.readlines()
+        path = os.path.join(datapath, file_names[3])
+        assert os.path.exists(path)
+        with open(path) as f1:
+            tags_g = f1.readlines()
+        assert len(docs_g) == len(tags_g)
+
+        # make ori data
         label2id = dict()  # {name: [id,count]}
-        data = []
+        data = list()
         for text,tag in zip(docs,tags):
             tag = tag.strip().split()
             if len(tag) == 1:
@@ -684,13 +711,10 @@ class Loader(object):
                 if onetag not in label2id.keys():
                     label2id[onetag] = [len(label2id),0]
                 label2id[onetag][1] += 1
-
             text = clean_str(text)
             data.append({'text': text, 'catgy': [label2id[onetag][0] for onetag in tag]})
-
         train = data[:30000]
         test = data[30000:]
-
         # 看看数据的label分布
         # [1108, 261, 873, 9580, 9580, 367, 1523, 1594, 2762, 528, 271, 1500, 707, 4408, 1715, 1268, 2645, 1695, 515, 552, 1668, 534, 370, 2229, 1856, 1224, 706, 1881, 2739, 660, 1118, 2283, 391, 1967, 890, 261, 571, 520, 198, 931, 579, 216, 486, 231, 635, 474, 742, 378, 207, 399, 479, 479, 198, 222]
         # [117, 21, 83, 964, 964, 28, 165, 155, 270, 59, 24, 168, 78, 454, 183, 107, 282, 180, 44, 50, 158, 49, 50, 195, 175, 125, 58, 173, 256, 60, 102, 224, 42, 187, 95, 26, 70, 62, 21, 97, 47, 12, 45, 21, 68, 48, 80, 32, 22, 34, 46, 46, 24, 22]
@@ -705,25 +729,53 @@ class Loader(object):
         #         count[j] += 1
         # print(count)
 
-        trn_sents, Y_trn, Y_trn_o = load_data_and_labels(train, label2id)
-        tst_sents, Y_tst, Y_tst_o = load_data_and_labels(test, label2id)
+        # make generated data
+        data_g = list()
+        for text,tag in zip(docs,tags):
+            tag = tag.strip().split()
+            if len(tag) == 1:
+                continue
+            for onetag in tag:
+                assert onetag in label2id.keys()
+            text = clean_str(text)
+            data_g.append({'text': text, 'catgy': [label2id[onetag][0] for onetag in tag]})
+        train_g = data_g[:30000*generate_per_sample]
+        test_g = data_g[30000*generate_per_sample:]
+
+
+        trn_sents, Y_trn, Y_trn_o = load_data_and_labels(train,label2id)
+        tst_sents, Y_tst, Y_tst_o = load_data_and_labels(test,label2id)
+        trn_sents_g, Y_trn_g, Y_trn_o_g = load_data_and_labels(train_g, label2id)
+        tst_sents_g, Y_tst_g, Y_tst_o_g = load_data_and_labels(test_g, label2id)
 
         trn_sents_padded = pad_sentences(trn_sents, max_length=sents_max_len)
         tst_sents_padded = pad_sentences(tst_sents, max_length=sents_max_len)
+        trn_sents_padded_g = pad_sentences(trn_sents_g, max_length=sents_max_len)
+        tst_sents_padded_g = pad_sentences(tst_sents_g, max_length=sents_max_len)
 
-        vocabulary, vocabulary_inv, vocabulary_count = build_vocab(trn_sents_padded + tst_sents_padded,
+        vocabulary, vocabulary_inv, vocabulary_count = build_vocab(trn_sents_padded + tst_sents_padded + trn_sents_padded_g + tst_sents_padded_g,
                                                                    vocab_size=vocab_size)
 
         X_trn = build_input_data(trn_sents_padded, vocabulary)
         X_tst = build_input_data(tst_sents_padded, vocabulary)
+        X_trn_g = build_input_data(trn_sents_padded_g, vocabulary)
+        X_tst_g = build_input_data(tst_sents_padded_g, vocabulary)
 
-        r = {'train': (X_trn, Y_trn, Y_trn_o),
-             'test': (X_tst, Y_tst, Y_tst_o),
-             'vocab': (vocabulary, vocabulary_inv, vocabulary_count),
-             'embed': load_word2vec(datapath, 'glove', vocabulary_inv, 300),
-             'train_points': [(X_trn[i], Y_trn[i], Y_trn_o[i], i) for i in range(len(Y_trn_o))],
-             'test_points': [(X_tst[i], Y_tst[i], Y_tst_o[i], i) for i in range(len(Y_tst_o))]
-             }
+        r =  {  'train': (X_trn, Y_trn, Y_trn_o),
+                'test' : (X_tst, Y_tst, Y_tst_o),
+                'train_points': [(X_trn[i], Y_trn[i], Y_trn_o[i], i)  for i in range(len(Y_trn_o))],
+                'test_points' : [(X_tst[i], Y_tst[i], Y_tst_o[i], i)  for i in range(len(Y_tst_o))],
+
+                'train_g': (X_trn_g, Y_trn_g, Y_trn_o_g),
+                'test_g': (X_tst_g, Y_tst_g, Y_tst_o_g),
+                'train_points_g': [(X_trn_g[i], Y_trn_g[i], Y_trn_o_g[i], i) for i in range(len(Y_trn_o_g))],
+                'test_points_g': [(X_tst_g[i], Y_tst_g[i], Y_tst_o_g[i], i) for i in range(len(Y_tst_o_g))],
+
+                'vocab': (vocabulary, vocabulary_inv, vocabulary_count),
+                'embed': load_word2vec(datapath, 'glove', vocabulary_inv, 300),
+                'generate_per_sample':generate_per_sample,
+
+                }
         with open(os.path.join(datapath, 'aapdLoaded.pkl'), 'wb') as f:
             pickle.dump(r, f)
         return r

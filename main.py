@@ -176,13 +176,24 @@ def main(args):
             "data_path": "../../datasets/aapd/",
             "acquire_method": "no-dete",
             "sub_acquire_method": "VRS",
-            "using_generated_data":False,
+            "using_generated_data":True,
+            "num_acquisitions_round": 25,
+            "init_question_num": 1200,
+            "acquire_question_num_per_round": 1200,
+            "warm_start_random_seed": 0,
+            "sample_method": "No-Deterministic+kim_VRS_TA+0",
+        }, {
+            "model_name": "CNN",
+            "group_name": "[mlabs]TA+aapd+F1",
+            "max_performance": 0.90,
+            "data_path": "../../datasets/aapd/",
+            "acquire_method": "no-dete",
+            "sub_acquire_method": "VRS",
             "num_acquisitions_round": 25,
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 0,
             "sample_method": "No-Deterministic+kim_VRS+0",
-
         }, {
             "model_name": "CNN",
             "group_name": "[mlabs]TA+aapd+F1",
@@ -190,39 +201,24 @@ def main(args):
             "data_path": "../../datasets/aapd/",
             "acquire_method": "no-dete",
             "sub_acquire_method": "VRS",
-            "using_generated_data":False,
+            "using_generated_data":True,
+            "num_acquisitions_round": 25,
+            "init_question_num": 1200,
+            "acquire_question_num_per_round": 1200,
+            "warm_start_random_seed": 32,
+            "sample_method": "No-Deterministic+kim_VRS_TA+32",
+        },{
+            "model_name": "CNN",
+            "group_name": "[mlabs]TA+aapd+F1",
+            "max_performance": 0.90,
+            "data_path": "../../datasets/aapd/",
+            "acquire_method": "no-dete",
+            "sub_acquire_method": "VRS",
             "num_acquisitions_round": 25,
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 32,
             "sample_method": "No-Deterministic+kim_VRS+32",
-        }, {
-            "model_name": "CNN",
-            "group_name": "[mlabs]TA+aapd+F1",
-            "max_performance": 0.90,
-            "data_path": "../../datasets/aapd/",
-            "acquire_method": "no-dete",
-            "sub_acquire_method": "VRS",
-            "using_generated_data":False,
-            "num_acquisitions_round": 25,
-            "init_question_num": 1200,
-            "acquire_question_num_per_round": 1200,
-            "warm_start_random_seed": 16,
-            "sample_method": "No-Deterministic+kim_VRS+16",
-        }, {
-            "model_name": "CNN",
-            "group_name": "[mlabs]TA+aapd+F1",
-            "max_performance": 0.90,
-            "data_path": "../../datasets/aapd/",
-            "acquire_method": "no-dete",
-            "sub_acquire_method": "VRS",
-            "using_generated_data":False,
-            "num_acquisitions_round": 25,
-            "init_question_num": 1200,
-            "acquire_question_num_per_round": 1200,
-            "warm_start_random_seed": 64,
-            "sample_method": "No-Deterministic+kim_VRS+64",
-
         }
 
 
@@ -324,8 +320,7 @@ def main(args):
                 train_data = train_data[:30000]
                 val_data = val_data[:3000]
                 if using_generated_data:
-                    generated_data = loader.load_aapd_generated(data_path)
-                    generated_train_data = generated_data['train_points']
+                    generated_train_data = data['train_points_g']
 
 
 
@@ -398,9 +393,6 @@ def main(args):
             sorted_generated_train_index = list()
             labeled_generated_train_data = list()
             if using_generated_data:
-                # for one_train_index in sorted_train_index:
-                #     for generated_counter in range(0,generated_per_sample):
-                #         sorted_train_index.append(generated_per_sample*one_train_index+generated_counter)
                 sorted_generated_train_index = [ generated_per_sample*one_train_index+generated_counter
                                                 for one_train_index in sorted_train_index
                                                 for generated_counter in range(0, generated_per_sample)]
