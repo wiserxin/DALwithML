@@ -49,9 +49,7 @@ class Trainer(object):
 
             train_batches = create_batches(train_data, batch_size=batch_size, order='random')
 
-            print("batch size is ",batch_size)
             for i, batch_data in enumerate(np.random.permutation(train_batches)):
-                print("batch",i)
 
                 batch_data = batch_data['data_numpy']
                 self.model.zero_grad()
@@ -61,7 +59,6 @@ class Trainer(object):
                 Y = batch_data[1]
                 Y_o = batch_data[2]
 
-                print("X shape is {}\tY shape is {}".format(X.shape,Y.shape))
 
                 X = Variable(torch.from_numpy(X).long()).cuda(self.cuda_device)
                 Y = Variable(torch.from_numpy(Y).float()).cuda(self.cuda_device)
