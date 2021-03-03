@@ -176,7 +176,7 @@ def main(args):
             "data_path": "../../datasets/aapd/",
             "acquire_method": "no-dete",
             "sub_acquire_method": "VRS",
-            "using_generated_data":False,
+            "using_generated_data":True,
             "num_acquisitions_round": 25,
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
