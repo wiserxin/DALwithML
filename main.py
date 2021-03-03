@@ -416,8 +416,9 @@ def main(args):
                               )
 
             # labeled_generated_train_data is [] when using_generated_data==False,so using "extend" here
+            labeled_train_data.extend(labeled_generated_train_data)
             test_performance = trainer.train_supervisedLearning(args.num_epochs,
-                                                                labeled_train_data.extend(labeled_generated_train_data),
+                                                                labeled_train_data,
                                                                 val_data,
                                                                 args.learning_rate,
                                                                 checkpoint_path=checkpoint_path,
