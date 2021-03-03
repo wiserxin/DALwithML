@@ -372,9 +372,13 @@ def main(args):
             sorted_generated_train_index = list()
             labeled_generated_train_data = list()
             if using_generated_data:
-                for one_train_index in sorted_train_index:
-                    for generated_counter in range(0,generated_per_sample):
-                        sorted_train_index.append(generated_per_sample*one_train_index+generated_counter)
+                # for one_train_index in sorted_train_index:
+                #     for generated_counter in range(0,generated_per_sample):
+                #         sorted_train_index.append(generated_per_sample*one_train_index+generated_counter)
+                sorted_generated_train_index = [ generated_per_sample*one_train_index+generated_counter
+                                                for one_train_index in sorted_train_index
+                                                for generated_counter in range(0, generated_per_sample)]
+
                 labeled_generated_train_data = [ generated_train_data[i] for i in sorted_generated_train_index ]
 
             print("Labeled training samples: {}".format(len(acquisition_function.train_index)))
