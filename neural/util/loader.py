@@ -703,7 +703,7 @@ class Loader(object):
         # make ori data
         label2id = dict()  # {name: [id,count]}
         data = list()
-        for text,tag in zip(docs_g,tags_g):
+        for text,tag in zip(docs,tags):
             tag = tag.strip().split()
             if len(tag) == 1:
                 continue
@@ -731,7 +731,7 @@ class Loader(object):
 
         # make generated data
         data_g = list()
-        for text,tag in zip(docs,tags):
+        for text,tag in zip(docs_g,tags_g):
             tag = tag.strip().split()
             if len(tag) == 1:
                 continue
