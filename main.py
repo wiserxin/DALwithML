@@ -298,6 +298,7 @@ def main(args):
         # wheather using TextAttack generate more samples
         using_generated_data = config["using_generated_data"] if "using_generated_data" in config else False
         generated_per_sample = config["generated_per_sample"] if "generated_per_sample" in config else 3
+        generated_used_per_sample = config["generated_used_per_sample"] if "generated_used_per_sample" in config else generated_per_sample
 
         visual_data_path = os.path.join("result", sample_method + ".txt")
 
@@ -389,6 +390,9 @@ def main(args):
                                             cuda_device=args.device[0],
                                             batch_size=args.sampling_batch_size,
                                             submodular_k=config["submodular_k"],
+                                            using_generated_data=using_generated_data,
+                                            generated_per_sample = generated_per_sample,
+                                            generated_used_per_sample = generated_used_per_sample,
                                             target_size=args.target_size)
 
         checkpoint_path = os.path.join(args.result_path, 'active_checkpoint', config["group_name"], sample_method)
@@ -440,12 +444,11 @@ def main(args):
             sorted_train_index.sort()
             labeled_train_data = [train_data[i] for i in sorted_train_index]
             print("Labeled training samples: {}".format(len(acquisition_function.train_index)))
-            sorted_generated_train_index = list()
-            labeled_generated_train_data = list()
+
+
             if using_generated_data:
-                sorted_generated_train_index = [ generated_per_sample*one_train_index+generated_counter
-                                                for one_train_index in sorted_train_index
-                                                for generated_counter in range(0, generated_per_sample)]
+                sorted_generated_train_index = list((acquisition_function.generated_train_index).copy())
+                sorted_generated_train_index.sort()
 
                 labeled_generated_train_data = [ generated_train_data[i] for i in sorted_generated_train_index ]
                 labeled_train_data.extend(labeled_generated_train_data)

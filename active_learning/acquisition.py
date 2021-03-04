@@ -19,11 +19,14 @@ class Acquisition(object):
                  batch_size=1000,
                  cal_Aleatoric_uncertainty=False,
                  submodular_k=4,
+                 using_generated_data = False,
+                 generated_per_sample = 0,
+                 generated_used_per_sample = 0,
                  target_size = 2):
         self.train_data = train_data
         self.document_num = len(train_data)
         self.train_index = set()  #the index of the labeled samples
-        self.pseudo_train_data = []
+        self.generated_train_index = set() # the index of the generated labeled samples
         self.random_seed = seed
         self.npr = np.random.RandomState(seed)
         self.usecuda = usecuda
@@ -31,6 +34,9 @@ class Acquisition(object):
         self.batch_size = batch_size
         self.cal_Aleatoric_uncertainty = cal_Aleatoric_uncertainty
         self.submodular_k = submodular_k
+        self.using_generated_data = using_generated_data
+        self.generated_per_sample = generated_per_sample
+        self.generated_used_per_sample = generated_used_per_sample
         self.savedData = list()
         self.label_count = np.zeros(target_size) # 存储train_index中的数据，其中涉及到的label的计数
         # for i in range(len(train_data)):
@@ -71,6 +77,13 @@ class Acquisition(object):
         # assert False
 
         self.train_index.update(acquired_set)
+
+        # 更新 self.generated_train_index
+        if self.using_generated_data:
+            acquired_generated_set = {self.generated_per_sample * one_train_index + generated_counter
+                                            for one_train_index in acquired_set
+                                            for generated_counter in range(0, self.generated_used_per_sample)}
+            self.generated_train_index.update(acquired_generated_set)
 
         if len(self.savedData) == 0:
             self.savedData.append({"train_index":list(self.train_index)})
@@ -1956,7 +1969,7 @@ class Acquisition(object):
         return similarity
 
     def obtain_data(self, data, model_path=None, model_name=None, acquire_num=2,
-                    method='random', sub_method='', unsupervised_method='', round = 0):
+                    method='random', sub_method='', round = 0):
 
         print("sampling method：" + sub_method)
 
