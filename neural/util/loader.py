@@ -537,7 +537,6 @@ class Loader(object):
             pickle.dump(r,f)
         return r
 
-
     def load_stack(self,datapath,  sents_max_len = 300, vocab_size = 50000, generate_per_sample = 3):
         # stack oveerflow data
 
@@ -547,90 +546,102 @@ class Loader(object):
             with open(os.path.join(datapath,'stackLoaded.pkl') , 'rb') as f:
                 return pickle.load(f)
 
-        # [{'text':"...", 'catgy':['cat1','cat2',...] },]
-        import csv
-        file_names = ['stackdata_utf8.csv']
-        label2id = {}
-
-        counter = 0
-        train = []
-        path = os.path.join(datapath, file_names[0])
-        assert os.path.exists(path)
-        data = []
-        with open(path, 'r', encoding='utf-8') as f:
-            f_csv = csv.reader(f)
-            for row in f_csv:
-                data.append(row)
-
-        # 使用全局所有数据
-        label2id = dict() # {name: [id,count]}
-        temp = []
-        # 第一行是表头 #row:  id	question	answer 	tags
+        # 读取原始数据，该功能被textgenerater.py中的loader等效替代
+        # # [{'text':"...", 'catgy':['cat1','cat2',...] },]
+        # import csv
+        # file_names = ['stackdata_utf8.csv']
+        # label2id = {}
+        #
+        # counter = 0
+        # train = []
+        # path = os.path.join(datapath, file_names[0])
+        # assert os.path.exists(path)
+        # data = []
+        # with open(path, 'r', encoding='utf-8') as f:
+        #     f_csv = csv.reader(f)
+        #     for row in f_csv:
+        #         data.append(row)
+        #
+        # # 使用全局所有数据
+        # label2id = dict() # {name: [id,count]}
+        # temp = []
+        # # 第一行是表头 #row:  id	question	answer 	tags
+        # # for i in range(1,len(data)):
+        # #     text = data[i][1] + ' ' + data[i][2]
+        # #     text = clean_str(text)
+        # #
+        # #     tags = data[i][3]
+        # #     # 为了处理c#,需要倒转再倒转
+        # #     tags = tags[::-1].split("###")[:-1]
+        # #     if len(tags) == 1:
+        # #         continue # 跳过只有一个标签的数据
+        # #     tags = [ onetag[::-1] for onetag in tags ]
+        # #     for onetag in tags:
+        # #         if onetag not in label2id.keys():
+        # #             label2id[onetag] = [len(label2id),0]
+        # #         label2id[onetag][1] += 1
+        # #     temp.append({'text':text, 'catgy':[ label2id[onetag][0] for onetag in tags ]})
+        #
+        # # 使用筛选后的label，所有的label出现次数均大于1000，共43个
+        #
+        # # 使用筛选后的数据 46407 条
+        # label2id = {".net": 0, "c#": 1, "database": 2, "mysql": 3, "sql-server": 4, "sql-server-2005": 5, "php": 6, "objective-c": 7, "iphone": 8, "web-services": 9, "windows": 10, "python": 11, "sql": 12, "css": 13, "html": 14, "asp.net": 15, "regex": 16, "c++": 17, "javascript": 18, "vb.net": 19, "visual-studio": 20, "asp.net-mvc": 21, "string": 22, "winforms": 23, "ajax": 24, "linq-to-sql": 25, "linq": 26, "performance": 27, "c": 28, "java": 29, "wpf": 30, "oop": 31, "wcf": 32, "multithreading": 33, "ruby": 34, "ruby-on-rails": 35, "tsql": 36, "jquery": 37, "xml": 38, "arrays": 39, "django": 40, "android": 41, "cocoa-touch": 42,}
+        # temp = list()
         # for i in range(1,len(data)):
-        #     text = data[i][1] + ' ' + data[i][2]
-        #     text = clean_str(text)
         #
         #     tags = data[i][3]
-        #     # 为了处理c#,需要倒转再倒转
+        #     # 分隔符是###,为了处理c#,需要倒转再倒转
         #     tags = tags[::-1].split("###")[:-1]
         #     if len(tags) == 1:
         #         continue # 跳过只有一个标签的数据
         #     tags = [ onetag[::-1] for onetag in tags ]
+        #
+        #     used_tags = []
         #     for onetag in tags:
-        #         if onetag not in label2id.keys():
-        #             label2id[onetag] = [len(label2id),0]
-        #         label2id[onetag][1] += 1
-        #     temp.append({'text':text, 'catgy':[ label2id[onetag][0] for onetag in tags ]})
-
-        # 使用筛选后的label，所有的label出现次数均大于1000，共43个
-
-        # 使用筛选后的数据 46407 条
-        label2id = {".net": 0, "c#": 1, "database": 2, "mysql": 3, "sql-server": 4, "sql-server-2005": 5, "php": 6, "objective-c": 7, "iphone": 8, "web-services": 9, "windows": 10, "python": 11, "sql": 12, "css": 13, "html": 14, "asp.net": 15, "regex": 16, "c++": 17, "javascript": 18, "vb.net": 19, "visual-studio": 20, "asp.net-mvc": 21, "string": 22, "winforms": 23, "ajax": 24, "linq-to-sql": 25, "linq": 26, "performance": 27, "c": 28, "java": 29, "wpf": 30, "oop": 31, "wcf": 32, "multithreading": 33, "ruby": 34, "ruby-on-rails": 35, "tsql": 36, "jquery": 37, "xml": 38, "arrays": 39, "django": 40, "android": 41, "cocoa-touch": 42,}
-        temp = list()
-        for i in range(1,len(data)):
-
-            tags = data[i][3]
-            # 分隔符是###,为了处理c#,需要倒转再倒转
-            tags = tags[::-1].split("###")[:-1]
-            if len(tags) == 1:
-                continue # 跳过只有一个标签的数据
-            tags = [ onetag[::-1] for onetag in tags ]
-
-            used_tags = []
-            for onetag in tags:
-                if onetag in label2id.keys():
-                    used_tags.append(onetag)
-            if len(used_tags) <= 1:
-                continue # 跳过筛选后只有一个标签的数据
-
-            text = data[i][1] + ' ' + data[i][2]
-            text = clean_str(text)
-
-            temp.append({'text':text, 'catgy':[ label2id[onetag] for onetag in used_tags ]})
-
-
-        train = temp[:40000]
-        test  = temp[40000:]
-
-        from .txtgeneretor import generateStack
-        train_g = generateStack(train,generate_per_sample)
-        test_g = generateStack(test,generate_per_sample)
-        assert False #这一部分先放下，重新考虑并本地生成对应的TA数据集
-        # 看看数据的label分布
-        # [678, 1485, 212, 650, 290, 140, 931, 451, 523, 90, 126, 280, 580, 363, 612, 675, 294, 293, 1015, 151, 116, 205,         167, 208, 270, 107, 158, 131, 194, 424, 186, 116, 88, 149, 195, 229, 137, 860, 249, 201, 131, 156, 109]
-        # [5768, 10494, 1500, 3396, 2825, 1129, 4950, 1830, 2416, 883, 830, 1530, 4087, 2004, 3576, 4833, 1683, 1621, 5710, 1357, 817, 1656, 1089, 1474, 1759, 895, 1244, 1143, 960, 2242, 900, 811, 680, 1034, 1149, 1205, 1103, 4658, 1497, 1359, 790, 380, 1089]
+        #         if onetag in label2id.keys():
+        #             used_tags.append(onetag)
+        #     if len(used_tags) <= 1:
+        #         continue # 跳过筛选后只有一个标签的数据
         #
-        # count = [0 for i in range(43)]
-        # for i in test:
-        #     for j in i['catgy']:
-        #         count[j] += 1
-        # print(count)
+        #     text = data[i][1] + ' ' + data[i][2]
+        #     text = clean_str(text)
         #
-        # count = [0 for i in range(43)]
-        # for i in train:
-        #     for j in i['catgy']:
-        #         count[j] += 1
-        # print(count)
+        #     temp.append({'text':text, 'catgy':[ label2id[onetag] for onetag in used_tags ]})
+        #
+        # train = temp[:40000]
+        # test  = temp[40000:]
+        #
+        # # 看看数据的label分布
+        # # [678, 1485, 212, 650, 290, 140, 931, 451, 523, 90, 126, 280, 580, 363, 612, 675, 294, 293, 1015, 151, 116, 205,         167, 208, 270, 107, 158, 131, 194, 424, 186, 116, 88, 149, 195, 229, 137, 860, 249, 201, 131, 156, 109]
+        # # [5768, 10494, 1500, 3396, 2825, 1129, 4950, 1830, 2416, 883, 830, 1530, 4087, 2004, 3576, 4833, 1683, 1621, 5710, 1357, 817, 1656, 1089, 1474, 1759, 895, 1244, 1143, 960, 2242, 900, 811, 680, 1034, 1149, 1205, 1103, 4658, 1497, 1359, 790, 380, 1089]
+        # #
+        # # count = [0 for i in range(43)]
+        # # for i in test:
+        # #     for j in i['catgy']:
+        # #         count[j] += 1
+        # # print(count)
+        # #
+        # # count = [0 for i in range(43)]
+        # # for i in train:
+        # #     for j in i['catgy']:
+        # #         count[j] += 1
+        # # print(count)
+
+        if os.path.exists( os.path.join(datapath,'generated_stack_3.pkl') ):
+            with open(os.path.join(datapath,'generated_stack_3.pkl') , 'rb') as f:
+                data = pickle.load(f)
+        else:
+            from .txtgeneretor import generateStack
+            data = generateStack(datapath,generate_per_sample,True)
+
+        label2id = data["label2id"]
+        loaded_data = data["loaded_data"]
+        g_loaded_data = data["generated_loaded_data"]
+        train = loaded_data[:40000]
+        test  = loaded_data[40000:]
+        train_g = g_loaded_data[:40000*data["transformations_per_example"]]
+        test_g  = g_loaded_data[40000*data["transformations_per_example"]:]
+
 
         trn_sents, Y_trn, Y_trn_o = load_data_and_labels(train,label2id)
         tst_sents, Y_tst, Y_tst_o = load_data_and_labels(test,label2id)
@@ -777,67 +788,6 @@ class Loader(object):
 
                 }
         with open(os.path.join(datapath, 'aapdLoaded.pkl'), 'wb') as f:
-            pickle.dump(r, f)
-        return r
-
-    def load_aapd_generated(self, datapath, sents_max_len=300, vocab_size=30000):
-
-        # 读取已缓存数据
-        if os.path.exists(os.path.join(datapath, 'aapdGeneratedLoaded3.pkl')):
-            with open(os.path.join(datapath, 'aapdGeneratedLoaded3.pkl'), 'rb') as f:
-                return pickle.load(f)
-
-        # [{'text':"...", 'catgy':['cat1','cat2',...] },]
-        file_names = ['generated_aapd_doc_3','generated_aapd_tag_3']
-        path = os.path.join(datapath, file_names[0])
-        assert os.path.exists(path)
-        with open(path) as f1:
-            docs = f1.readlines()
-
-        path = os.path.join(datapath, file_names[1])
-        assert os.path.exists(path)
-        with open(path) as f1:
-            tags = f1.readlines()
-
-        assert len(docs) == len(tags)
-
-        label2id = dict()  # {name: [id,count]}
-        data = []
-        for text,tag in zip(docs,tags):
-            tag = tag.strip().split()
-            if len(tag) == 1:
-                continue
-            for onetag in tag:
-                if onetag not in label2id.keys():
-                    label2id[onetag] = [len(label2id),0]
-                label2id[onetag][1] += 1
-
-            text = clean_str(text)
-            data.append({'text': text, 'catgy': [label2id[onetag][0] for onetag in tag]})
-
-        train = data[:30000*3]
-        test = data[30000*3:]
-
-        trn_sents, Y_trn, Y_trn_o = load_data_and_labels(train, label2id)
-        tst_sents, Y_tst, Y_tst_o = load_data_and_labels(test, label2id)
-
-        trn_sents_padded = pad_sentences(trn_sents, max_length=sents_max_len)
-        tst_sents_padded = pad_sentences(tst_sents, max_length=sents_max_len)
-
-        vocabulary, vocabulary_inv, vocabulary_count = build_vocab(trn_sents_padded + tst_sents_padded,
-                                                                   vocab_size=vocab_size)
-
-        X_trn = build_input_data(trn_sents_padded, vocabulary)
-        X_tst = build_input_data(tst_sents_padded, vocabulary)
-
-        r = {'train': (X_trn, Y_trn, Y_trn_o),
-             'test': (X_tst, Y_tst, Y_tst_o),
-             'vocab': (vocabulary, vocabulary_inv, vocabulary_count),
-             'embed': load_word2vec(datapath, 'glove', vocabulary_inv, 300),
-             'train_points': [(X_trn[i], Y_trn[i], Y_trn_o[i], i) for i in range(len(Y_trn_o))],
-             'test_points': [(X_tst[i], Y_tst[i], Y_tst_o[i], i) for i in range(len(Y_tst_o))]
-             }
-        with open(os.path.join(datapath, 'aapdGeneratedLoaded3.pkl'), 'wb') as f:
             pickle.dump(r, f)
         return r
 
