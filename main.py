@@ -536,7 +536,6 @@ def main(args):
                                              acquire_num=acq,
                                              method=a_m,
                                              sub_method=sub_acquire_method,
-                                             unsupervised_method=config["unsupervised_method"],
                                              round = i)
 
             # -------------------prepare training data---------------------
