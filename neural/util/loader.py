@@ -537,13 +537,14 @@ class Loader(object):
             pickle.dump(r,f)
         return r
 
-    def load_stack(self,datapath,  sents_max_len = 300, vocab_size = 50000, generate_per_sample = 3):
+    def load_stack(self,datapath,  sents_max_len = 300, vocab_size = 50000, generate_per_sample = "3", generate_percentage = "0.1"):
         # stack oveerflow data
 
 
         # 读取已缓存数据
-        if os.path.exists( os.path.join(datapath,'stackLoaded.pkl') ):
-            with open(os.path.join(datapath,'stackLoaded.pkl') , 'rb') as f:
+        cache_pkl_path = 'stackLoaded_'+str(generate_per_sample)+"_"+str(generate_percentage)+".pkl"
+        if os.path.exists( os.path.join(datapath,cache_pkl_path) ):
+            with open(os.path.join(datapath,cache_pkl_path) , 'rb') as f:
                 return pickle.load(f)
 
         # 读取原始数据，该功能被textgenerater.py中的loader等效替代
@@ -626,13 +627,13 @@ class Loader(object):
         # #     for j in i['catgy']:
         # #         count[j] += 1
         # # print(count)
-
-        if os.path.exists( os.path.join(datapath,'generated_stack_3.pkl') ):
-            with open(os.path.join(datapath,'generated_stack_3.pkl') , 'rb') as f:
+        generate_pkl_name = 'generated_stack_'+str(generate_per_sample)+"_"+str(generate_percentage)+".pkl"
+        if os.path.exists( os.path.join(datapath,generate_pkl_name) ):
+            with open(os.path.join(datapath,generate_pkl_name) , 'rb') as f:
                 data = pickle.load(f)
         else:
             from .txtgeneretor import generateStack
-            data = generateStack(datapath,generate_per_sample,True)
+            data = generateStack(datapath,int(generate_per_sample),True,float(generate_percentage))
 
         label2id = data["label2id"]
         loaded_data = data["loaded_data"]
@@ -676,7 +677,7 @@ class Loader(object):
                 'generate_per_sample':generate_per_sample,
 
                 }
-        with open(os.path.join(datapath, 'stackLoaded.pkl'), 'wb') as f:
+        with open(os.path.join(datapath, cache_pkl_path), 'wb') as f:
             pickle.dump(r,f)
         return r
 

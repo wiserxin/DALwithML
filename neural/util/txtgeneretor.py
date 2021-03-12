@@ -4,6 +4,20 @@ import string
 from random import randint
 from textattack.augmentation import EmbeddingAugmenter
 
+# from textattack.transformations.word_swaps import WordSwapMaskedLM,WordSwapEmbedding,\
+#     WordSwapNeighboringCharacterSwap,WordSwapRandomCharacterSubstitution,WordSwapRandomCharacterDeletion,\
+#     WordSwapRandomCharacterInsertion,WordSwapGradientBased,WordSwapInflections,WordSwapHowNet,WordSwapQWERTY,\
+#     WordSwapWordNet,WordSwapHomoglyphSwap
+# from textattack.transformations import WordDeletion
+#
+#
+# from textattack.constraints.semantics import WordEmbeddingDistance,sentence_encoders,BERTScore
+# from textattack.constraints.grammaticality import language_models,language_tool,part_of_speech,cola
+# # from textattack.constraints.overlap import
+# from textattack.constraints.pre_transformation import stopword_modification,\
+#     repeat_modification,input_column_modification,max_word_index_modification,min_word_length
+
+
 # # demo code
 # augmenter = EmbeddingAugmenter(transformations_per_example=6)
 # s = 'What I cannot create, I do not understand.'
@@ -133,11 +147,11 @@ def generateStackFromQuesAndAns(ques,ans,augmenter,transformations_per_example):
                 temp.append([ques,ans])
             return temp
 
-def generateStack(datapath,transformations_per_example,dump_result=False):
+def generateStack(datapath,transformations_per_example,dump_result=False,pct_words_to_swap=0.1):
     # [{'text':"...", 'catgy':['cat1','cat2',...] },]
     import csv
     file_names = ['stackdata_utf8.csv']
-    augmenter = EmbeddingAugmenter(transformations_per_example=transformations_per_example)
+    augmenter = EmbeddingAugmenter(transformations_per_example=transformations_per_example,pct_words_to_swap=pct_words_to_swap)
     path = os.path.join(datapath, file_names[0])
     assert os.path.exists(path)
     result = dict()
@@ -199,7 +213,9 @@ def generateStack(datapath,transformations_per_example,dump_result=False):
     }
 
     if dump_result:
-        with open( os.path.join(datapath,'generated_stack_'+str(transformations_per_example)+".pkl") ,'wb') as f:
+        with open( os.path.join(datapath,
+                                'generated_stack_'+str(transformations_per_example)+"_"+str(pct_words_to_swap)+".pkl")
+                   ,'wb') as f:
             import pickle
             pickle.dump(result,f)
     return result
@@ -215,6 +231,9 @@ if __name__ == '__main__':
     # for i in generateLongSentence(s,augmenter):
     #     print(i)
 
-    # generateStack(r'D:\我的文件夹\学习\实验室\多标签主动学习项目\datasets\stackOverflow',3,dump_result=True)
+    # generateStack(r'D:\我的文件夹\学习\实验室\多标签主动学习项目\datasets\stackOverflow', 3, dump_result=True)
+    # generateStack(r'D:\我的文件夹\学习\实验室\多标签主动学习项目\datasets\stackOverflow', 3, dump_result=True, pct_words_to_swap=0.3)
+    # print()
+    # generateStack(r'D:\我的文件夹\学习\实验室\多标签主动学习项目\datasets\stackOverflow', 3, dump_result=True, pct_words_to_swap=0.5)
 
     pass
