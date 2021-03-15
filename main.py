@@ -182,8 +182,8 @@ def main(args):
             "num_acquisitions_round": 25,
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
-            "warm_start_random_seed": 0,
-            "sample_method": "Deterministic+kim_VRS_TA_2per_wordnet+0",
+            "warm_start_random_seed": 32,
+            "sample_method": "Deterministic+kim_VRS_TA_2per_wordnet+32",
         }, {
             "model_name": "CNN",
             "group_name": "[mlabs]TA+stack+F1",
@@ -198,8 +198,8 @@ def main(args):
             "num_acquisitions_round": 25,
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
-            "warm_start_random_seed": 0,
-            "sample_method": "Deterministic+kim_VRS_TA_2per_deletion+0",
+            "warm_start_random_seed": 32,
+            "sample_method": "Deterministic+kim_VRS_TA_2per_deletion+32",
         }, {
             "model_name": "CNN",
             "group_name": "[mlabs]TA+stack+F1",
@@ -214,8 +214,8 @@ def main(args):
             "num_acquisitions_round": 25,
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
-            "warm_start_random_seed": 16,
-            "sample_method": "Deterministic+kim_VRS_TA_2per_wordnet+16",
+            "warm_start_random_seed": 64,
+            "sample_method": "Deterministic+kim_VRS_TA_2per_wordnet+64",
         }, {
             "model_name": "CNN",
             "group_name": "[mlabs]TA+stack+F1",
@@ -230,8 +230,8 @@ def main(args):
             "num_acquisitions_round": 25,
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
-            "warm_start_random_seed": 16,
-            "sample_method": "Deterministic+kim_VRS_TA_2per_deletion+16",
+            "warm_start_random_seed": 64,
+            "sample_method": "Deterministic+kim_VRS_TA_2per_deletion+64",
         }
 
 
