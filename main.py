@@ -338,7 +338,7 @@ def main(args):
 
         if using_generated_data:
             acquire_pkl_name = '{}_{}_{}_{}.pkl'.format('generated_stack', str(generated_per_sample),str(generated_percentage), generated_method)
-            generated_train_data = data[acquire_pkl_name]['train_points_g']
+            generated_train_data = data["generated_data"][acquire_pkl_name]['train_points_g']
 
 
 
