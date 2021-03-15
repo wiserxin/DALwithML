@@ -2,7 +2,17 @@ import os
 import re
 import string
 from random import randint
-from textattack.augmentation import EmbeddingAugmenter
+from textattack.augmentation import (WordNetAugmenter,
+    EmbeddingAugmenter,
+    CharSwapAugmenter,
+    EasyDataAugmenter,
+    CheckListAugmenter,
+    DeletionAugmenter,
+    CLAREAugmenter,)
+
+augmenter_dic = {"wordnet":WordNetAugmenter,"embedding":EmbeddingAugmenter,"charswap":CharSwapAugmenter,
+                 "easydata":EasyDataAugmenter,"checklist":CheckListAugmenter,"deletion":DeletionAugmenter,
+                 "clare":CLAREAugmenter}
 
 # from textattack.transformations.word_swaps import WordSwapMaskedLM,WordSwapEmbedding,\
 #     WordSwapNeighboringCharacterSwap,WordSwapRandomCharacterSubstitution,WordSwapRandomCharacterDeletion,\
@@ -147,11 +157,13 @@ def generateStackFromQuesAndAns(ques,ans,augmenter,transformations_per_example):
                 temp.append([ques,ans])
             return temp
 
-def generateStack(datapath,transformations_per_example,dump_result=False,pct_words_to_swap=0.1):
+def generateStack(datapath,transformations_per_example,dump_result=False,pct_words_to_swap=0.1, augmenter_type="embdding"):
     # [{'text':"...", 'catgy':['cat1','cat2',...] },]
     import csv
     file_names = ['stackdata_utf8.csv']
-    augmenter = EmbeddingAugmenter(transformations_per_example=transformations_per_example,pct_words_to_swap=pct_words_to_swap)
+
+    Augmenter = augmenter_dic[augmenter_type]
+    augmenter = Augmenter(transformations_per_example=transformations_per_example,pct_words_to_swap=pct_words_to_swap)
     path = os.path.join(datapath, file_names[0])
     assert os.path.exists(path)
     result = dict()
@@ -214,7 +226,8 @@ def generateStack(datapath,transformations_per_example,dump_result=False,pct_wor
 
     if dump_result:
         with open( os.path.join(datapath,
-                                'generated_stack_'+str(transformations_per_example)+"_"+str(pct_words_to_swap)+".pkl")
+                                "generated_stack_"+str(transformations_per_example)+"_"+str(pct_words_to_swap)+
+                                "_"+str(augmenter_type)+".pkl")
                    ,'wb') as f:
             import pickle
             pickle.dump(result,f)
@@ -235,5 +248,11 @@ if __name__ == '__main__':
     # generateStack(r'D:\我的文件夹\学习\实验室\多标签主动学习项目\datasets\stackOverflow', 3, dump_result=True, pct_words_to_swap=0.3)
     # print()
     # generateStack(r'D:\我的文件夹\学习\实验室\多标签主动学习项目\datasets\stackOverflow', 3, dump_result=True, pct_words_to_swap=0.5)
+
+    temp_augmenter_dic = {"wordnet": WordNetAugmenter, "charswap": CharSwapAugmenter,
+                     "easydata": EasyDataAugmenter, "checklist": CheckListAugmenter, "deletion": DeletionAugmenter,
+                     "clare": CLAREAugmenter}
+    for key in temp_augmenter_dic.keys():
+        generateStack(r'D:\我的文件夹\学习\实验室\多标签主动学习项目\datasets\stackOverflow', 3, dump_result=True, augmenter_type=key)
 
     pass
