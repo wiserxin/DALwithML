@@ -537,12 +537,13 @@ class Loader(object):
             pickle.dump(r,f)
         return r
 
-    def load_stack(self,datapath,  sents_max_len = 300, vocab_size = 50000, generate_per_sample = "3", generate_percentage = "0.1"):
+    def load_stack(self,datapath,  sents_max_len = 300, vocab_size = 50000,
+                   generate_per_sample = "3", generate_percentage = "0.1", generate_method = "embedding"):
         # stack oveerflow data
 
 
         # 读取已缓存数据
-        cache_pkl_path = 'stackLoaded_'+str(generate_per_sample)+"_"+str(generate_percentage)+".pkl"
+        cache_pkl_path = 'stackLoaded.pkl'
         if os.path.exists( os.path.join(datapath,cache_pkl_path) ):
             with open(os.path.join(datapath,cache_pkl_path) , 'rb') as f:
                 return pickle.load(f)
@@ -627,56 +628,74 @@ class Loader(object):
         # #     for j in i['catgy']:
         # #         count[j] += 1
         # # print(count)
-        generate_pkl_name = 'generated_stack_'+str(generate_per_sample)+"_"+str(generate_percentage)+".pkl"
-        if os.path.exists( os.path.join(datapath,generate_pkl_name) ):
-            with open(os.path.join(datapath,generate_pkl_name) , 'rb') as f:
-                data = pickle.load(f)
-        else:
-            from .txtgeneretor import generateStack
-            data = generateStack(datapath,int(generate_per_sample),True,float(generate_percentage))
 
-        label2id = data["label2id"]
-        loaded_data = data["loaded_data"]
-        g_loaded_data = data["generated_loaded_data"]
+        acquire_pkl_name = '{}_{}_{}_{}.pkl'.format('generated_stack',str(generate_per_sample),str(generate_percentage),generate_method)
+        data = dict()
+        all_generate_pkl_name = ['generated_stack_3_0.1_embedding.pkl', 'generated_stack_3_0.1_wordnet.pkl',
+                                 'generated_stack_3_0.1_deletion.pkl', 'generated_stack_3_0.3_embedding.pkl',
+                                 'generated_stack_3_0.3_wordnet.pkl', 'generated_stack_3_0.3_deletion.pkl',
+                                 'generated_stack_3_0.5_embedding.pkl', 'generated_stack_3_0.5_wordnet.pkl',
+                                 'generated_stack_3_0.5_deletion.pkl']
+        for generate_pkl_name in all_generate_pkl_name:
+            if os.path.exists( os.path.join(datapath,generate_pkl_name) ):
+                with open(os.path.join(datapath,generate_pkl_name) , 'rb') as f:
+                    data[generate_pkl_name] = pickle.load(f)
+            else:
+                from .txtgeneretor import generateStack
+                data[generate_pkl_name] = generateStack(datapath,int(generate_per_sample),True,float(generate_percentage),generate_method)
+
+        label2id = data[acquire_pkl_name]["label2id"]
+        loaded_data = data[acquire_pkl_name]["loaded_data"]
         train = loaded_data[:40000]
         test  = loaded_data[40000:]
-        train_g = g_loaded_data[:40000*data["transformations_per_example"]]
-        test_g  = g_loaded_data[40000*data["transformations_per_example"]:]
-
-
         trn_sents, Y_trn, Y_trn_o = load_data_and_labels(train,label2id)
         tst_sents, Y_tst, Y_tst_o = load_data_and_labels(test,label2id)
-        trn_sents_g, Y_trn_g, Y_trn_o_g = load_data_and_labels(train_g, label2id)
-        tst_sents_g, Y_tst_g, Y_tst_o_g = load_data_and_labels(test_g, label2id)
-
         trn_sents_padded = pad_sentences(trn_sents, max_length=sents_max_len)
         tst_sents_padded = pad_sentences(tst_sents, max_length=sents_max_len)
-        trn_sents_padded_g = pad_sentences(trn_sents_g, max_length=sents_max_len)
-        tst_sents_padded_g = pad_sentences(tst_sents_g, max_length=sents_max_len)
 
-        vocabulary, vocabulary_inv, vocabulary_count = build_vocab(trn_sents_padded + tst_sents_padded + trn_sents_padded_g + tst_sents_padded_g,
-                                                                   vocab_size=vocab_size)
+
+        all_sents_padded = trn_sents_padded + tst_sents_padded
+        for name in all_generate_pkl_name:
+            g_loaded_data = data[name]["generated_loaded_data"]
+            train_g = g_loaded_data[:40000*data["transformations_per_example"]]
+            test_g  = g_loaded_data[40000*data["transformations_per_example"]:]
+            trn_sents_g, Y_trn_g, Y_trn_o_g = load_data_and_labels(train_g, label2id)
+            tst_sents_g, Y_tst_g, Y_tst_o_g = load_data_and_labels(test_g, label2id)
+            trn_sents_padded_g = pad_sentences(trn_sents_g, max_length=sents_max_len)
+            tst_sents_padded_g = pad_sentences(tst_sents_g, max_length=sents_max_len)
+            all_sents_padded = all_sents_padded + trn_sents_padded_g + tst_sents_padded_g
+        # 为了之后的不同方法结合考虑，使用同一个词汇表
+        vocabulary, vocabulary_inv, vocabulary_count = build_vocab( all_sents_padded , vocab_size=vocab_size)
 
         X_trn = build_input_data(trn_sents_padded, vocabulary)
         X_tst = build_input_data(tst_sents_padded, vocabulary)
-        X_trn_g = build_input_data(trn_sents_padded_g, vocabulary)
-        X_tst_g = build_input_data(tst_sents_padded_g, vocabulary)
+        r = {'train': (X_trn, Y_trn, Y_trn_o),
+             'test': (X_tst, Y_tst, Y_tst_o),
+             'train_points': [(X_trn[i], Y_trn[i], Y_trn_o[i], i) for i in range(len(Y_trn_o))],
+             'test_points': [(X_tst[i], Y_tst[i], Y_tst_o[i], i) for i in range(len(Y_tst_o))],
+             'vocab': (vocabulary, vocabulary_inv, vocabulary_count),
+             'embed': load_word2vec(datapath, 'glove', vocabulary_inv, 300),
+             "generated_data": dict(),
+             }
 
-        r =  {  'train': (X_trn, Y_trn, Y_trn_o),
-                'test' : (X_tst, Y_tst, Y_tst_o),
-                'train_points': [(X_trn[i], Y_trn[i], Y_trn_o[i], i)  for i in range(len(Y_trn_o))],
-                'test_points' : [(X_tst[i], Y_tst[i], Y_tst_o[i], i)  for i in range(len(Y_tst_o))],
-
+        for name in all_generate_pkl_name: # 懒得改逻辑了，这样会有重复运算，不过改起来简单些
+            g_loaded_data = data[name]["generated_loaded_data"]
+            train_g = g_loaded_data[:40000*data["transformations_per_example"]]
+            test_g  = g_loaded_data[40000*data["transformations_per_example"]:]
+            trn_sents_g, Y_trn_g, Y_trn_o_g = load_data_and_labels(train_g, label2id)
+            tst_sents_g, Y_tst_g, Y_tst_o_g = load_data_and_labels(test_g, label2id)
+            trn_sents_padded_g = pad_sentences(trn_sents_g, max_length=sents_max_len)
+            tst_sents_padded_g = pad_sentences(tst_sents_g, max_length=sents_max_len)
+            X_trn_g = build_input_data(trn_sents_padded_g, vocabulary)
+            X_tst_g = build_input_data(tst_sents_padded_g, vocabulary)
+            r["generated_data"][name] = {
                 'train_g': (X_trn_g, Y_trn_g, Y_trn_o_g),
                 'test_g': (X_tst_g, Y_tst_g, Y_tst_o_g),
                 'train_points_g': [(X_trn_g[i], Y_trn_g[i], Y_trn_o_g[i], i) for i in range(len(Y_trn_o_g))],
                 'test_points_g': [(X_tst_g[i], Y_tst_g[i], Y_tst_o_g[i], i) for i in range(len(Y_tst_o_g))],
+                'generate_per_sample': generate_per_sample,
+            }
 
-                'vocab': (vocabulary, vocabulary_inv, vocabulary_count),
-                'embed': load_word2vec(datapath, 'glove', vocabulary_inv, 300),
-                'generate_per_sample':generate_per_sample,
-
-                }
         with open(os.path.join(datapath, cache_pkl_path), 'wb') as f:
             pickle.dump(r,f)
         return r
