@@ -311,7 +311,7 @@ def main(args):
             train_data = train_data[:30000]
             val_data = val_data[:]
         elif "stack" in data_path:
-            data = loader.load_stack(data_path,generate_percentage=generated_percentage)
+            data = loader.load_stack(data_path,generate_percentage=generated_percentage,generate_method=generated_method)
             args.target_size = 43
             train_data = data['train_points']
             val_data = data['test_points']
@@ -337,7 +337,8 @@ def main(args):
                 val_data = val_data[:3000]
 
         if using_generated_data:
-            generated_train_data = data['train_points_g']
+            acquire_pkl_name = '{}_{}_{}_{}.pkl'.format('generated_stack', str(generated_per_sample),str(generated_percentage), generated_method)
+            generated_train_data = data[acquire_pkl_name]['train_points_g']
 
 
 
