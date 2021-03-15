@@ -657,8 +657,8 @@ class Loader(object):
         all_sents_padded = trn_sents_padded + tst_sents_padded
         for name in all_generate_pkl_name:
             g_loaded_data = data[name]["generated_loaded_data"]
-            train_g = g_loaded_data[:40000*data["transformations_per_example"]]
-            test_g  = g_loaded_data[40000*data["transformations_per_example"]:]
+            train_g = g_loaded_data[:40000*data[acquire_pkl_name]["transformations_per_example"]]
+            test_g  = g_loaded_data[40000*data[acquire_pkl_name]["transformations_per_example"]:]
             trn_sents_g, Y_trn_g, Y_trn_o_g = load_data_and_labels(train_g, label2id)
             tst_sents_g, Y_tst_g, Y_tst_o_g = load_data_and_labels(test_g, label2id)
             trn_sents_padded_g = pad_sentences(trn_sents_g, max_length=sents_max_len)
