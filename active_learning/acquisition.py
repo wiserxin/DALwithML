@@ -2,6 +2,8 @@ import torch
 from torch.autograd import Variable
 import numpy as np
 import time
+import random
+from math import floor
 from scipy import stats
 from scipy.spatial import distance_matrix
 from neural.util.utils import *
@@ -90,7 +92,6 @@ class Acquisition(object):
         else:
             self.savedData[-1]["train_index"]=list(self.train_index)
 
-
     def get_random(self, data, acquire_num, returned=False):
 
         random_indices = self.npr.permutation(self.document_num)
@@ -110,6 +111,20 @@ class Acquisition(object):
             #       ))
         else:
             return sample_indices
+
+    def deal_generated_train_index(self, method = "", para=None):
+        if method == "":
+            pass
+        elif method == "rdr":
+            # random dropout selected self.generated_train_index in rate para
+            # rate between  0-1
+            a = list(self.generated_train_index)
+            random.shuffle(a)
+            a = a[:floor(len(a) * para)]
+            self.generated_train_index = set(a)
+        else:
+            pass
+        return
 
     def get_DAL(self, dataset, model_path, acquire_document_num,
                 nsamp=100,
@@ -1972,6 +1987,9 @@ class Acquisition(object):
                     method='random', sub_method='', round = 0):
 
         print("sampling method：" + sub_method)
+
+        # 待完善此处的逻辑
+        self.deal_generated_train_index(method="rdr",para=0.5)
 
         if model_path == "":
             print("First round of sampling")
