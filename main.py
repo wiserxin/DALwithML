@@ -177,11 +177,12 @@ def main(args):
             "sub_acquire_method": "VRS",
             "using_generated_data": True,
             "generated_used_per_sample": 2,
+            "deal_generated_train_index_method":"esd",
             "num_acquisitions_round": 25,
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 0,
-            "sample_method": "Deterministic+VRS-rdr0.5+0",
+            "sample_method": "Deterministic+VRS-esd+0",
         },{
             "model_name": "CNN",
             "group_name": "[mlabs]TA+stack+F1",
@@ -191,11 +192,12 @@ def main(args):
             "sub_acquire_method": "VRS",
             "using_generated_data": True,
             "generated_used_per_sample": 2,
+            "deal_generated_train_index_method":"esd",
             "num_acquisitions_round": 25,
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 16,
-            "sample_method": "Deterministic+VRS-rdr0.5+16",
+            "sample_method": "Deterministic+VRS-esd+16",
         }, {
             "model_name": "CNN",
             "group_name": "[mlabs]TA+stack+F1",
@@ -205,11 +207,12 @@ def main(args):
             "sub_acquire_method": "VRS",
             "using_generated_data": True,
             "generated_used_per_sample": 2,
+            "deal_generated_train_index_method":"esd",
             "num_acquisitions_round": 25,
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 32,
-            "sample_method": "Deterministic+VRS-rdr0.5+32",
+            "sample_method": "Deterministic+VRS-esd+32",
         }, {
             "model_name": "CNN",
             "group_name": "[mlabs]TA+stack+F1",
@@ -219,11 +222,12 @@ def main(args):
             "sub_acquire_method": "VRS",
             "using_generated_data": True,
             "generated_used_per_sample": 2,
+            "deal_generated_train_index_method":"esd",
             "num_acquisitions_round": 25,
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 64,
-            "sample_method": "Deterministic+VRS-rdr0.5+64",
+            "sample_method": "Deterministic+VRS-esd+64",
         }
 
 
@@ -256,6 +260,7 @@ def main(args):
         generated_per_sample = config["generated_per_sample"] if "generated_per_sample" in config else 3
         generated_used_per_sample = config["generated_used_per_sample"] if "generated_used_per_sample" in config else generated_per_sample
         generated_percentage = config["generated_percentage"] if "generated_percentage" in config else "0.1"
+        deal_generated_train_index_method = config["deal_generated_train_index_method"] if "deal_generated_train_index_method" in config else ""
         generated_method = config["generated_method"] if "generated_method" in config else "embedding"
 
         visual_data_path = os.path.join("result", sample_method + ".txt")
@@ -352,6 +357,7 @@ def main(args):
                                             using_generated_data=using_generated_data,
                                             generated_per_sample = generated_per_sample,
                                             generated_used_per_sample = generated_used_per_sample,
+                                           deal_generated_train_index_method=deal_generated_train_index_method,
                                             target_size=args.target_size)
 
         checkpoint_path = os.path.join(args.result_path, 'active_checkpoint', config["group_name"], sample_method)

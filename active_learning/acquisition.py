@@ -24,11 +24,13 @@ class Acquisition(object):
                  using_generated_data = False,
                  generated_per_sample = 0,
                  generated_used_per_sample = 0,
+                 deal_generated_train_index_method="",
                  target_size = 2):
         self.train_data = train_data
         self.document_num = len(train_data)
         self.train_index = set()  #the index of the labeled samples
         self.generated_train_index = set() # the index of the generated labeled samples
+        self.round = -1 # the acquire round :first round 's num is 0; updated by func obtain_data
         self.random_seed = seed
         self.npr = np.random.RandomState(seed)
         self.usecuda = usecuda
@@ -36,9 +38,13 @@ class Acquisition(object):
         self.batch_size = batch_size
         self.cal_Aleatoric_uncertainty = cal_Aleatoric_uncertainty
         self.submodular_k = submodular_k
+
         self.using_generated_data = using_generated_data
         self.generated_per_sample = generated_per_sample
         self.generated_used_per_sample = generated_used_per_sample
+        self.deal_generated_train_index_method = deal_generated_train_index_method
+        self.deal_generated_train_index_para = None
+
         self.savedData = list()
         self.label_count = np.zeros(target_size) # 存储train_index中的数据，其中涉及到的label的计数
         # for i in range(len(train_data)):
@@ -63,7 +69,7 @@ class Acquisition(object):
         result = [(theDict[i] if i in theDict.keys() else 0) for i in range(103)]
         return result
 
-    def update_train_index(self,acquired_set):
+    def update_train_index(self, acquired_set,):
         # 注意调用时应保证 先 self.savedData.append , 再 update_train_index
         # 更新 label_count 和 train_index
         temp = []
@@ -77,20 +83,45 @@ class Acquisition(object):
         # print(self.label_count)
         # print(self.label_count.shape)
         # assert False
-
         self.train_index.update(acquired_set)
 
+
+        #----------------------------------------------------------------------------------------------------#
         # 更新 self.generated_train_index
         if self.using_generated_data:
-            acquired_generated_set = {self.generated_per_sample * one_train_index + generated_counter
-                                            for one_train_index in acquired_set
-                                            for generated_counter in range(0, self.generated_used_per_sample)}
-            self.generated_train_index.update(acquired_generated_set)
+            def default():
+                acquired_generated_set = {self.generated_per_sample * one_train_index + generated_counter
+                                          for one_train_index in acquired_set
+                                          for generated_counter in range(0, self.generated_used_per_sample)}
+                self.generated_train_index.update(acquired_generated_set)
 
+            def randomDropout():
+                default()
+                # random dropout selected self.generated_train_index in rate para
+                # para :: the rate, between  0-1
+                a = list(self.generated_train_index)
+                random.shuffle(a)
+                a = a[:floor(len(a) * self.deal_generated_train_index_para) // self.batch_size * self.batch_size]  # 确保数据量与batchsize相符，多余的长度会随机丢弃
+                self.generated_train_index = set(a)
+
+            def easySlowDown():
+                self.generated_used_per_sample = max(0,self.generated_per_sample-self.round//4)
+                default()
+
+            deal_genereted_fun = {
+                ""    : default,
+                "rdr" : randomDropout,
+                "esd" : easySlowDown,
+            }
+            deal_genereted_fun[self.deal_generated_train_index_method]()
+
+
+        # 更新 saved data , 即每个round选取的train_index 和 generated_data
         if len(self.savedData) == 0:
-            self.savedData.append({"train_index":list(self.train_index)})
+            self.savedData.append({"train_index":self.train_index, "generated_train_index":self.generated_train_index})
         else:
-            self.savedData[-1]["train_index"]=list(self.train_index)
+            self.savedData[-1]["train_index"]=self.train_index
+            self.savedData[-1]["generated_train_index"]=self.generated_train_index
 
     def get_random(self, data, acquire_num, returned=False):
 
@@ -112,19 +143,6 @@ class Acquisition(object):
         else:
             return sample_indices
 
-    def deal_generated_train_index(self, method = "", para=None):
-        if method == "":
-            pass
-        elif method == "rdr":
-            # random dropout selected self.generated_train_index in rate para
-            # rate between  0-1
-            a = list(self.generated_train_index)
-            random.shuffle(a)
-            a = a[:floor(len(a) * para)]
-            self.generated_train_index = set(a)
-        else:
-            pass
-        return
 
     def get_DAL(self, dataset, model_path, acquire_document_num,
                 nsamp=100,
@@ -1987,9 +2005,10 @@ class Acquisition(object):
                     method='random', sub_method='', round = 0):
 
         print("sampling method：" + sub_method)
+        self.round = round
 
         # 待完善此处的逻辑
-        self.deal_generated_train_index(method="rdr",para=0.5)
+        # self.deal_generated_train_index(method="rdr",para=0.5)
 
         if model_path == "":
             print("First round of sampling")
