@@ -1986,8 +1986,10 @@ class Acquisition(object):
                 sorted_overAllGroundTruth = sorted(overAllGroundTruth)
                 positive_item = sorted_overAllGroundTruth[-positive_num:]
                 varRatios_arr.append(1 - np.mean(positive_item))
-            new_score_arr = [ (generated_feature_cos_distance[new_datapoints[i]])*varRatios_arr[i]
-                                for i in range(len(varRatios_arr)) ]
+            # new_score_arr = [ (generated_feature_cos_distance[new_datapoints[i]])*varRatios_arr[i]
+            #                     for i in range(len(varRatios_arr)) ]
+            new_score_arr = [0.1*(generated_feature_cos_distance[new_datapoints[i]]) + varRatios_arr[i]
+                             for i in range(len(varRatios_arr))]
 
 
         arg = np.argsort(new_score_arr)[-acquire_document_num:]  # ratios 最大的几个样本的id
