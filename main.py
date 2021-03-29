@@ -174,7 +174,7 @@ def main(args):
             "max_performance": 0.90,
             "data_path": "../../datasets/stack/",
             "acquire_method": "dete",
-            "sub_acquire_method": "VRS",
+            "sub_acquire_method": "VRS_feature",
             "using_generated_data": True,
             "generated_used_per_sample": 2,
             "deal_generated_train_index_method":"esd",
@@ -182,14 +182,14 @@ def main(args):
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 0,
-            "sample_method": "Deterministic+VRS-esd+0",
+            "sample_method": "Deterministic+fVRS-esd+0",
         },{
             "model_name": "CNN",
             "group_name": "[mlabs]TA+stack+F1",
             "max_performance": 0.90,
             "data_path": "../../datasets/stack/",
             "acquire_method": "dete",
-            "sub_acquire_method": "VRS",
+            "sub_acquire_method": "VRS_feature",
             "using_generated_data": True,
             "generated_used_per_sample": 2,
             "deal_generated_train_index_method":"esd",
@@ -197,14 +197,14 @@ def main(args):
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 16,
-            "sample_method": "Deterministic+VRS-esd+16",
+            "sample_method": "Deterministic+fVRS-esd+16",
         }, {
             "model_name": "CNN",
             "group_name": "[mlabs]TA+stack+F1",
             "max_performance": 0.90,
             "data_path": "../../datasets/stack/",
             "acquire_method": "dete",
-            "sub_acquire_method": "VRS",
+            "sub_acquire_method": "VRS_feature",
             "using_generated_data": True,
             "generated_used_per_sample": 2,
             "deal_generated_train_index_method":"esd",
@@ -212,14 +212,14 @@ def main(args):
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 32,
-            "sample_method": "Deterministic+VRS-esd+32",
+            "sample_method": "Deterministic+fVRS-esd+32",
         }, {
             "model_name": "CNN",
             "group_name": "[mlabs]TA+stack+F1",
             "max_performance": 0.90,
             "data_path": "../../datasets/stack/",
             "acquire_method": "dete",
-            "sub_acquire_method": "VRS",
+            "sub_acquire_method": "VRS_feature",
             "using_generated_data": True,
             "generated_used_per_sample": 2,
             "deal_generated_train_index_method":"esd",
@@ -227,7 +227,63 @@ def main(args):
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 64,
-            "sample_method": "Deterministic+VRS-esd+64",
+            "sample_method": "Deterministic+fVRS-esd+64",
+        },{
+            "model_name": "CNN",
+            "group_name": "[mlabs]TA+stack+F1",
+            "max_performance": 0.90,
+            "data_path": "../../datasets/stack/",
+            "acquire_method": "dete",
+            "sub_acquire_method": "VRS_feature",
+            "using_generated_data": True,
+            "generated_used_per_sample": 2,
+            "num_acquisitions_round": 25,
+            "init_question_num": 1200,
+            "acquire_question_num_per_round": 1200,
+            "warm_start_random_seed": 0,
+            "sample_method": "Deterministic+fVRS_TA2+0",
+        }, {
+            "model_name": "CNN",
+            "group_name": "[mlabs]TA+stack+F1",
+            "max_performance": 0.90,
+            "data_path": "../../datasets/stack/",
+            "acquire_method": "dete",
+            "sub_acquire_method": "VRS_feature",
+            "using_generated_data": True,
+            "generated_used_per_sample": 2,
+            "num_acquisitions_round": 25,
+            "init_question_num": 1200,
+            "acquire_question_num_per_round": 1200,
+            "warm_start_random_seed": 16,
+            "sample_method": "Deterministic+fVRS_TA2+16",
+        }, {
+            "model_name": "CNN",
+            "group_name": "[mlabs]TA+stack+F1",
+            "max_performance": 0.90,
+            "data_path": "../../datasets/stack/",
+            "acquire_method": "dete",
+            "sub_acquire_method": "VRS_feature",
+            "using_generated_data": True,
+            "generated_used_per_sample": 2,
+            "num_acquisitions_round": 25,
+            "init_question_num": 1200,
+            "acquire_question_num_per_round": 1200,
+            "warm_start_random_seed": 32,
+            "sample_method": "Deterministic+fVRS_TA2+32",
+        }, {
+            "model_name": "CNN",
+            "group_name": "[mlabs]TA+stack+F1",
+            "max_performance": 0.90,
+            "data_path": "../../datasets/stack/",
+            "acquire_method": "dete",
+            "sub_acquire_method": "VRS_feature",
+            "using_generated_data": True,
+            "generated_used_per_sample": 2,
+            "num_acquisitions_round": 25,
+            "init_question_num": 1200,
+            "acquire_question_num_per_round": 1200,
+            "warm_start_random_seed": 64,
+            "sample_method": "Deterministic+fVRS_TA2+64",
         }
 
 
@@ -333,10 +389,6 @@ def main(args):
                 train_data = train_data[:30000]
                 val_data = val_data[:3000]
 
-        if using_generated_data:
-            acquire_pkl_name = '{}_{}_{}_{}.pkl'.format('generated_stack', str(generated_per_sample),str(generated_percentage), generated_method)
-            generated_train_data = data["generated_data"][acquire_pkl_name]['train_points_g']
-
 
 
 
@@ -359,6 +411,11 @@ def main(args):
                                             generated_used_per_sample = generated_used_per_sample,
                                            deal_generated_train_index_method=deal_generated_train_index_method,
                                             target_size=args.target_size)
+
+        if using_generated_data:
+            acquire_pkl_name = '{}_{}_{}_{}.pkl'.format('generated_stack', str(generated_per_sample),str(generated_percentage), generated_method)
+            generated_train_data = data["generated_data"][acquire_pkl_name]['train_points_g']
+            acquisition_function.generated_train_data = generated_train_data
 
         checkpoint_path = os.path.join(args.result_path, 'active_checkpoint', config["group_name"], sample_method)
         if not os.path.exists(checkpoint_path):

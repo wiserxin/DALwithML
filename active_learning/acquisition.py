@@ -12,6 +12,544 @@ import torch.nn.functional as F
 from .unsupervised import *
 from sklearn.cluster import KMeans
 
+class SubMod(object):
+    def __init__(self):
+        pass
+
+    def getNoDeteMethodByName(self,methodNick):
+        def rankingLoss2(item):  # item = nsamples * labels
+            # 使用ground truth 给每个forward pass筛选，计算所有的 neg_label > pos_label 对 的 sum(neg_label-pos_label)
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0) > 0.5
+            positiveItems = item_arr[:, overAllGroundTruth]
+            negitiveItems = item_arr[:, overAllGroundTruth == 0]
+            r = 0
+            for column in range(positiveItems.shape[1]):
+                temp = positiveItems[:, column]
+                temp = negitiveItems.transpose() - temp
+                r += np.sum((temp > 0) * temp)
+            return r
+
+        # def rankingLoss3(item, eachRankingLoss=True):
+        #     # 设计的有问题，是否为正样本应按照大小排序，而不应用阈值
+        #     # 使用阈值的话，会产生el error
+        #     # item = nsamples * labels
+        #     item_arr = np.array(item)
+        #     if eachRankingLoss: # each时遇到异常样本时为 1
+        #         r = []
+        #         eachGroundTruth = item_arr > 0.5
+        #         for i in range(item_arr.shape[0]):
+        #             tn = (np.sum(eachGroundTruth[i] == 1))
+        #             fn = (np.sum(eachGroundTruth[i] == 0))
+        #             if tn == 0 or fn == 0:
+        #                 r.append(1)
+        #                 # pass
+        #             else:
+        #                 r.append(np.sum(item_arr[i] * eachGroundTruth[i]) / tn - np.sum(
+        #                     item_arr[i] * (eachGroundTruth[i] == 0)) / fn)
+        #         return np.array(r)
+        #
+        #     else: # overall时遇到异常样本返回-1
+        #         overAllGroundTruth = np.mean(item_arr, axis=0) > 0.5
+        #         tn = (np.sum(overAllGroundTruth == 1))
+        #         fn = (np.sum(overAllGroundTruth == 0))
+        #         if tn == 0 or fn == 0:
+        #             return -1
+        #         else:
+        #             positiveItems = item_arr[:, overAllGroundTruth]
+        #             negitiveItems = item_arr[:, overAllGroundTruth == 0]
+        #             return np.mean(positiveItems) - np.mean(negitiveItems)
+
+        def rankingLoss4(item):
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            positive_num = np.sum(overAllGroundTruth > 0.5)
+            if positive_num == 0:
+                positive_num = 1
+            elif positive_num == overAllGroundTruth.size:
+                positive_num = overAllGroundTruth.size - 1
+
+            # each RL3
+            sorted_item_arr = np.sort(item_arr)
+            positive_item_arr = sorted_item_arr[:, -positive_num:]
+            negitive_item_arr = sorted_item_arr[:, :-positive_num]
+            each_rl = np.mean((np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1)))
+
+            # overall RL3
+            sorted_item_arr = item_arr[:, overAllGroundTruth.argsort()]
+            positive_item_arr = sorted_item_arr[:, -positive_num:]
+            negitive_item_arr = sorted_item_arr[:, :-positive_num]
+            overall_rl = np.mean(np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1))
+            return each_rl - overall_rl
+
+        def rankingLoss4_first_part(item):
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            positive_num = np.sum(overAllGroundTruth > 0.5)
+            if positive_num == 0:
+                positive_num = 1
+            elif positive_num == overAllGroundTruth.size:
+                positive_num = overAllGroundTruth.size - 1
+
+            # each RL3
+            sorted_item_arr = np.sort(item_arr)
+            positive_item_arr = sorted_item_arr[:, -positive_num:]
+            negitive_item_arr = sorted_item_arr[:, :-positive_num]
+            each_rl = np.mean((np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1)))
+
+            return each_rl
+
+        def rankingLoss5(item):
+            # RKL5
+            positive_num = 5# 超参数,意义为 期望有几个positive label
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            # print(overAllGroundTruth)
+
+            # each RKL5
+            sorted_item_arr = np.sort(item_arr)
+            positive_item_arr = sorted_item_arr[:, -positive_num:]
+            negitive_item_arr = sorted_item_arr[:, -2 * positive_num:-positive_num]
+            each_rl = np.mean((np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1)))
+
+            # overall RL5
+            sorted_item_arr = item_arr[:, overAllGroundTruth.argsort()]
+            positive_item_arr = sorted_item_arr[:, -positive_num:]
+            negitive_item_arr = sorted_item_arr[:, -2 * positive_num:-positive_num]
+            overall_rl = np.mean(np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1))
+            return 1+ each_rl - overall_rl# 应该更好的表征el的式子，不应使用 1+
+
+        def rankingLoss6(item):
+            return 2.0-rankingLoss5(item)
+
+        def rankingLoss7(item,mod=1):
+            weight = 1- self.label_count / np.sum(self.label_count)
+
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            #     print(overAllGroundTruth)
+            positive_num = np.sum(overAllGroundTruth > 0.5)
+            # print(overAllGroundTruth.size)
+            # print(overAllGroundTruth.shape)
+            if positive_num == 0:
+                positive_num = 1
+            elif positive_num == overAllGroundTruth.size:
+                positive_num = overAllGroundTruth.size - 1
+
+            temp = overAllGroundTruth.argsort()
+            overAllGroundTruth = overAllGroundTruth[temp]
+            weight = weight[temp]
+            #     positive_labels = temp[-positive_num:]
+            #     negitive_labels = temp[:-positive_num]
+
+            # overall
+            overAllGroundTruth_t = overAllGroundTruth * weight
+            overall_loss = np.mean(weight[:-positive_num]) * np.mean(overAllGroundTruth_t[-positive_num:]) - \
+                           np.mean(weight[-positive_num:]) * np.mean(overAllGroundTruth_t[:-positive_num])
+
+            # each
+            if mod == 1:
+                sorted_item_arr_t = np.mean(np.sort(item_arr),axis=0)*weight
+                each_loss = np.mean(weight[:-positive_num])*np.mean(sorted_item_arr_t[-positive_num:]) - \
+                            np.mean(weight[-positive_num:])*np.mean(sorted_item_arr_t[:-positive_num])
+            elif mod == 2:
+                #         t = item_arr * weight
+                pass
+
+            return each_loss - overall_loss
+
+        def rankingLoss8(item, mod=0):
+            # 思路：
+            # 1 仅计算所有的 pos 与 最大的 neg label 间的差值作为Loss？？？
+            #   loss =  1 - mean(pos-neg_highest)  值越大越应选中
+            #   因为 pos 与 neg 越接近  该样本越不确定
+            #   然后 就 el = Loss_each - Loss_overall
+            # 2 或者使用 Loss*RKL4  试试 ？就变相的给RKL4加权了
+            #   认为 Loss 和 var Ratios 即 vrs 的效果应一致，可以测试一下
+            #   即使用 mod 0
+            #
+            # mod  |  效果
+            #  0   |  返回 overall RL
+            #  1   |  返回 each  RL
+            #  2   |  返回 el  RL = each RL - overall RL      # 这个 el 有缺陷, elo number 接近半数
+            #  3   |  返回 RKL4 * overall RL
+            #  4   |  返回 overall ( 1-min(pos) )
+            #  5   |  返回 overall ( min(pos) - max(neg) )
+            #  6   |  返回 each    ( min(pos) - max(neg) )
+
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            positive_num = np.sum(overAllGroundTruth > 0.5)
+            if positive_num == 0:
+                positive_num = 1
+            elif positive_num == overAllGroundTruth.size:
+                positive_num = overAllGroundTruth.size - 1
+
+            # each RL8
+            sorted_item_arr = np.sort(item_arr)
+            positive_item_arr = sorted_item_arr[:, -positive_num:]
+            negitive_item_arr = sorted_item_arr[:, :-positive_num]
+            lowest_positive_item  = positive_item_arr[:,0]
+            highest_negitive_item = negitive_item_arr[:,-1]
+            each_rl = 1 - np.mean((np.mean(positive_item_arr, axis=1) - highest_negitive_item ))
+
+            # overall RL8
+            sorted_overAllGroundTruth = np.sort(overAllGroundTruth)
+            positive_item_arr = sorted_overAllGroundTruth[-positive_num:]
+            lowest_positive_item  = sorted_overAllGroundTruth[-positive_num]
+            highest_negitive_item = sorted_overAllGroundTruth[-positive_num-1]
+            overall_rl = 1 - np.mean( np.mean(positive_item_arr) - highest_negitive_item )
+
+            returnList = ["overall_rl", "each_rl", "each_rl-overall_rl", "rankingLoss4(item)*overall_rl", # 0 1 2 3
+                          "1-lowest_positive_item", "lowest_positive_item-highest_negitive_item",       # 4 5
+                          "np.mean(lowest_positive_item-highest_negitive_item)",                        # 6
+                          ]
+            return eval(returnList[mod])
+
+        def rankingLoss9(item):
+            # rkl9 = weight[trueLabels] * rkl4
+
+            weight = 1 - self.label_count / np.sum(self.label_count)
+
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            positive_num = np.sum(overAllGroundTruth > 0.5)
+            if positive_num == 0:
+                positive_num = 1
+            elif positive_num == overAllGroundTruth.size:
+                positive_num = overAllGroundTruth.size - 1
+
+            # each RL3
+            sorted_item_arr = np.sort(item_arr)
+            positive_item_arr = sorted_item_arr[:, -positive_num:]
+            negitive_item_arr = sorted_item_arr[:, :-positive_num]
+            each_rl = np.mean((np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1)))
+
+            # overall RL3
+            sorted_item_arr = item_arr[:, overAllGroundTruth.argsort()]
+            positive_item_arr = sorted_item_arr[:, -positive_num:]
+            negitive_item_arr = sorted_item_arr[:, :-positive_num]
+            overall_rl = np.mean(np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1))
+            return (each_rl - overall_rl) * np.sum(weight[overAllGroundTruth.argsort()[-positive_num:]])
+
+        def meanMaxLoss(item):
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            #     print(overAllGroundTruth)
+            positive_num = np.sum(overAllGroundTruth > 0.5)
+            # print(overAllGroundTruth.size)
+            # print(overAllGroundTruth.shape)
+            if positive_num == 0:
+                positive_num = 1
+            elif positive_num == overAllGroundTruth.size:
+                positive_num = overAllGroundTruth.size - 1
+
+            nlabels = item_arr.shape[1]
+            M = np.eye(nlabels)
+            M = 2 * M - 1  # 构建对角线为1 其余为-1 的矩阵
+
+            # overall
+            positive_labels = overAllGroundTruth.argsort()[-positive_num:]
+            overall_loss = np.mean(np.sum(1 - M[positive_labels] * overAllGroundTruth, axis=1))
+            #     print(overall_loss)
+
+            # each
+            sorted_item_arr = np.sort(item_arr)
+            t = nlabels * 1 - np.dot(M[-positive_num:], item_arr.T)
+            t = np.mean(t)
+            each_loss = t
+
+            return each_loss - overall_loss
+
+        def entropyLoss(item,mod=False):
+            # ee: entropy*EL ?
+            ee = mod
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            entropy_arr = -np.log2(item_arr) * item_arr - np.log2(1 - item_arr) * (1 - item_arr)
+            overall_entropy = -np.log2(overAllGroundTruth) * overAllGroundTruth - np.log2(1 - overAllGroundTruth) * (
+                        1 - overAllGroundTruth)
+            overall_entropy = np.mean(overall_entropy)
+            each_entropy = np.mean(entropy_arr)
+            if ee:
+                return overall_entropy* (overall_entropy - each_entropy)
+            else:
+                return overall_entropy - each_entropy
+
+        def eentropyLoss(item):
+            return entropyLoss(item,mod=True)
+
+        def BALD(item):
+            item_arr = np.array(item)
+            pos_item_arr = item_arr > 0.5
+            pos_item_code = list()
+            for i in pos_item_arr:
+                temp = 0
+                for j in i:
+                    temp = temp << 1
+                    temp += j
+                pos_item_code.append(temp)
+            delt = stats.mode(pos_item_code)
+            return len(item_arr) - delt[1][0] # 总采样次数 - 出现最多的模式的频次;得到的值越大,模型越不确定
+
+        def varRatios(item):
+            # Var Ratios
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            positive_num = np.sum(overAllGroundTruth > 0.5)
+            if positive_num == 0:
+                positive_num = 1
+            elif positive_num == overAllGroundTruth.size:
+                positive_num = overAllGroundTruth.size - 1
+
+            sorted_overAllGroundTruth = sorted(overAllGroundTruth)
+            positive_item = sorted_overAllGroundTruth[-positive_num:]
+            return 1-np.mean(positive_item) # 1 减去 正标签的出现概率
+
+        def varRatiosLoss(item):
+            # EL in var Ratios
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            positive_num = np.sum(overAllGroundTruth > 0.5)
+            if positive_num == 0:
+                positive_num = 1
+            elif positive_num == overAllGroundTruth.size:
+                positive_num = overAllGroundTruth.size - 1
+
+            # overall
+            sorted_overAllGroundTruth = sorted(overAllGroundTruth)
+            overall_ratios = np.mean(sorted_overAllGroundTruth[-positive_num:])
+
+            # each
+            sorted_item_arr = np.sort(item_arr)
+            positive_item_arr = sorted_item_arr[:, -positive_num:]
+            each_ratios = np.mean(positive_item_arr,)
+
+            return each_ratios - overall_ratios
+
+        def label_instance_wise(item,mod=0):
+            #  liw : label-instance-wise
+            #  0 : lab * ins
+            #  1 : label + ins
+            #  2 : ins
+            #  3 : label
+
+            # 方案 1 ：
+            # label wise 仅考虑一个样本的不同forward pass， 此时对于 *pos* label，给出label-wise的计算值 。
+            # (因为之前的vrs实验中仅使用pos的效果就足够了)
+            # 而instance-wise的值由均值（overAllGroundTruth给出）
+
+            baseline = 0.5
+            item_arr = np.array(item)
+
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            # print(overAllGroundTruth)
+            positive_num = np.sum(overAllGroundTruth > baseline)
+            # print(overAllGroundTruth.size)
+            # print(overAllGroundTruth.shape)
+            if positive_num == 0:
+                positive_num = 1
+            elif positive_num == overAllGroundTruth.size:
+                positive_num = overAllGroundTruth.size - 1
+            # print(overAllGroundTruth)
+
+            overAllGroundTruth_argsort = np.argsort(overAllGroundTruth)  # 按值由小到大 给出 index
+            # print(overAllGroundTruth_argsort)
+
+            label_wise_value = overAllGroundTruth[overAllGroundTruth_argsort[-positive_num]] - \
+                               overAllGroundTruth[overAllGroundTruth_argsort[-positive_num - 1]]
+
+            pos_args = overAllGroundTruth_argsort[-positive_num:]
+            # neg_args = overAllGroundTruth_argsort[:-positive_num]
+
+            # print("-"*30)
+            # -------------------------------------------------------------------- #
+            # 把一个instance的几个dropout视为不同的instance，并以此为矩阵计算
+            # 共有j个label（item的列数），则应计算j个value，我们选用其中 pos_num个
+            # instance－wise value
+            # forward-wise value
+            temp = item_arr.transpose()[pos_args, :]
+            item_arr_TF = temp > baseline
+            # print(item_arr_TF)
+
+            item_arr_T = temp * item_arr_TF
+            # print(item_arr_T)
+            item_arr_T += (item_arr_T == 0)  # change all neg into 1 to get the min pos value
+            # print(item_arr_T)
+
+            item_arr_F = temp * (item_arr_TF == 0)
+            # print(item_arr_F)
+            # change all pos into 0 to get the max neg value
+
+            # note that ,
+            # if one column has no pos, means that it is very confident to be neg
+            # so we let min pos be 1 , to get a higher value of min_pos-max_neg, and less possible to be chosen
+            instance_wise_pos_value = np.min(item_arr_T, axis=1) - np.max(item_arr_F, axis=1)
+            instance_wise_pos_value = np.mean(instance_wise_pos_value)
+
+            # print(instance_wise_pos_value)
+
+            if mod == 0:
+                value = 1-label_wise_value * instance_wise_pos_value
+            elif mod == 1:
+                value = 2-label_wise_value - instance_wise_pos_value
+            elif mod == 2:
+                value = 1-instance_wise_pos_value
+            elif mod == 3:
+                value = 1-label_wise_value
+            return value
+
+        def variance_analysis(item):
+            '''
+            func:   方差分解分析
+            return:
+                s1: 认为是多次试验的随机误差，即dropout引起的离差平方和
+                    实验中体现为模型的鲁棒性？
+                s2: 认为是描述因素各个水平效应的影响，实验中体现为
+                    pos label 间的差异程度、neg label 间的差异程度
+            notes:  这种方法应当设计用在单标签分类问题 即
+                    同一个label,不同样本,不同dropout，这样的可解释性更强
+                    我在使用中，把label 和样本 对调，由此的可解释性差了一些，
+                    而且label数量远小于样本数量，可能导致置信度更差
+            '''
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+
+            s1_arr = np.var(item_arr, axis=0)  # S_e / n
+            s2_arr = np.var(overAllGroundTruth)
+            # s3_arr = np.var(item_arr,axis=1) # 统计书上没有特殊的解释，直观上是一个样本内部多个标签之间的差异程度。
+            # 其长度为dropout次数
+
+            # S_e / n / m
+            # 认为是多次试验的随机误差，即dropout引起的离差平方和
+            s1 = np.mean(s1_arr)
+
+            # S_A / n / m
+            # 认为是描述因素各个水平效应的影响，即同类label间的差异程度
+            s2 = s2_arr  # S_A / n / m
+
+            s = np.var(item_arr)
+            # print(s1_arr)
+            # print(s1)
+            # print(s2_arr)
+            # print(s2)
+            # print(s,"=",s1,"+",s2)
+            return s1, s2
+
+        def meanVarLoss(item, mod=(0.4,0.3,0.3)):
+            '''
+            input:
+                mod : (w_m, w_s1, w_s2)
+                w_m : 均值权重
+                w_s1: s1权重
+                w_s2: s2权重
+            return:
+                w_m*( (1-(pm-nm))**2 ) + w_s1*( ps1 + ns1 ) + w_s2*(ps2+ns2)
+                (1-(pm-nm))**2 : 为了使得方差和均值处在一个数量级，对均值取了平方
+                ps1 + ns1      : dropout引起的离差平方和
+                ps2+ns2        : label 间的差异程度
+
+            '''
+
+            # 方差越大，该样本模型预测的越不确定
+            # 均值差越小，该样本模型预测的越不确定
+
+            # 使用方差分解的话，在el中的这种 求each 处理方式应该是无法解释的。
+            # 感觉可以尝试但基本无法拿来写文章
+            # 把 item_array 按照各自内部的顺序分成 pos 和 neg 两个 arr
+            # item_arr = np.array(item)
+            # sorted_item_arr = np.sort(item_arr)
+            # positive_item_arr = sorted_item_arr[:,-positive_num:]
+            # negitive_item_arr = sorted_item_arr[:,:-positive_num]
+
+            # 把 item_array 按照overAllGroundTruth分成 pos 和 neg 两个 arr
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            positive_num = np.sum(overAllGroundTruth > 0.5)
+
+            positive_num = 1 if positive_num == 0 else positive_num
+            positive_num = overAllGroundTruth.size - 1 if positive_num == overAllGroundTruth.size else positive_num
+
+            sorted_item_arr = item_arr[:, overAllGroundTruth.argsort()]
+            positive_item_arr = sorted_item_arr[:, -positive_num:]
+            negitive_item_arr = sorted_item_arr[:, :-positive_num]
+
+            pm = np.mean(positive_item_arr)
+            nm = np.mean(negitive_item_arr)
+
+            ps1, ps2 = variance_analysis(positive_item_arr)
+            ns1, ns2 = variance_analysis(negitive_item_arr)
+
+            if len(mod) == 3:
+                w_m, w_s1, w_s2 = mod
+                # 为了使得方差和均值处在一个数量级，对均值取了平方
+                return w_m * ((1 - (pm - nm)) ** 2) + w_s1 * (ps1 + ns1) + w_s2 * (ps2 + ns2)
+            elif len(mod) == 5:
+                w_m, w_s1_p, w_s1_n, w_s2_p, w_s2_n = mod
+                return w_m*((1-(pm-nm))**2) + w_s1_p*ps1 + w_s1_n*ns1 + w_s2_p*ps2 + w_s2_n*ns2
+            elif len(mod) == 6:
+                # an example is (0.4,0, 0.3,0, 0.3,0)
+                # each in len==3 splitted into 2 parts: pos and neg
+                w_m_p, w_m_n, w_s1_p, w_s1_n, w_s2_p, w_s2_n = mod
+                return w_m_p*((1-pm)**2) + w_m_n*((nm-0)**2) + w_s1_p*ps1 + w_s1_n*ns1 + w_s2_p*ps2 + w_s2_n*ns2
+            else:
+                assert not "defined!"
+
+        def F_variance_analysis(item, mod=0):
+            # F 分布 F(k-1,n-k), F值过大拒绝
+            item_arr = np.array(item)
+            overAllGroundTruth = np.mean(item_arr, axis=0)
+            positive_num = np.sum(overAllGroundTruth > 0.5)
+
+            positive_num = 1 if positive_num == 0 else positive_num
+            positive_num = overAllGroundTruth.size - 1 if positive_num == overAllGroundTruth.size else positive_num
+
+            overall_arg_sort = overAllGroundTruth.argsort()
+            positive_columns = overall_arg_sort[-positive_num:]
+            negetive_columns = overall_arg_sort[:-positive_num]
+            item_arr[:, positive_columns] = 1 - item_arr[:, positive_columns]
+            s_dropout, s_labels = variance_analysis(item_arr)
+
+            n,k = np.shape(item)
+
+            if mod == 0:
+                return (s_labels/(k-1)) / (s_dropout/(n*k-k))
+            else:
+                m_pos = np.mean(overAllGroundTruth[positive_columns])
+                m_neg = np.mean(overAllGroundTruth[negetive_columns])
+                if mod==1:
+                    return (s_labels/(k-1)) / (s_dropout/(n*k-k)) * (1 - (m_pos - m_neg))
+                elif mod == 2:
+                    return (s_labels / (k - 1)) / (s_dropout / (n * k - k)) * (1 - m_pos)
+
+
+        # 选取策略
+        methodDic = {2:rankingLoss2,
+                  4:rankingLoss4,
+                  5:rankingLoss5,
+                  6:rankingLoss6,
+                  7:rankingLoss7,
+                  8:rankingLoss8,
+                  9:rankingLoss9,
+
+                  '4fp':rankingLoss4_first_part,
+
+                  'mml':meanMaxLoss,
+
+                  'et':entropyLoss,
+                  'ee':eentropyLoss,
+                  'bald': BALD,
+                  'vrs' : varRatios,
+                  'vrl' : varRatiosLoss,
+                  'liw' : label_instance_wise,
+                  'mvl' : meanVarLoss,
+                  'fva' : F_variance_analysis,
+                  }
+        method = methodDic[methodNick]
+        print("Choose method",method,end="\t")
+        return method
+
+allSubMethod = SubMod()
 
 class Acquisition(object):
     def __init__(self, train_data,
@@ -27,6 +565,7 @@ class Acquisition(object):
                  deal_generated_train_index_method="",
                  target_size = 2):
         self.train_data = train_data
+        self.generated_train_data = list() # if using_generated_data, input the data later after init
         self.document_num = len(train_data)
         self.train_index = set()  #the index of the labeled samples
         self.generated_train_index = set() # the index of the generated labeled samples
@@ -483,539 +1022,9 @@ class Acquisition(object):
                 density = False,#开启则挑选更稠密的区间的点
                 thisround=-1,):
 
-        def rankingLoss2(item):  # item = nsamples * labels
-            # 使用ground truth 给每个forward pass筛选，计算所有的 neg_label > pos_label 对 的 sum(neg_label-pos_label)
-            item_arr = np.array(item)
-            overAllGroundTruth = np.mean(item_arr, axis=0) > 0.5
-            positiveItems = item_arr[:, overAllGroundTruth]
-            negitiveItems = item_arr[:, overAllGroundTruth == 0]
-            r = 0
-            for column in range(positiveItems.shape[1]):
-                temp = positiveItems[:, column]
-                temp = negitiveItems.transpose() - temp
-                r += np.sum((temp > 0) * temp)
-            return r
 
-        # def rankingLoss3(item, eachRankingLoss=True):
-        #     # 设计的有问题，是否为正样本应按照大小排序，而不应用阈值
-        #     # 使用阈值的话，会产生el error
-        #     # item = nsamples * labels
-        #     item_arr = np.array(item)
-        #     if eachRankingLoss: # each时遇到异常样本时为 1
-        #         r = []
-        #         eachGroundTruth = item_arr > 0.5
-        #         for i in range(item_arr.shape[0]):
-        #             tn = (np.sum(eachGroundTruth[i] == 1))
-        #             fn = (np.sum(eachGroundTruth[i] == 0))
-        #             if tn == 0 or fn == 0:
-        #                 r.append(1)
-        #                 # pass
-        #             else:
-        #                 r.append(np.sum(item_arr[i] * eachGroundTruth[i]) / tn - np.sum(
-        #                     item_arr[i] * (eachGroundTruth[i] == 0)) / fn)
-        #         return np.array(r)
-        #
-        #     else: # overall时遇到异常样本返回-1
-        #         overAllGroundTruth = np.mean(item_arr, axis=0) > 0.5
-        #         tn = (np.sum(overAllGroundTruth == 1))
-        #         fn = (np.sum(overAllGroundTruth == 0))
-        #         if tn == 0 or fn == 0:
-        #             return -1
-        #         else:
-        #             positiveItems = item_arr[:, overAllGroundTruth]
-        #             negitiveItems = item_arr[:, overAllGroundTruth == 0]
-        #             return np.mean(positiveItems) - np.mean(negitiveItems)
-
-        def rankingLoss4(item):
-            item_arr = np.array(item)
-            overAllGroundTruth = np.mean(item_arr, axis=0)
-            positive_num = np.sum(overAllGroundTruth > 0.5)
-            if positive_num == 0:
-                positive_num = 1
-            elif positive_num == overAllGroundTruth.size:
-                positive_num = overAllGroundTruth.size - 1
-
-            # each RL3
-            sorted_item_arr = np.sort(item_arr)
-            positive_item_arr = sorted_item_arr[:, -positive_num:]
-            negitive_item_arr = sorted_item_arr[:, :-positive_num]
-            each_rl = np.mean((np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1)))
-
-            # overall RL3
-            sorted_item_arr = item_arr[:, overAllGroundTruth.argsort()]
-            positive_item_arr = sorted_item_arr[:, -positive_num:]
-            negitive_item_arr = sorted_item_arr[:, :-positive_num]
-            overall_rl = np.mean(np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1))
-            return each_rl - overall_rl
-
-        def rankingLoss4_first_part(item):
-            item_arr = np.array(item)
-            overAllGroundTruth = np.mean(item_arr, axis=0)
-            positive_num = np.sum(overAllGroundTruth > 0.5)
-            if positive_num == 0:
-                positive_num = 1
-            elif positive_num == overAllGroundTruth.size:
-                positive_num = overAllGroundTruth.size - 1
-
-            # each RL3
-            sorted_item_arr = np.sort(item_arr)
-            positive_item_arr = sorted_item_arr[:, -positive_num:]
-            negitive_item_arr = sorted_item_arr[:, :-positive_num]
-            each_rl = np.mean((np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1)))
-
-            return each_rl
-
-        def rankingLoss5(item):
-            # RKL5
-            positive_num = 5# 超参数,意义为 期望有几个positive label
-            item_arr = np.array(item)
-            overAllGroundTruth = np.mean(item_arr, axis=0)
-            # print(overAllGroundTruth)
-
-            # each RKL5
-            sorted_item_arr = np.sort(item_arr)
-            positive_item_arr = sorted_item_arr[:, -positive_num:]
-            negitive_item_arr = sorted_item_arr[:, -2 * positive_num:-positive_num]
-            each_rl = np.mean((np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1)))
-
-            # overall RL5
-            sorted_item_arr = item_arr[:, overAllGroundTruth.argsort()]
-            positive_item_arr = sorted_item_arr[:, -positive_num:]
-            negitive_item_arr = sorted_item_arr[:, -2 * positive_num:-positive_num]
-            overall_rl = np.mean(np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1))
-            return 1+ each_rl - overall_rl# 应该更好的表征el的式子，不应使用 1+
-
-        def rankingLoss6(item):
-            return 2.0-rankingLoss5(item)
-
-        def rankingLoss7(item,mod=1):
-            weight = 1- self.label_count / np.sum(self.label_count)
-
-            item_arr = np.array(item)
-            overAllGroundTruth = np.mean(item_arr, axis=0)
-            #     print(overAllGroundTruth)
-            positive_num = np.sum(overAllGroundTruth > 0.5)
-            # print(overAllGroundTruth.size)
-            # print(overAllGroundTruth.shape)
-            if positive_num == 0:
-                positive_num = 1
-            elif positive_num == overAllGroundTruth.size:
-                positive_num = overAllGroundTruth.size - 1
-
-            temp = overAllGroundTruth.argsort()
-            overAllGroundTruth = overAllGroundTruth[temp]
-            weight = weight[temp]
-            #     positive_labels = temp[-positive_num:]
-            #     negitive_labels = temp[:-positive_num]
-
-            # overall
-            overAllGroundTruth_t = overAllGroundTruth * weight
-            overall_loss = np.mean(weight[:-positive_num]) * np.mean(overAllGroundTruth_t[-positive_num:]) - \
-                           np.mean(weight[-positive_num:]) * np.mean(overAllGroundTruth_t[:-positive_num])
-
-            # each
-            if mod == 1:
-                sorted_item_arr_t = np.mean(np.sort(item_arr),axis=0)*weight
-                each_loss = np.mean(weight[:-positive_num])*np.mean(sorted_item_arr_t[-positive_num:]) - \
-                            np.mean(weight[-positive_num:])*np.mean(sorted_item_arr_t[:-positive_num])
-            elif mod == 2:
-                #         t = item_arr * weight
-                pass
-
-            return each_loss - overall_loss
-
-        def rankingLoss8(item, mod=0):
-            # 思路：
-            # 1 仅计算所有的 pos 与 最大的 neg label 间的差值作为Loss？？？
-            #   loss =  1 - mean(pos-neg_highest)  值越大越应选中
-            #   因为 pos 与 neg 越接近  该样本越不确定
-            #   然后 就 el = Loss_each - Loss_overall
-            # 2 或者使用 Loss*RKL4  试试 ？就变相的给RKL4加权了
-            #   认为 Loss 和 var Ratios 即 vrs 的效果应一致，可以测试一下
-            #   即使用 mod 0
-            #
-            # mod  |  效果
-            #  0   |  返回 overall RL
-            #  1   |  返回 each  RL
-            #  2   |  返回 el  RL = each RL - overall RL      # 这个 el 有缺陷, elo number 接近半数
-            #  3   |  返回 RKL4 * overall RL
-            #  4   |  返回 overall ( 1-min(pos) )
-            #  5   |  返回 overall ( min(pos) - max(neg) )
-            #  6   |  返回 each    ( min(pos) - max(neg) )
-
-            item_arr = np.array(item)
-            overAllGroundTruth = np.mean(item_arr, axis=0)
-            positive_num = np.sum(overAllGroundTruth > 0.5)
-            if positive_num == 0:
-                positive_num = 1
-            elif positive_num == overAllGroundTruth.size:
-                positive_num = overAllGroundTruth.size - 1
-
-            # each RL8
-            sorted_item_arr = np.sort(item_arr)
-            positive_item_arr = sorted_item_arr[:, -positive_num:]
-            negitive_item_arr = sorted_item_arr[:, :-positive_num]
-            lowest_positive_item  = positive_item_arr[:,0]
-            highest_negitive_item = negitive_item_arr[:,-1]
-            each_rl = 1 - np.mean((np.mean(positive_item_arr, axis=1) - highest_negitive_item ))
-
-            # overall RL8
-            sorted_overAllGroundTruth = np.sort(overAllGroundTruth)
-            positive_item_arr = sorted_overAllGroundTruth[-positive_num:]
-            lowest_positive_item  = sorted_overAllGroundTruth[-positive_num]
-            highest_negitive_item = sorted_overAllGroundTruth[-positive_num-1]
-            overall_rl = 1 - np.mean( np.mean(positive_item_arr) - highest_negitive_item )
-
-            returnList = ["overall_rl", "each_rl", "each_rl-overall_rl", "rankingLoss4(item)*overall_rl", # 0 1 2 3
-                          "1-lowest_positive_item", "lowest_positive_item-highest_negitive_item",       # 4 5
-                          "np.mean(lowest_positive_item-highest_negitive_item)",                        # 6
-                          ]
-            return eval(returnList[mod])
-
-
-
-
-        def rankingLoss9(item):
-            # rkl9 = weight[trueLabels] * rkl4
-
-            weight = 1 - self.label_count / np.sum(self.label_count)
-
-            item_arr = np.array(item)
-            overAllGroundTruth = np.mean(item_arr, axis=0)
-            positive_num = np.sum(overAllGroundTruth > 0.5)
-            if positive_num == 0:
-                positive_num = 1
-            elif positive_num == overAllGroundTruth.size:
-                positive_num = overAllGroundTruth.size - 1
-
-            # each RL3
-            sorted_item_arr = np.sort(item_arr)
-            positive_item_arr = sorted_item_arr[:, -positive_num:]
-            negitive_item_arr = sorted_item_arr[:, :-positive_num]
-            each_rl = np.mean((np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1)))
-
-            # overall RL3
-            sorted_item_arr = item_arr[:, overAllGroundTruth.argsort()]
-            positive_item_arr = sorted_item_arr[:, -positive_num:]
-            negitive_item_arr = sorted_item_arr[:, :-positive_num]
-            overall_rl = np.mean(np.mean(positive_item_arr, axis=1) - np.mean(negitive_item_arr, axis=1))
-            return (each_rl - overall_rl) * np.sum(weight[overAllGroundTruth.argsort()[-positive_num:]])
-
-        def meanMaxLoss(item):
-            item_arr = np.array(item)
-            overAllGroundTruth = np.mean(item_arr, axis=0)
-            #     print(overAllGroundTruth)
-            positive_num = np.sum(overAllGroundTruth > 0.5)
-            # print(overAllGroundTruth.size)
-            # print(overAllGroundTruth.shape)
-            if positive_num == 0:
-                positive_num = 1
-            elif positive_num == overAllGroundTruth.size:
-                positive_num = overAllGroundTruth.size - 1
-
-            nlabels = item_arr.shape[1]
-            M = np.eye(nlabels)
-            M = 2 * M - 1  # 构建对角线为1 其余为-1 的矩阵
-
-            # overall
-            positive_labels = overAllGroundTruth.argsort()[-positive_num:]
-            overall_loss = np.mean(np.sum(1 - M[positive_labels] * overAllGroundTruth, axis=1))
-            #     print(overall_loss)
-
-            # each
-            sorted_item_arr = np.sort(item_arr)
-            t = nlabels * 1 - np.dot(M[-positive_num:], item_arr.T)
-            t = np.mean(t)
-            each_loss = t
-
-            return each_loss - overall_loss
-
-        def entropyLoss(item,mod=False):
-            # ee: entropy*EL ?
-            ee = mod
-            item_arr = np.array(item)
-            overAllGroundTruth = np.mean(item_arr, axis=0)
-            entropy_arr = -np.log2(item_arr) * item_arr - np.log2(1 - item_arr) * (1 - item_arr)
-            overall_entropy = -np.log2(overAllGroundTruth) * overAllGroundTruth - np.log2(1 - overAllGroundTruth) * (
-                        1 - overAllGroundTruth)
-            overall_entropy = np.mean(overall_entropy)
-            each_entropy = np.mean(entropy_arr)
-            if ee:
-                return overall_entropy* (overall_entropy - each_entropy)
-            else:
-                return overall_entropy - each_entropy
-
-        def eentropyLoss(item):
-            return entropyLoss(item,mod=True)
-
-        def BALD(item):
-            item_arr = np.array(item)
-            pos_item_arr = item_arr > 0.5
-            pos_item_code = list()
-            for i in pos_item_arr:
-                temp = 0
-                for j in i:
-                    temp = temp << 1
-                    temp += j
-                pos_item_code.append(temp)
-            delt = stats.mode(pos_item_code)
-            return len(item_arr) - delt[1][0] # 总采样次数 - 出现最多的模式的频次;得到的值越大,模型越不确定
-
-        def varRatios(item):
-            # Var Ratios
-            item_arr = np.array(item)
-            overAllGroundTruth = np.mean(item_arr, axis=0)
-            positive_num = np.sum(overAllGroundTruth > 0.5)
-            if positive_num == 0:
-                positive_num = 1
-            elif positive_num == overAllGroundTruth.size:
-                positive_num = overAllGroundTruth.size - 1
-
-            sorted_overAllGroundTruth = sorted(overAllGroundTruth)
-            positive_item = sorted_overAllGroundTruth[-positive_num:]
-            return 1-np.mean(positive_item) # 1 减去 正标签的出现概率
-
-        def varRatiosLoss(item):
-            # EL in var Ratios
-            item_arr = np.array(item)
-            overAllGroundTruth = np.mean(item_arr, axis=0)
-            positive_num = np.sum(overAllGroundTruth > 0.5)
-            if positive_num == 0:
-                positive_num = 1
-            elif positive_num == overAllGroundTruth.size:
-                positive_num = overAllGroundTruth.size - 1
-
-            # overall
-            sorted_overAllGroundTruth = sorted(overAllGroundTruth)
-            overall_ratios = np.mean(sorted_overAllGroundTruth[-positive_num:])
-
-            # each
-            sorted_item_arr = np.sort(item_arr)
-            positive_item_arr = sorted_item_arr[:, -positive_num:]
-            each_ratios = np.mean(positive_item_arr,)
-
-            return each_ratios - overall_ratios
-
-        def label_instance_wise(item,mod=0):
-            #  liw : label-instance-wise
-            #  0 : lab * ins
-            #  1 : label + ins
-            #  2 : ins
-            #  3 : label
-
-            # 方案 1 ：
-            # label wise 仅考虑一个样本的不同forward pass， 此时对于 *pos* label，给出label-wise的计算值 。
-            # (因为之前的vrs实验中仅使用pos的效果就足够了)
-            # 而instance-wise的值由均值（overAllGroundTruth给出）
-
-            baseline = 0.5
-            item_arr = np.array(item)
-
-            overAllGroundTruth = np.mean(item_arr, axis=0)
-            # print(overAllGroundTruth)
-            positive_num = np.sum(overAllGroundTruth > baseline)
-            # print(overAllGroundTruth.size)
-            # print(overAllGroundTruth.shape)
-            if positive_num == 0:
-                positive_num = 1
-            elif positive_num == overAllGroundTruth.size:
-                positive_num = overAllGroundTruth.size - 1
-            # print(overAllGroundTruth)
-
-            overAllGroundTruth_argsort = np.argsort(overAllGroundTruth)  # 按值由小到大 给出 index
-            # print(overAllGroundTruth_argsort)
-
-            label_wise_value = overAllGroundTruth[overAllGroundTruth_argsort[-positive_num]] - \
-                               overAllGroundTruth[overAllGroundTruth_argsort[-positive_num - 1]]
-
-            pos_args = overAllGroundTruth_argsort[-positive_num:]
-            # neg_args = overAllGroundTruth_argsort[:-positive_num]
-
-            # print("-"*30)
-            # -------------------------------------------------------------------- #
-            # 把一个instance的几个dropout视为不同的instance，并以此为矩阵计算
-            # 共有j个label（item的列数），则应计算j个value，我们选用其中 pos_num个
-            # instance－wise value
-            # forward-wise value
-            temp = item_arr.transpose()[pos_args, :]
-            item_arr_TF = temp > baseline
-            # print(item_arr_TF)
-
-            item_arr_T = temp * item_arr_TF
-            # print(item_arr_T)
-            item_arr_T += (item_arr_T == 0)  # change all neg into 1 to get the min pos value
-            # print(item_arr_T)
-
-            item_arr_F = temp * (item_arr_TF == 0)
-            # print(item_arr_F)
-            # change all pos into 0 to get the max neg value
-
-            # note that ,
-            # if one column has no pos, means that it is very confident to be neg
-            # so we let min pos be 1 , to get a higher value of min_pos-max_neg, and less possible to be chosen
-            instance_wise_pos_value = np.min(item_arr_T, axis=1) - np.max(item_arr_F, axis=1)
-            instance_wise_pos_value = np.mean(instance_wise_pos_value)
-
-            # print(instance_wise_pos_value)
-
-            if mod == 0:
-                value = 1-label_wise_value * instance_wise_pos_value
-            elif mod == 1:
-                value = 2-label_wise_value - instance_wise_pos_value
-            elif mod == 2:
-                value = 1-instance_wise_pos_value
-            elif mod == 3:
-                value = 1-label_wise_value
-            return value
-
-        def variance_analysis(item):
-            '''
-            func:   方差分解分析
-            return:
-                s1: 认为是多次试验的随机误差，即dropout引起的离差平方和
-                    实验中体现为模型的鲁棒性？
-                s2: 认为是描述因素各个水平效应的影响，实验中体现为
-                    pos label 间的差异程度、neg label 间的差异程度
-            notes:  这种方法应当设计用在单标签分类问题 即
-                    同一个label,不同样本,不同dropout，这样的可解释性更强
-                    我在使用中，把label 和样本 对调，由此的可解释性差了一些，
-                    而且label数量远小于样本数量，可能导致置信度更差
-            '''
-            item_arr = np.array(item)
-            overAllGroundTruth = np.mean(item_arr, axis=0)
-
-            s1_arr = np.var(item_arr, axis=0)  # S_e / n
-            s2_arr = np.var(overAllGroundTruth)
-            # s3_arr = np.var(item_arr,axis=1) # 统计书上没有特殊的解释，直观上是一个样本内部多个标签之间的差异程度。
-            # 其长度为dropout次数
-
-            # S_e / n / m
-            # 认为是多次试验的随机误差，即dropout引起的离差平方和
-            s1 = np.mean(s1_arr)
-
-            # S_A / n / m
-            # 认为是描述因素各个水平效应的影响，即同类label间的差异程度
-            s2 = s2_arr  # S_A / n / m
-
-            s = np.var(item_arr)
-            # print(s1_arr)
-            # print(s1)
-            # print(s2_arr)
-            # print(s2)
-            # print(s,"=",s1,"+",s2)
-            return s1, s2
-
-        def meanVarLoss(item, mod=(0.4,0.3,0.3)):
-            '''
-            input:
-                mod : (w_m, w_s1, w_s2)
-                w_m : 均值权重
-                w_s1: s1权重
-                w_s2: s2权重
-            return:
-                w_m*( (1-(pm-nm))**2 ) + w_s1*( ps1 + ns1 ) + w_s2*(ps2+ns2)
-                (1-(pm-nm))**2 : 为了使得方差和均值处在一个数量级，对均值取了平方
-                ps1 + ns1      : dropout引起的离差平方和
-                ps2+ns2        : label 间的差异程度
-
-            '''
-
-            # 方差越大，该样本模型预测的越不确定
-            # 均值差越小，该样本模型预测的越不确定
-
-            # 使用方差分解的话，在el中的这种 求each 处理方式应该是无法解释的。
-            # 感觉可以尝试但基本无法拿来写文章
-            # 把 item_array 按照各自内部的顺序分成 pos 和 neg 两个 arr
-            # item_arr = np.array(item)
-            # sorted_item_arr = np.sort(item_arr)
-            # positive_item_arr = sorted_item_arr[:,-positive_num:]
-            # negitive_item_arr = sorted_item_arr[:,:-positive_num]
-
-            # 把 item_array 按照overAllGroundTruth分成 pos 和 neg 两个 arr
-            item_arr = np.array(item)
-            overAllGroundTruth = np.mean(item_arr, axis=0)
-            positive_num = np.sum(overAllGroundTruth > 0.5)
-
-            positive_num = 1 if positive_num == 0 else positive_num
-            positive_num = overAllGroundTruth.size - 1 if positive_num == overAllGroundTruth.size else positive_num
-
-            sorted_item_arr = item_arr[:, overAllGroundTruth.argsort()]
-            positive_item_arr = sorted_item_arr[:, -positive_num:]
-            negitive_item_arr = sorted_item_arr[:, :-positive_num]
-
-            pm = np.mean(positive_item_arr)
-            nm = np.mean(negitive_item_arr)
-
-            ps1, ps2 = variance_analysis(positive_item_arr)
-            ns1, ns2 = variance_analysis(negitive_item_arr)
-
-            if len(mod) == 3:
-                w_m, w_s1, w_s2 = mod
-                # 为了使得方差和均值处在一个数量级，对均值取了平方
-                return w_m * ((1 - (pm - nm)) ** 2) + w_s1 * (ps1 + ns1) + w_s2 * (ps2 + ns2)
-            elif len(mod) == 5:
-                w_m, w_s1_p, w_s1_n, w_s2_p, w_s2_n = mod
-                return w_m*((1-(pm-nm))**2) + w_s1_p*ps1 + w_s1_n*ns1 + w_s2_p*ps2 + w_s2_n*ns2
-            elif len(mod) == 6:
-                # an example is (0.4,0, 0.3,0, 0.3,0)
-                # each in len==3 splitted into 2 parts: pos and neg
-                w_m_p, w_m_n, w_s1_p, w_s1_n, w_s2_p, w_s2_n = mod
-                return w_m_p*((1-pm)**2) + w_m_n*((nm-0)**2) + w_s1_p*ps1 + w_s1_n*ns1 + w_s2_p*ps2 + w_s2_n*ns2
-            else:
-                assert not "defined!"
-
-        def F_variance_analysis(item, mod=0):
-            # F 分布 F(k-1,n-k), F值过大拒绝
-            item_arr = np.array(item)
-            overAllGroundTruth = np.mean(item_arr, axis=0)
-            positive_num = np.sum(overAllGroundTruth > 0.5)
-
-            positive_num = 1 if positive_num == 0 else positive_num
-            positive_num = overAllGroundTruth.size - 1 if positive_num == overAllGroundTruth.size else positive_num
-
-            overall_arg_sort = overAllGroundTruth.argsort()
-            positive_columns = overall_arg_sort[-positive_num:]
-            negetive_columns = overall_arg_sort[:-positive_num]
-            item_arr[:, positive_columns] = 1 - item_arr[:, positive_columns]
-            s_dropout, s_labels = variance_analysis(item_arr)
-
-            n,k = np.shape(item)
-
-            if mod == 0:
-                return (s_labels/(k-1)) / (s_dropout/(n*k-k))
-            else:
-                m_pos = np.mean(overAllGroundTruth[positive_columns])
-                m_neg = np.mean(overAllGroundTruth[negetive_columns])
-                if mod==1:
-                    return (s_labels/(k-1)) / (s_dropout/(n*k-k)) * (1 - (m_pos - m_neg))
-                elif mod == 2:
-                    return (s_labels / (k - 1)) / (s_dropout / (n * k - k)) * (1 - m_pos)
-
-
-        # 选取 rkl 策略
-        rklDic = {2:rankingLoss2,
-                  4:rankingLoss4,
-                  5:rankingLoss5,
-                  6:rankingLoss6,
-                  7:rankingLoss7,
-                  8:rankingLoss8,
-                  9:rankingLoss9,
-
-                  '4fp':rankingLoss4_first_part,
-
-                  'mml':meanMaxLoss,
-
-                  'et':entropyLoss,
-                  'ee':eentropyLoss,
-                  'bald': BALD,
-                  'vrs' : varRatios,
-                  'vrl' : varRatiosLoss,
-                  'liw' : label_instance_wise,
-                  'mvl' : meanVarLoss,
-                  'fva' : F_variance_analysis,
-                  }
-        rkl = rklDic[rklNo]
-        print("RKL",rklNo,end="\t")
+        rkl = allSubMethod.getNoDeteMethodByName(rklNo)
+        # print("RKL",rklNo,end="\t")
 
 
 
@@ -1914,7 +1923,77 @@ class Acquisition(object):
 
         print('dete time consuming： %d seconds:' % (time.time() - tm))
 
+    def get_dete_with_feature(self, dataset, model_path, acquire_document_num,
+               model_name='', dete_method = "VRS", subMethod="feature" , returned=False, thisround=-1,):
+        tm = time.time()
 
+        print('dete : preparing feature data', end='')
+        sample_feature = self.getSimilarityMatrix(dataset, model_path, model_name, feature_only=True) #原始数据的特征
+        sample_feature_generated = self.getSimilarityMatrix(self.generated_train_data, model_path, model_name, feature_only=True)
+
+        # 对每个样本和它的生成数据之间的feature距离 dis = 1+cos(ori,gene) 样本间越近越大
+        generated_feature_cos_distance = [
+            1 + sum(
+                [cosine_similarity( sample_feature[i], sample_feature_generated[i*self.generated_per_sample+j] )
+                 for j in range(self.generated_per_sample)]
+            ) / self.generated_per_sample for i in range(len(sample_feature))
+        ]
+
+        model = torch.load(model_path)
+        model.train(False)  # 保持 dropout 关闭
+        # data without id
+        new_dataset = [datapoint for j, datapoint in enumerate(dataset) if j not in list(self.train_index)]
+        # id that not in train_index
+        new_datapoints = [j for j in range(len(dataset)) if j not in list(self.train_index)]
+        print('dete : preparing batch data', end='')
+        data_batches = create_batches(new_dataset, batch_size=self.batch_size, order='no')
+        score_arr = []  # 获取模型对未标记样本的输出
+
+        for iter_batch, data in enumerate(data_batches):
+            print('\rdete acquire batch {}/{}'.format(iter_batch, len(data_batches)), end='')
+
+            batch_data_numpy = data['data_numpy']
+            batch_data_points = data['data_points']
+
+            X = batch_data_numpy[0]
+            Y = batch_data_numpy[1]
+
+            if self.usecuda:
+                X = Variable(torch.from_numpy(X).long()).cuda(self.cuda_device)
+            else:
+                X = Variable(torch.from_numpy(X).long())
+
+            if model_name == 'CNN':
+                output = model(X)
+            else:
+                assert False
+
+            score = torch.sigmoid(output).data.cpu().numpy().tolist()
+
+            score_arr.extend(score)
+        assert len(score_arr) == len(new_dataset)
+
+        if dete_method == "VRS":  # var Ratios
+            item_arr = np.array(score_arr)
+            varRatios_arr = list()
+            for overAllGroundTruth in item_arr:
+                positive_num = np.sum(overAllGroundTruth > 0.5)
+                if positive_num == 0:
+                    positive_num = 1
+                elif positive_num == overAllGroundTruth.size:
+                    positive_num = overAllGroundTruth.size - 1
+                sorted_overAllGroundTruth = sorted(overAllGroundTruth)
+                positive_item = sorted_overAllGroundTruth[-positive_num:]
+                varRatios_arr.append(1 - np.mean(positive_item))
+            new_score_arr = [ (1-generated_feature_cos_distance[new_datapoints[i]])*varRatios_arr[i]
+                                for i in range(len(varRatios_arr)) ]
+
+
+        arg = np.argsort(new_score_arr)[-acquire_document_num:]  # ratios 最大的几个样本的id
+        cur_indices = set()
+        for i in arg:
+            cur_indices.add(new_datapoints[i])
+            self.update_train_index(cur_indices)
 
     def get_submodular(self, data,unlabel_index, acquire_questions_num, model_path='', model_name='', returned=False):
         def greedy_k_center(labeled, unlabeled, amount):
@@ -2017,7 +2096,11 @@ class Acquisition(object):
             if method == 'random':
                 self.get_random(data, acquire_num)
             elif method == 'dete':
-                self.get_dete(data,model_path,acquire_num,model_name,dete_method=sub_method,thisround=round)
+                if sub_method=="VRS_feature":
+                    dete_method,sub_method = sub_method.split("_")
+                    self.get_dete_with_feature(data,model_path,acquire_num,model_name,dete_method=dete_method,thisround=round)
+                else:
+                    self.get_dete(data,model_path,acquire_num,model_name,dete_method=sub_method,thisround=round)
             elif method == 'no-dete': # Bayesian neural network based method
                 if sub_method == 'DAL':
                     # 普通DAL
