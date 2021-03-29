@@ -1932,9 +1932,10 @@ class Acquisition(object):
         sample_feature_generated = self.getSimilarityMatrix(self.generated_train_data, model_path, model_name, feature_only=True)
 
         # 对每个样本和它的生成数据之间的feature距离 dis = 1+cos(ori,gene) 样本间越近越大
+        # cos_similarity 会得到一个2*2的对称矩阵，返回距离，我们只需要反对角线上的值
         generated_feature_cos_distance = [
-            1 + sum(
-                [cosine_similarity( sample_feature[i], sample_feature_generated[i*self.generated_per_sample+j] )
+            1 - sum(
+                [cosine_similarity( [sample_feature[i], sample_feature_generated[i*self.generated_per_sample+j]] )[0][1]
                  for j in range(self.generated_per_sample)]
             ) / self.generated_per_sample for i in range(len(sample_feature))
         ]
@@ -1985,7 +1986,7 @@ class Acquisition(object):
                 sorted_overAllGroundTruth = sorted(overAllGroundTruth)
                 positive_item = sorted_overAllGroundTruth[-positive_num:]
                 varRatios_arr.append(1 - np.mean(positive_item))
-            new_score_arr = [ (1-generated_feature_cos_distance[new_datapoints[i]])*varRatios_arr[i]
+            new_score_arr = [ (generated_feature_cos_distance[new_datapoints[i]])*varRatios_arr[i]
                                 for i in range(len(varRatios_arr)) ]
 
 
