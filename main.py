@@ -195,7 +195,7 @@ def main(args):
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 0,
-            "sample_method": "Deterministic+fVRS_TA3+0",
+            "sample_method": "Deterministic+fVRS3_TA3+0",
         }, {
             "model_name": "CNN",
             "group_name": "[mlabs]TA+stack+F1",
@@ -209,7 +209,7 @@ def main(args):
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 16,
-            "sample_method": "Deterministic+fVRS_TA3+16",
+            "sample_method": "Deterministic+fVRS3_TA3+16",
         }
 
 
