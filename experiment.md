@@ -80,3 +80,46 @@ VL仅考察方差，rkl仅考察均值。
 (0.4,0.4, 0.3,0.3, 0.3,0)
 (1-pos_m) + neg_m + pos_s1 + neg_s1 + pos_s2  
 仅不考察neg_s2,即neg label不同造成的扰动
+
+
+## TA实验
+使用textAttack包生成数据进行数据增强/数据扩增的主动学习方向探索
+实验数据在 [mlabs]TA+stack 中存储与展示
+
+### 每个样本使用几个扩增数据的探索
+TA1，TA2，TA3使用1、2、3个进行测试，
+综合来看TA2效果较好。
+发现总数据量少的时候，使用的扩增样本越多效果越好(3)，
+而数据量多时，使用几个扩增样本并没有本质的区别。
+此处与EDA论文里的结论相符  
+EDA- Easy Data Augmentation Techniques for Boosting Performance on Text Classification Tasks.pdf
+
+###  数据扩增时的参数问题
+对比样本内替换率为10%30%50%的三组实验，可以发现替换率为10%的效果最好
+
+### 一些复杂策略的探索
+
+#### rdr
+random drop out , random dropout selected self.generated_train_index in rate para
+随每个round，随即删除一定比例的生成数据。
+使用速率0.5实验了一下，效果不好，可以看到vrs-rdr0.5和vrs基本不相上下。
+猜测是在主动学习的前期生成的数据更重要一些，能够更好的提升模型的性能。
+
+#### esd
+easy slow down  
+`self.generated_used_per_sample = max(0,self.generated_per_sample-self.round//4)`  
+在前期使用所有的生成数据（3个），每过4个轮次，减少1个  
+前期略有优势(3个)的使用在前期效果不错。
+但是实质上与TA2相比并无本质区别，不过可以作为节约算力的方法引入。
+
+#### fvrs
+vrs with feature distance   
+- fvrs/fvrs1  
+    cos_distance * vrs 
+- fvrs2   
+    0.1 * cos_distance + vrs
+- fvrs3  
+    cos_distance + vrs
+- fvrs4   
+    10 * cos_distance + vrs
+

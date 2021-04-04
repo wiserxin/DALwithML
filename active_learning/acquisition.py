@@ -1931,7 +1931,7 @@ class Acquisition(object):
         sample_feature = self.getSimilarityMatrix(dataset, model_path, model_name, feature_only=True) #原始数据的特征
         sample_feature_generated = self.getSimilarityMatrix(self.generated_train_data, model_path, model_name, feature_only=True)
 
-        # 对每个样本和它的生成数据之间的feature距离 dis = 1+cos(ori,gene) 样本间越近越大
+        # 对每个样本和它的生成数据之间的feature距离 dis = 1-cos(ori,gene) 样本间越近越大
         # cos_similarity 会得到一个2*2的对称矩阵，返回距离，我们只需要反对角线上的值
         generated_feature_cos_distance = [
             1 - sum(
@@ -1993,7 +1993,10 @@ class Acquisition(object):
             # new_score_arr = [0.1*(generated_feature_cos_distance[new_datapoints[i]]) + varRatios_arr[i]
             #                  for i in range(len(varRatios_arr))]
             # fvrs3
-            new_score_arr = [(generated_feature_cos_distance[new_datapoints[i]]) + varRatios_arr[i]
+            # new_score_arr = [(generated_feature_cos_distance[new_datapoints[i]]) + varRatios_arr[i]
+            #                  for i in range(len(varRatios_arr))]
+            # fvrs4
+            new_score_arr = [(generated_feature_cos_distance[new_datapoints[i]]) * 10 + varRatios_arr[i]
                              for i in range(len(varRatios_arr))]
 
         arg = np.argsort(new_score_arr)[-acquire_document_num:]  # ratios 最大的几个样本的id
