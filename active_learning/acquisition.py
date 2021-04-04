@@ -1889,7 +1889,7 @@ class Acquisition(object):
                 cur_indices = set()
                 for i in arg:
                     cur_indices.add(new_datapoints[i])
-                    self.update_train_index(cur_indices)
+                self.update_train_index(cur_indices)
 
             elif dete_method == "VRS": # var Ratios
                 item_arr = np.array(score_arr)
@@ -1907,7 +1907,7 @@ class Acquisition(object):
                 cur_indices = set()
                 for i in arg:
                     cur_indices.add(new_datapoints[i])
-                    self.update_train_index(cur_indices)
+                self.update_train_index(cur_indices)
 
             elif dete_method == "STD": # mean-STD
                 item_arr = np.array(score_arr)
@@ -1916,7 +1916,7 @@ class Acquisition(object):
                 cur_indices = set()
                 for i in arg:
                     cur_indices.add(new_datapoints[i])
-                    self.update_train_index(cur_indices)
+                self.update_train_index(cur_indices)
 
             else:
                 assert False #"Not Programmed"
@@ -1996,14 +1996,17 @@ class Acquisition(object):
             # new_score_arr = [(generated_feature_cos_distance[new_datapoints[i]]) + varRatios_arr[i]
             #                  for i in range(len(varRatios_arr))]
             # fvrs4
-            new_score_arr = [(generated_feature_cos_distance[new_datapoints[i]]) * 10 + varRatios_arr[i]
+            # new_score_arr = [(generated_feature_cos_distance[new_datapoints[i]]) * 10 + varRatios_arr[i]
+            #                  for i in range(len(varRatios_arr))]
+            # fvrs5
+            new_score_arr = [(generated_feature_cos_distance[new_datapoints[i]]) * 0.4 + varRatios_arr[i]
                              for i in range(len(varRatios_arr))]
 
         arg = np.argsort(new_score_arr)[-acquire_document_num:]  # ratios 最大的几个样本的id
         cur_indices = set()
         for i in arg:
             cur_indices.add(new_datapoints[i])
-            self.update_train_index(cur_indices)
+        self.update_train_index(cur_indices)
 
     def get_submodular(self, data,unlabel_index, acquire_questions_num, model_path='', model_name='', returned=False):
         def greedy_k_center(labeled, unlabeled, amount):

@@ -122,4 +122,7 @@ vrs with feature distance
     cos_distance + vrs
 - fvrs4   
     10 * cos_distance + vrs
+- fvrs5   
+    0.4 * cos_distance + vrs
+
 
