@@ -1907,6 +1907,12 @@ class Acquisition(object):
                 cur_indices = set()
                 for i in arg:
                     cur_indices.add(new_datapoints[i])
+
+                self.savedData.append({"added_index": cur_indices,
+                                       "index2id": {_index: p[3] for _index, p in enumerate(new_dataset)},
+                                       "item_arr": item_arr,
+                                       "varRatios_arr":varRatios_arr})
+
                 self.update_train_index(cur_indices)
 
             elif dete_method == "STD": # mean-STD
@@ -2006,6 +2012,12 @@ class Acquisition(object):
         cur_indices = set()
         for i in arg:
             cur_indices.add(new_datapoints[i])
+
+        self.savedData.append({"added_index": cur_indices,
+                               "index2id": {_index: p[3] for _index, p in enumerate(new_dataset)},
+                               "item_arr": item_arr,
+                               "varRatios_arr": varRatios_arr,
+                               "generated_feature_cos_distance":generated_feature_cos_distance})
         self.update_train_index(cur_indices)
 
     def get_submodular(self, data,unlabel_index, acquire_questions_num, model_path='', model_name='', returned=False):
