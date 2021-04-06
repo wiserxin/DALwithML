@@ -1935,7 +1935,8 @@ class Acquisition(object):
 
         print('dete : preparing feature data', end='')
         sample_feature = self.getSimilarityMatrix(dataset, model_path, model_name, feature_only=True) #原始数据的特征
-        sample_feature_generated = self.getSimilarityMatrix(self.generated_train_data, model_path, model_name, feature_only=True)
+        sample_feature_generated,sample_score_generated = self.getSimilarityMatrix(
+            self.generated_train_data, model_path, model_name, feature_only=True, with_predict=True)
 
         # 对每个样本和它的生成数据之间的feature距离 dis = 1-cos(ori,gene) 样本间越近越大
         # cos_similarity 会得到一个2*2的对称矩阵，返回距离，我们只需要反对角线上的值
@@ -2017,7 +2018,8 @@ class Acquisition(object):
                                "index2id": {_index: p[3] for _index, p in enumerate(new_dataset)},
                                "item_arr": item_arr,
                                "varRatios_arr": varRatios_arr,
-                               "generated_feature_cos_distance":generated_feature_cos_distance})
+                               "generated_feature_cos_distance":generated_feature_cos_distance,
+                               "sample_score_generated":sample_score_generated})
         self.update_train_index(cur_indices)
 
     def get_submodular(self, data,unlabel_index, acquire_questions_num, model_path='', model_name='', returned=False):
@@ -2064,7 +2066,7 @@ class Acquisition(object):
         else:
             self.update_train_index(cur_indices)
 
-    def getSimilarityMatrix(self, dataset, model_path='', model_name='', batch_size=800, feature_only=False):
+    def getSimilarityMatrix(self, dataset, model_path='', model_name='', batch_size=800, feature_only=False, with_predict=False):
         '''
         :param feature_only: 表示返回特征还是相似度矩阵
         '''
@@ -2076,6 +2078,7 @@ class Acquisition(object):
         data_batches = create_batches(dataset, batch_size=batch_size, order='no')
 
         temp_feature = []
+        temp_score = []
         for iter_batch,data in enumerate(data_batches):
             batch_data_numpy  = data['data_numpy']
 
@@ -2094,13 +2097,19 @@ class Acquisition(object):
                 # 2020 08 12 修改为 features_with_pred
                 # 2020 09 02 又改回来啦
                 output = model.features(X)
+                output_score = torch.sigmoid(model(X)).data.cpu().numpy().tolist() if with_predict else list()
                 # output = model.features_with_pred(X)
             temp_feature.extend(output.data.cpu().numpy().tolist())
+            _ = temp_score.extend(output_score) if with_predict else list()
 
         features = np.stack(temp_feature, axis=0)
+        scores = np.stack(temp_score, axia=0) if with_predict else list()
 
         if feature_only:
-            return features
+            if with_predict:
+                return features,scores
+            else:
+                return features
 
         similarity = cosine_similarity(features) + 1
         return similarity
