@@ -2103,7 +2103,7 @@ class Acquisition(object):
             _ = temp_score.extend(output_score) if with_predict else list()
 
         features = np.stack(temp_feature, axis=0)
-        scores = np.stack(temp_score, axia=0) if with_predict else list()
+        scores = np.stack(temp_score, axis=0) if with_predict else list()
 
         if feature_only:
             if with_predict:
