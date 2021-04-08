@@ -549,6 +549,32 @@ class SubMod(object):
         print("Choose method",method,end="\t")
         return method
 
+    def getDeteMethodByName(self,methodNick):
+        def posLabel(overAllGroundTruth):
+            positive_num = np.sum(overAllGroundTruth > 0.5)
+            if positive_num == 0:
+                positive_num = 1
+            elif positive_num == overAllGroundTruth.size:
+                positive_num = overAllGroundTruth.size - 1
+            return list(np.argsort(overAllGroundTruth)[-positive_num:])
+
+        def predictD(x, y):
+            xl = set(posLabel(x))
+            yl = set(posLabel(y))
+            level = len(xl - yl) + len(yl - xl)
+            cl = xl - (xl - yl)  # 共同的label
+            # 曼哈顿距离 + level
+            return np.sum(np.abs(x[list(cl)] - y[list(cl)])) + level
+
+        methodDic = {
+            "pd":predictD,
+            "test":123
+        }
+
+        method = methodDic[methodNick]
+
+        return method
+
 allSubMethod = SubMod()
 
 class Acquisition(object):
@@ -1981,6 +2007,27 @@ class Acquisition(object):
             score_arr.extend(score)
         assert len(score_arr) == len(new_dataset)
 
+        if dete_method == "PDVRS":
+            item_arr = np.array(score_arr)
+            item_arr_generated = np.array(sample_score_generated)
+            item_arr_generated = [ np.average(item_arr_generated[oneid*3:oneid*3+3],axis=0) for oneid in new_datapoints ]
+            assert len(item_arr)==len(item_arr_generated)
+            pd_arr = [allSubMethod.getDeteMethodByName("pd")(x,y) for x,y in zip(item_arr,item_arr_generated)]
+
+            varRatios_arr = list()
+            for overAllGroundTruth in item_arr:
+                positive_num = np.sum(overAllGroundTruth > 0.5)
+                if positive_num == 0:
+                    positive_num = 1
+                elif positive_num == overAllGroundTruth.size:
+                    positive_num = overAllGroundTruth.size - 1
+                sorted_overAllGroundTruth = sorted(overAllGroundTruth)
+                positive_item = sorted_overAllGroundTruth[-positive_num:]
+                varRatios_arr.append(1 - np.mean(positive_item))
+
+            new_score_arr = [(pd_arr[i]*0.5 + varRatios_arr[i])  for i in range(len(varRatios_arr))]
+
+
         if dete_method == "VRS":  # var Ratios
             item_arr = np.array(score_arr)
             varRatios_arr = list()
@@ -2133,6 +2180,8 @@ class Acquisition(object):
                 if sub_method=="VRS_feature":
                     dete_method,sub_method = sub_method.split("_")
                     self.get_dete_with_feature(data,model_path,acquire_num,model_name,dete_method=dete_method,thisround=round)
+                elif sub_method=="PDVRS":
+                    self.get_dete_with_feature(data, model_path, acquire_num, model_name, dete_method=sub_method,thisround=round)
                 else:
                     self.get_dete(data,model_path,acquire_num,model_name,dete_method=sub_method,thisround=round)
             elif method == 'no-dete': # Bayesian neural network based method
