@@ -2025,8 +2025,10 @@ class Acquisition(object):
                 positive_item = sorted_overAllGroundTruth[-positive_num:]
                 varRatios_arr.append(1 - np.mean(positive_item))
 
-            new_score_arr = [(pd_arr[i]*0.5 + varRatios_arr[i])  for i in range(len(varRatios_arr))]
-
+            # PDVRS
+            # new_score_arr = [(pd_arr[i]*0.5 + varRatios_arr[i])  for i in range(len(varRatios_arr))]
+            # PDVRS2
+            new_score_arr = [(pd_arr[i] * 0.25 + varRatios_arr[i]) for i in range(len(varRatios_arr))]
 
         if dete_method == "VRS":  # var Ratios
             item_arr = np.array(score_arr)
@@ -2065,6 +2067,7 @@ class Acquisition(object):
                                "index2id": {_index: p[3] for _index, p in enumerate(new_dataset)},
                                "item_arr": item_arr,
                                "varRatios_arr": varRatios_arr,
+                               "new_score_arr":new_score_arr,
                                "generated_feature_cos_distance":generated_feature_cos_distance,
                                "sample_score_generated":sample_score_generated})
         self.update_train_index(cur_indices)
