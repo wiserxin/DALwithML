@@ -2028,7 +2028,10 @@ class Acquisition(object):
             # PDVRS
             # new_score_arr = [(pd_arr[i]*0.5 + varRatios_arr[i])  for i in range(len(varRatios_arr))]
             # PDVRS2
-            new_score_arr = [(pd_arr[i] * 0.25 + varRatios_arr[i]) for i in range(len(varRatios_arr))]
+            # new_score_arr = [(pd_arr[i] * 0.25 + varRatios_arr[i]) for i in range(len(varRatios_arr))]
+            # PDVRS3
+            new_score_arr = [(pd_arr[i] * 0.5 + (varRatios_arr[i] if varRatios_arr[i]<0.5 else 1+varRatios_arr[i])   )
+                                for i in range(len(varRatios_arr))]
 
         if dete_method == "VRS":  # var Ratios
             item_arr = np.array(score_arr)
