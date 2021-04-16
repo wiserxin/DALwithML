@@ -631,11 +631,11 @@ class Loader(object):
 
         acquire_pkl_name = '{}_{}_{}_{}.pkl'.format('generated_stack',str(generate_per_sample),str(generate_percentage),generate_method)
         data = dict()
-        all_generate_pkl_name = ['generated_stack_3_0.1_embedding.pkl', 'generated_stack_3_0.1_wordnet.pkl',
-                                 'generated_stack_3_0.1_deletion.pkl', 'generated_stack_3_0.3_embedding.pkl',
-                                 'generated_stack_3_0.3_wordnet.pkl', 'generated_stack_3_0.3_deletion.pkl',
-                                 'generated_stack_3_0.5_embedding.pkl', 'generated_stack_3_0.5_wordnet.pkl',
-                                 'generated_stack_3_0.5_deletion.pkl','generated_stack_1_0.9_translate.pkl']
+        all_generate_pkl_name = ['generated_stack_3_0.1_embedding.pkl','generated_stack_3_0.3_embedding.pkl','generated_stack_3_0.5_embedding.pkl',
+                                 'generated_stack_3_0.1_wordnet.pkl', 'generated_stack_3_0.3_wordnet.pkl', 'generated_stack_3_0.5_wordnet.pkl',
+                                 'generated_stack_1_0.9_translate.pkl',
+                                 # 'generated_stack_3_0.5_deletion.pkl','generated_stack_3_0.3_deletion.pkl','generated_stack_3_0.1_deletion.pkl',
+                                 ]
         for generate_pkl_name in all_generate_pkl_name:
             if os.path.exists( os.path.join(datapath,generate_pkl_name) ):
                 with open(os.path.join(datapath,generate_pkl_name) , 'rb') as f:
