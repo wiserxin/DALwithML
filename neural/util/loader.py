@@ -635,7 +635,7 @@ class Loader(object):
                                  'generated_stack_3_0.1_deletion.pkl', 'generated_stack_3_0.3_embedding.pkl',
                                  'generated_stack_3_0.3_wordnet.pkl', 'generated_stack_3_0.3_deletion.pkl',
                                  'generated_stack_3_0.5_embedding.pkl', 'generated_stack_3_0.5_wordnet.pkl',
-                                 'generated_stack_3_0.5_deletion.pkl']
+                                 'generated_stack_3_0.5_deletion.pkl','generated_stack_1_0.9_translate.pkl']
         for generate_pkl_name in all_generate_pkl_name:
             if os.path.exists( os.path.join(datapath,generate_pkl_name) ):
                 with open(os.path.join(datapath,generate_pkl_name) , 'rb') as f:

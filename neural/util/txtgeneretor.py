@@ -234,6 +234,88 @@ def generateStack(datapath,transformations_per_example,dump_result=False,pct_wor
     return result
 
 
+def generateTranslatedStack(datapath,transformations_per_example,dump_result=False):
+    # 把tensor2tensor生成的结果组织成和上面兼容的pkl形式
+    import csv
+    file_names = ['stackdata_picked_utf8.csv','stack_translated_utf8.csv']
+    result = dict()
+
+    path = os.path.join(datapath, file_names[0])
+    assert os.path.exists(path)
+    data = list()
+    with open(path, 'r', encoding='utf-8') as f:
+        f_csv = csv.reader(f)
+        for row in f_csv:
+            data.append(row)
+
+    path = os.path.join(datapath, file_names[1])
+    assert os.path.exists(path)
+    g_data = list()
+    with open(path, 'r', encoding='utf-8') as f:
+        f_csv = csv.reader(f)
+        for row in f_csv:
+            g_data.append(row)
+
+
+    label2id = {".net": 0, "c#": 1, "database": 2, "mysql": 3, "sql-server": 4, "sql-server-2005": 5, "php": 6,
+                "objective-c": 7, "iphone": 8, "web-services": 9, "windows": 10, "python": 11, "sql": 12, "css": 13,
+                "html": 14, "asp.net": 15, "regex": 16, "c++": 17, "javascript": 18, "vb.net": 19, "visual-studio": 20,
+                "asp.net-mvc": 21, "string": 22, "winforms": 23, "ajax": 24, "linq-to-sql": 25, "linq": 26,
+                "performance": 27, "c": 28, "java": 29, "wpf": 30, "oop": 31, "wcf": 32, "multithreading": 33,
+                "ruby": 34, "ruby-on-rails": 35, "tsql": 36, "jquery": 37, "xml": 38, "arrays": 39, "django": 40,
+                "android": 41, "cocoa-touch": 42, }
+    loaded_data = list()
+    picked_data = list()
+    g_loaded_data = list()
+
+    for i in range(1, len(data)):
+        print("{}:{}  {}%        ".format(i, len(data), 100 * float(i) / len(data)), end="\r", flush=True)
+
+        tags = data[i][3]
+        # 分隔符是###,为了处理c#,需要倒转再倒转
+        tags = tags[::-1].split("###")[:-1]
+        if len(tags) == 1:
+            continue  # 跳过只有一个标签的数据
+        tags = [onetag[::-1] for onetag in tags]
+        used_tags = []
+        for onetag in tags:
+            if onetag in label2id.keys():
+                used_tags.append(onetag)
+        if len(used_tags) <= 1:
+            continue  # 跳过筛选后只有一个标签的数据
+
+        picked_data.append(data[i])
+
+        text = data[i][1] + ' ' + data[i][2]
+        text = clean_str(text)
+        loaded_data.append({'text': text, 'catgy': [label2id[onetag] for onetag in used_tags]})
+
+        gt = g_data[i]
+        text = gt[0] + ' ' + gt[1]
+        text = clean_str(text)
+        g_loaded_data.append({'text': text, 'catgy': [label2id[onetag] for onetag in used_tags]})
+
+    assert (len(picked_data) == (len(data)-1))
+    result = {
+        "picked_csv_data": picked_data,
+        "generated_csv_data": g_data,
+        "loaded_data": loaded_data,
+        "generated_loaded_data": g_loaded_data,
+        "label2id": label2id,
+        "transformations_per_example": transformations_per_example,
+    }
+
+    if dump_result:
+        with open(os.path.join(datapath,
+                               "generated_stack_" + str(transformations_per_example) + "_" + "0.9" +
+                               "_" + "translate" + ".pkl")
+                , 'wb') as f:
+            import pickle
+            pickle.dump(result, f)
+    return result
+
+    pass
+
 if __name__ == '__main__':
     # generateAAPD(r'D:\我的文件夹\学习\实验室\多标签主动学习项目\datasets\aapd',3)
 
@@ -249,10 +331,12 @@ if __name__ == '__main__':
     # print()
     # generateStack(r'D:\我的文件夹\学习\实验室\多标签主动学习项目\datasets\stackOverflow', 3, dump_result=True, pct_words_to_swap=0.5)
 
-    temp_augmenter_dic = {"wordnet": WordNetAugmenter, "charswap": CharSwapAugmenter,
-                     "easydata": EasyDataAugmenter, "checklist": CheckListAugmenter, "deletion": DeletionAugmenter,
-                     "clare": CLAREAugmenter}
-    for key in temp_augmenter_dic.keys():
-        generateStack(r'D:\我的文件夹\学习\实验室\多标签主动学习项目\datasets\stackOverflow', 3, dump_result=True, augmenter_type=key)
+#-------------------------------------------#
+
+    # temp_augmenter_dic = {"wordnet": WordNetAugmenter, "charswap": CharSwapAugmenter,
+    #                  "easydata": EasyDataAugmenter, "checklist": CheckListAugmenter, "deletion": DeletionAugmenter,
+    #                  "clare": CLAREAugmenter}
+    # for key in temp_augmenter_dic.keys():
+    #     generateStack(r'D:\我的文件夹\学习\实验室\多标签主动学习项目\datasets\stackOverflow', 3, dump_result=True, augmenter_type=key)
 
     pass

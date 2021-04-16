@@ -125,4 +125,25 @@ vrs with feature distance
 - fvrs5   
     0.4 * cos_distance + vrs
 
+## TR实验
+基于翻译的数据扩增
 
+### stack数据集
+```
+            "model_name": "CNN",
+            "group_name": "[mlabs]TA+stack+F1",
+            "max_performance": 0.90,
+            "data_path": "../../datasets/stack/",
+            "acquire_method": "dete",
+            "sub_acquire_method": "VRS",
+            "using_generated_data": True,
+            "generated_per_sample":1,
+            "generated_percentage":0.9,
+            "generated_method":"translate",
+            "generated_used_per_sample": 1,
+            "num_acquisitions_round": 25,
+            "init_question_num": 1200,
+            "acquire_question_num_per_round": 1200,
+            "warm_start_random_seed": 0,
+            "sample_method": "Deterministic+KIM_VRS_TR_1per+0",
+```
