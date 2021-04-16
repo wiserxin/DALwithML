@@ -344,7 +344,7 @@ def main(args):
             train_data = train_data[:30000]
             val_data = val_data[:]
         elif "stack" in data_path:
-            data = loader.load_stack(data_path,generated_per_sample=generated_per_sample,
+            data = loader.load_stack(data_path,generate_per_sample=generated_per_sample,
                                      generate_percentage=generated_percentage,
                                      generate_method=generated_method)
             args.target_size = 43
