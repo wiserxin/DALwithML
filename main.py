@@ -203,7 +203,7 @@ def main(args):
             "max_performance": 0.90,
             "data_path": "../../datasets/stack/",
             "acquire_method": "dete",
-            "sub_acquire_method": "VRS",
+            "sub_acquire_method": "VRS_feature",
             "using_generated_data": True,
             "generated_per_sample":1,
             "generated_percentage":0.9,
@@ -220,7 +220,7 @@ def main(args):
             "max_performance": 0.90,
             "data_path": "../../datasets/stack/",
             "acquire_method": "dete",
-            "sub_acquire_method": "VRS",
+            "sub_acquire_method": "VRS_feature",
             "using_generated_data": True,
             "generated_per_sample":1,
             "generated_percentage":0.9,
@@ -237,7 +237,7 @@ def main(args):
             "max_performance": 0.90,
             "data_path": "../../datasets/stack/",
             "acquire_method": "dete",
-            "sub_acquire_method": "VRS",
+            "sub_acquire_method": "VRS_feature",
             "using_generated_data": True,
             "generated_per_sample":1,
             "generated_percentage":0.9,
@@ -254,7 +254,7 @@ def main(args):
             "max_performance": 0.90,
             "data_path": "../../datasets/stack/",
             "acquire_method": "dete",
-            "sub_acquire_method": "VRS",
+            "sub_acquire_method": "VRS_feature",
             "using_generated_data": True,
             "generated_per_sample": 1,
             "generated_percentage": 0.9,
@@ -344,7 +344,9 @@ def main(args):
             train_data = train_data[:30000]
             val_data = val_data[:]
         elif "stack" in data_path:
-            data = loader.load_stack(data_path,generate_percentage=generated_percentage,generate_method=generated_method)
+            data = loader.load_stack(data_path,generated_per_sample=generated_per_sample,
+                                     generate_percentage=generated_percentage,
+                                     generate_method=generated_method)
             args.target_size = 43
             train_data = data['train_points']
             val_data = data['test_points']
