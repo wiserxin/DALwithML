@@ -2200,6 +2200,7 @@ class Acquisition(object):
         temp_feature_arr = []
         temp_score_arr = []
         for iter_batch,data in enumerate(data_batches):
+            print("getting Similarity {}/{}".format(iter_batch,len(data_batches)),end="\r")
             batch_data_numpy  = data['data_numpy']
 
             X = batch_data_numpy[0]
@@ -2254,7 +2255,7 @@ class Acquisition(object):
     def obtain_data(self, data, model_path=None, model_name=None, acquire_num=2,
                     method='random', sub_method='', round = 0):
 
-        print("sampling method：" + sub_method)
+        print("sampling method：" + sub_method,"; use generated data:",self.using_generated_data)
         self.round = round
 
         # 待完善此处的逻辑
