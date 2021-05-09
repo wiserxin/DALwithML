@@ -1058,9 +1058,16 @@ class Acquisition(object):
         model.train(True) # 保持 dropout 开启
         tm = time.time()
         if self.using_generated_data:
+            using_generated_data = [self.generated_train_data[i*self.generated_per_sample+j]
+                                    for i in range(len(self.generated_train_data)/self.generated_per_sample)
+                                    for j in range(self.generated_used_per_sample)
+                                    ]
+            # >> > a = [(i, j) for i in range(5) for j in ('1', '2')]
+            # >> > a
+            # [(0, '1'), (0, '2'), (1, '1'), (1, '2'), (2, '1'), (2, '2'), (3, '1'), (3, '2'), (4, '1'), (4, '2')]
             # sample_feature = self.getSimilarityMatrixNTimes(dataset, model_path, model_name, feature_only=True)  # 原始数据的特征
             sample_feature_generated, sample_score_generated = self.getSimilarityMatrixNTimes(
-                self.generated_train_data, model_path, model_name, feature_only=True, with_predict=True, nsamp=nsamp)
+                using_generated_data, model_path, model_name, feature_only=True, with_predict=True, nsamp=nsamp)
 
         # data without id
         new_dataset = [datapoint for j, datapoint in enumerate(dataset) if j not in list(self.train_index)]
@@ -2239,8 +2246,8 @@ class Acquisition(object):
             temp_feature_arr.append(output_arr)
             temp_score_arr.append(output_score_arr)
 
-        features = np.vstack(temp_feature_arr, axis=0)
-        scores = np.vstack(temp_score_arr, axis=0) if with_predict else list()
+        features = np.vstack(temp_feature_arr)
+        scores = np.vstack(temp_score_arr) if with_predict else list()
 
         if feature_only:
             if with_predict:
