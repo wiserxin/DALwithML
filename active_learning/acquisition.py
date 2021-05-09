@@ -1059,7 +1059,7 @@ class Acquisition(object):
         tm = time.time()
         if self.using_generated_data:
             using_generated_data = [self.generated_train_data[i*self.generated_per_sample+j]
-                                    for i in range(len(self.generated_train_data)/self.generated_per_sample)
+                                    for i in range(int(len(self.generated_train_data)/self.generated_per_sample))
                                     for j in range(self.generated_used_per_sample)
                                     ]
             # >> > a = [(i, j) for i in range(5) for j in ('1', '2')]
