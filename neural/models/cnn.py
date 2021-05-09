@@ -142,13 +142,13 @@ class CNN(nn.Module):
         output = torch.sigmoid(output) > 0.5
         return output
 
-    def features(self,x,usecuda=True):
+    def features(self,x,usecuda=True,with_forward=False):
         x = self.embedding(x).unsqueeze(1)
         x1 = self.conv_and_pool(x, self.conv13)
         x2 = self.conv_and_pool(x, self.conv14)
         x3 = self.conv_and_pool(x, self.conv15)
         x = torch.cat((x1, x2, x3), 1)
-        return x
+        return (x,self.linear(self.dropout(x))) if with_forward else x
 
     def features_with_pred(self,x,usecuda=True):
         x = self.features(x,usecuda)

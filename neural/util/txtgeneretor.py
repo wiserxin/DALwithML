@@ -237,7 +237,7 @@ def generateStack(datapath,transformations_per_example,dump_result=False,pct_wor
 def generateTranslatedStack(datapath,transformations_per_example,dump_result=False):
     # 把tensor2tensor生成的结果组织成和上面兼容的pkl形式
     import csv
-    file_names = ['stackdata_picked_utf8.csv','stack_translated_utf8.csv']
+    file_names = ['stackdata_picked_utf8.csv','stack_picked_translated_utf8.csv']
     result = dict()
 
     path = os.path.join(datapath, file_names[0])
@@ -291,7 +291,7 @@ def generateTranslatedStack(datapath,transformations_per_example,dump_result=Fal
         loaded_data.append({'text': text, 'catgy': [label2id[onetag] for onetag in used_tags]})
 
         gt = g_data[i]
-        text = gt[0] + ' ' + gt[1]
+        text = gt[1] + ' ' + gt[2]
         text = clean_str(text)
         g_loaded_data.append({'text': text, 'catgy': [label2id[onetag] for onetag in used_tags]})
 
