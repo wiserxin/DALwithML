@@ -1057,6 +1057,10 @@ class Acquisition(object):
         model = torch.load(model_path)
         model.train(True) # 保持 dropout 开启
         tm = time.time()
+        if self.using_generated_data:
+            # sample_feature = self.getSimilarityMatrixNTimes(dataset, model_path, model_name, feature_only=True)  # 原始数据的特征
+            sample_feature_generated, sample_score_generated = self.getSimilarityMatrixNTimes(
+                self.generated_train_data, model_path, model_name, feature_only=True, with_predict=True, nsamp=nsamp)
 
         # data without id
         new_dataset = [datapoint for j, datapoint in enumerate(dataset) if j not in list(self.train_index)]
@@ -1073,6 +1077,7 @@ class Acquisition(object):
         pt = 0
         _delt_arr = []
         elo_count = 0
+        all_score_arr = []
 
         for iter_batch,data in enumerate(data_batches):
             print('\rRKL acquire batch {}/{} elo num:{}'.format(iter_batch,len(data_batches),elo_count),end='')
@@ -1098,24 +1103,30 @@ class Acquisition(object):
                 elif model_name == 'CNN':
                     output = model(X)
 
-                score = torch.sigmoid(output).data.cpu().numpy().tolist()
-                # score = torch.softmax(output,dim=1).data.cpu().numpy().tolist() # 测试softmax
-                # score = F.logsigmoid(output).data.cpu().numpy().tolist()
+                score = torch.sigmoid(output).data.cpu().numpy()
+                # score = torch.sigmoid(output).data.cpu().numpy().tolist()
 
                 score_arr.append(score)
 
                 # evidence level , using confidence stratgy
                 # score_arr.append(torch.abs(score-0.5))
 
+            # size: btach_size * nsample * nlabel
+            # # reshape method 1
+            # new_score_seq = []
+            # for m in range(len(Y)):
+            #     tp = []
+            #     for n in range(nsamp):
+            #         tp.append(score_arr[n][m].tolist())
+            #     new_score_seq.append(tp)
+            # # reshape method 2
+            # new_score_seq = [ [score_arr[n][m].tolist() for n in range(nsamp)] for m in range(len(Y)) ]
+            # # reshape method 3
+            new_score_seq = np.stack(score_arr, axis=1)
 
-            new_score_seq = []  # size: btach_size * nsample * nlabel
-            for m in range(len(Y)):
-                tp = []
-                for n in range(nsamp):
-                    tp.append(score_arr[n][m])
-                new_score_seq.append(tp)
 
             # print("new_score_seq:",len(new_score_seq),len(new_score_seq[0]),len(new_score_seq[0][0]))
+            all_score_arr.extend(new_score_seq.tolist())
 
             for index, item in enumerate(new_score_seq):
                 # new_xxx shape: batch_size * nsample * nlabel
@@ -1162,7 +1173,9 @@ class Acquisition(object):
 
         self.savedData.append({"added_index": cur_indices,
                                "index2id": {_index: p[3] for _index, p in enumerate(new_dataset)},
-                               "_delt_arr": _delt_arr})
+                               "item_arr": all_score_arr,
+                               "_delt_arr": _delt_arr,
+                               "sample_score_generated":sample_score_generated})
 
         if not returned:
             self.update_train_index(cur_indices)
@@ -2122,7 +2135,8 @@ class Acquisition(object):
         else:
             self.update_train_index(cur_indices)
 
-    def getSimilarityMatrix(self, dataset, model_path='', model_name='', batch_size=800, feature_only=False, with_predict=False):
+    def getSimilarityMatrix(self, dataset, model_path='', model_name='', batch_size=800,
+                            feature_only=False, with_predict=False):
         '''
         :param feature_only: 表示返回特征还是相似度矩阵
         '''
@@ -2152,8 +2166,8 @@ class Acquisition(object):
             elif model_name == 'CNN':
                 # 2020 08 12 修改为 features_with_pred
                 # 2020 09 02 又改回来啦
-                output = model.features(X)
-                output_score = torch.sigmoid(model(X)).data.cpu().numpy().tolist() if with_predict else list()
+                output,output_score = model.features(X,with_forward=with_predict)
+                output_score = torch.sigmoid(output_score).data.cpu().numpy().tolist() if with_predict else list()
                 # output = model.features_with_pred(X)
             temp_feature.extend(output.data.cpu().numpy().tolist())
             _ = temp_score.extend(output_score) if with_predict else list()
@@ -2169,6 +2183,73 @@ class Acquisition(object):
 
         similarity = cosine_similarity(features) + 1
         return similarity
+
+    def getSimilarityMatrixNTimes(self, dataset, model_path='', model_name='', batch_size=800,
+                                  feature_only=False, with_predict=False, nsamp = 100):
+        '''
+        using for no-dete method: 获取模型对样本的predict和feature
+        :param feature_only: 表示返回特征还是相似度矩阵
+        '''
+
+        model = torch.load(model_path)
+        model.train(True)
+
+        # 对剩余样本池创建batch
+        data_batches = create_batches(dataset, batch_size=batch_size, order='no')
+
+        temp_feature_arr = []
+        temp_score_arr = []
+        for iter_batch,data in enumerate(data_batches):
+            batch_data_numpy  = data['data_numpy']
+
+            X = batch_data_numpy[0]
+            Y = batch_data_numpy[1]
+
+            if self.usecuda:
+                X = Variable(torch.from_numpy(X).long()).cuda(self.cuda_device)
+            else:
+                X = Variable(torch.from_numpy(X).long())
+
+            output_arr = []
+            output_score_arr = []
+            for itr in range(nsamp):
+
+                if model_name == 'BiLSTM':
+                    # output = model(words_q, words_a, wordslen_q, wordslen_a)
+                    pass
+                elif model_name == 'CNN':
+                    output, output_score = model.features(X, with_forward=with_predict)
+
+                    output = output.data.cpu().numpy() # feature
+                    output_score = torch.sigmoid(output_score).data.cpu().numpy() if with_predict else list() # score
+
+
+                output_arr.append(output)
+                output_score_arr.append(output_score)
+
+
+            # reshape the two arr into size: btach_size * nsample * nlabel
+            # output_arr = [[ output_arr[n][m] for n in range(nsamp) ] for m in range(len(Y)) ]
+            # output_score_arr = [[ output_score_arr[n][m] for n in range(nsamp) ] for m in range(len(Y)) ]
+            output_arr = np.stack(output_arr, axis=1)
+            output_score_arr = np.stack(output_score_arr, axis=1) if with_predict else list()
+
+            # save outputs for each batch
+            temp_feature_arr.append(output_arr)
+            temp_score_arr.append(output_score_arr)
+
+        features = np.vstack(temp_feature_arr, axis=0)
+        scores = np.vstack(temp_score_arr, axis=0) if with_predict else list()
+
+        if feature_only:
+            if with_predict:
+                return features,scores
+            else:
+                return features
+
+        # similarity = cosine_similarity(features) + 1
+        # return similarity
+
 
     def obtain_data(self, data, model_path=None, model_name=None, acquire_num=2,
                     method='random', sub_method='', round = 0):
