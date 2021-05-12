@@ -16,6 +16,204 @@ class SubMod(object):
     def __init__(self):
         pass
 
+    def getNoDeteMethodWithDAByName(self,methodNick):
+        '''
+        获取 考虑 DA 数据 的AL方法函数
+        :param methodNick:
+        :return:
+        '''
+
+        # 方差分解分析 for DA data
+        def variance_analysis(item, mod="011"):
+            '''
+            para:
+                mod: mod[0]: s 开关
+                     mod[1]: s1 开关
+                     mod[2]: s2 开关
+
+            func:   对原始样本、生成数据的方差分解分析
+            return:
+                s1: 认为是多次试验的随机误差，即dropout引起的离差平方和
+                    实验中体现为模型的鲁棒性？
+                s2: 认为是描述因素各个水平效应的影响，实验中体现为在模型看来
+                    data 和 DA data 间的差异程度
+            notes:  item 应该是一个 dropout_num * 2 的矩阵，代表了
+                    一个label下的两个样本分别采样 dropout_num 次后的结果
+            '''
+            item_arr = np.array(item)
+            res = list()
+            if mod[0] == "1":
+                s = np.var(item_arr)
+                res.append(s)
+
+            if mod[1] == "1":
+                # S_e / n / m
+                # 认为是多次试验的随机误差，即dropout引起的离差平方和
+                s1_arr = np.var(item_arr, axis=0)  # S_e / n
+                s1 = np.mean(s1_arr)
+                res.append(s1)
+
+            if mod[2] == "1":
+                # S_A / n / m
+                # 认为是描述因素各个水平效应的影响，即两个样本分别预测结果的差异程度
+                overAllGroundTruth = np.mean(item_arr, axis=0)
+                s2_arr = np.var(overAllGroundTruth)
+                s2 = s2_arr  # S_A / n / m
+                res.append(s2)
+
+            # s3_arr = np.var(item_arr,axis=1) # 统计书上没有特殊的解释，直观上是一个样本内部多个标签之间的差异程度。
+            # 其长度为dropout次数
+
+            #     print(s1_arr)
+            #     print(s1)
+            #     print(s2_arr)
+            #     print(s2)
+            #     print(s,"=",s1,"+",s2)
+
+            return res
+
+        def posLabel(overAllGroundTruth):
+            positive_num = np.sum(overAllGroundTruth > 0.5)
+            if positive_num == 0:
+                positive_num = 1
+            return list(np.argsort(overAllGroundTruth)[-positive_num:])
+
+        def getPredictLabels(item_arr):
+            # get scoers and Pos Labels for a no-dete item arr
+            predictScore_arr = np.array(item_arr)
+            predictScore = np.mean(predictScore_arr, axis=0)
+            predictLabels = posLabel(predictScore)
+            return predictScore, predictLabels
+
+        def varRatiosAndStandardDeviation(item0,item1, mod="010"):
+            '''
+
+            :param item0:
+            :param item1:
+            :param mod:
+                "100": using s
+                "010": using s1
+                "001": using s2
+                "011": ~
+                ......
+            :return:
+            '''
+
+            a_ori = item0
+            a_gen = item1
+            _, l_ori = getPredictLabels(item0)
+            _, l_gen = getPredictLabels(item1)
+
+            # pos label of all: both ori and gen
+            l_all = list((set(l_ori).union(set(l_gen))))
+            # pos label of all: both ori and gen
+            l_les = list(set(l_ori) - (set(l_ori) - set(l_gen)))
+
+            # arr of l_all columns in ori
+            a_la_ori = a_ori[:, l_all]
+            # arr of l_all columns in gen
+            a_la_gen = a_gen[:, l_all]
+
+            a_ll_gen = a_gen[:, l_les]
+            a_ll_ori = a_ori[:, l_les]
+
+            # 把原始数据和生成数据的结果结合成一个新矩阵
+            score_arr = np.zeros((a_la_gen.shape[1], 2))
+            for index, i in enumerate(zip(a_la_gen.T, a_la_ori.T)):
+                one_label_arr = np.vstack(i).T
+
+                # s1 and mean
+                score_arr[index, :] = [variance_analysis(one_label_arr, mod=mod)[0], np.mean(one_label_arr)]
+                pass
+
+            # Max Standard Deviation with generated data
+            msd = np.sqrt(np.max(score_arr[:, 0]))
+            # Var Ratios with Generated data
+            vrg = 1 - np.mean(score_arr[:, 1])
+            res = msd + vrg
+
+            return res
+
+        def varRatios(item0, item1,):
+            '''
+
+            :param item0:
+            :param item1:
+            :return:
+            '''
+
+            a_ori = item0
+            a_gen = item1
+            _, l_ori = getPredictLabels(item0)
+            _, l_gen = getPredictLabels(item1)
+
+            # pos label of all: both ori and gen
+            l_all = list((set(l_ori).union(set(l_gen))))
+            # pos label of all: both ori and gen
+            # l_les = list(set(l_ori) - (set(l_ori) - set(l_gen)))
+
+            # arr of l_all columns in ori
+            a_la_ori = a_ori[:, l_all]
+            # arr of l_all columns in gen
+            a_la_gen = a_gen[:, l_all]
+
+            vrg = 1 - np.mean([a_la_ori,a_la_gen])
+
+            return vrg
+
+        def maxStandardDeviation(item0,item1, mod="010"):
+            '''
+
+            :param item0:
+            :param item1:
+            :param mod:
+                "100": using s
+                "010": using s1
+                "001": using s2
+                "011": ~
+                ......
+            :return:
+            '''
+
+            a_ori = item0
+            a_gen = item1
+            _, l_ori = getPredictLabels(item0)
+            _, l_gen = getPredictLabels(item1)
+
+            # pos label of all: both ori and gen
+            l_all = list((set(l_ori).union(set(l_gen))))
+            # pos label of all: both ori and gen
+            # l_les = list(set(l_ori) - (set(l_ori) - set(l_gen)))
+
+            # arr of l_all columns in ori
+            a_la_ori = a_ori[:, l_all]
+            # arr of l_all columns in gen
+            a_la_gen = a_gen[:, l_all]
+
+            # a_ll_gen = a_gen[:, l_les]
+            # a_ll_ori = a_ori[:, l_les]
+
+            # 把原始数据和生成数据的结果结合成一个新矩阵
+            score_arr = np.zeros((a_la_gen.shape[1], 1))
+            for index, i in enumerate(zip(a_la_gen.T, a_la_ori.T)):
+                one_label_arr = np.vstack(i).T
+                # s1
+                score_arr[index, :] = [variance_analysis(one_label_arr, mod=mod)[0],]
+
+            # Max Standard Deviation with generated data
+            msd = np.sqrt(np.max(score_arr[:, 0]))
+            return msd
+
+
+
+        methodDic = {'vsd': varRatiosAndStandardDeviation,
+                     'vrs': varRatios,
+                     'msd': maxStandardDeviation,
+                     }
+        method = methodDic[methodNick]
+        print("Choose method", method, end="\t")
+        return method
+
     def getNoDeteMethodByName(self,methodNick):
         def rankingLoss2(item):  # item = nsamples * labels
             # 使用ground truth 给每个forward pass筛选，计算所有的 neg_label > pos_label 对 的 sum(neg_label-pos_label)
@@ -577,6 +775,8 @@ class SubMod(object):
 
 allSubMethod = SubMod()
 
+
+
 class Acquisition(object):
     def __init__(self, train_data,
                  seed=0,
@@ -1059,7 +1259,8 @@ class Acquisition(object):
         tm = time.time()
         if self.using_generated_data:
             using_generated_data = [self.generated_train_data[i*self.generated_per_sample+j]
-                                    for i in range(int(len(self.generated_train_data)/self.generated_per_sample))
+                                    # for i in range(int(len(self.generated_train_data)/self.generated_per_sample))
+                                    for i in range(len(dataset))
                                     for j in range(self.generated_used_per_sample)
                                     ]
             # >> > a = [(i, j) for i in range(5) for j in ('1', '2')]
@@ -1141,6 +1342,151 @@ class Acquisition(object):
                 obj = {}
                 obj["id"] = pt
                 obj["el"] = rkl(item) if rklMod==-1 else rkl(item,mod=rklMod)
+
+                if obj["el"] < -1e-10:
+                    elo_count += 1
+                    obj["el"] = -obj["el"]
+                    # print("elo error:",obj["el"])
+                    # exit()
+
+                _delt_arr.append(obj)
+                pt += 1
+
+
+        if density: # 考虑在所有未标注点中，pt的密度
+            print("\t density ing ...",end='')
+            sim_matrix = self.getSimilarityMatrix(new_dataset,model_path,model_name)
+            sim = np.mean(sim_matrix,axis=0)
+            for pt,sim_t in enumerate(sim):
+                assert (_delt_arr[pt]['id'] == pt)
+                _delt_arr[pt]["el"] *= sim_t
+        print()
+
+        _delt_arr = sorted(_delt_arr, key=lambda o: o["el"], reverse=True) # 从大到小排序
+
+        cur_indices = set()
+        i = 0
+
+        while len(cur_indices) < acquire_document_num:
+            try:
+                cur_indices.add(new_datapoints[_delt_arr[i]["id"]])
+                i += 1
+            except:
+                print(acquire_document_num)
+                print(i)
+                print(type(new_datapoints),len(new_datapoints))
+                print(new_datapoints[:10])
+                print(_delt_arr[i])
+                assert False
+
+        self.savedData.append({"added_index": cur_indices,
+                               "index2id": {_index: p[3] for _index, p in enumerate(new_dataset)},
+                               "item_arr": all_score_arr,
+                               "_delt_arr": _delt_arr,
+                               "sample_score_generated":sample_score_generated})
+
+        if not returned:
+            self.update_train_index(cur_indices)
+            print('RKL time consuming： %d seconds:' % (time.time() - tm))
+        else:
+            dataset_pool = []
+
+            return dataset_pool, cur_indices
+
+    def get_GRKL(self, dataset, model_path, acquire_document_num,
+                nsamp=100,
+                model_name='',
+                returned=False,
+                rklNo = 4,      # 选取rkl策略，默认是rkl4
+                rklMod = -1,
+                density = False,#开启则挑选更稠密的区间的点
+                thisround=-1,):
+
+
+        rkl = allSubMethod.getNoDeteMethodWithDAByName(rklNo)
+        # print("RKL",rklNo,end="\t")
+
+
+
+        model = torch.load(model_path)
+        model.train(True) # 保持 dropout 开启
+        tm = time.time()
+        if self.using_generated_data:
+            using_generated_data = [self.generated_train_data[i*self.generated_per_sample+j]
+                                    # for i in range(int(len(self.generated_train_data)/self.generated_per_sample))
+                                    for i in range(len(dataset))
+                                    for j in range(self.generated_used_per_sample)
+                                    ]
+            # >> > a = [(i, j) for i in range(5) for j in ('1', '2')]
+            # >> > a
+            # [(0, '1'), (0, '2'), (1, '1'), (1, '2'), (2, '1'), (2, '2'), (3, '1'), (3, '2'), (4, '1'), (4, '2')]
+            # sample_feature = self.getSimilarityMatrixNTimes(dataset, model_path, model_name, feature_only=True)  # 原始数据的特征
+            sample_feature_generated, sample_score_generated = self.getSimilarityMatrixNTimes(
+                using_generated_data, model_path, model_name, feature_only=True, with_predict=True, nsamp=nsamp)
+
+        # data without id
+        new_dataset = [datapoint for j, datapoint in enumerate(dataset) if j not in list(self.train_index)]
+
+        # id that not in train_index
+        new_datapoints = [j for j in range(len(dataset)) if j not in list(self.train_index)]
+
+        # 防止死循环
+        acquire_document_num = acquire_document_num if acquire_document_num <= len(new_datapoints) else len(new_datapoints)
+
+        print('GRKL: preparing batch data',end='')
+        data_batches = create_batches(new_dataset, batch_size=self.batch_size, order='no')
+
+        pt = 0
+        _delt_arr = []
+        elo_count = 0
+        all_score_arr = []
+
+        for iter_batch,data in enumerate(data_batches):
+            print('\rGRKL acquire batch {}/{} elo num:{}'.format(iter_batch,len(data_batches),elo_count),end='')
+
+            batch_data_numpy  = data['data_numpy']
+            batch_data_points = data['data_points']
+
+            X = batch_data_numpy[0]
+            Y = batch_data_numpy[1]
+
+            if self.usecuda:
+                X = Variable(torch.from_numpy(X).long()).cuda(self.cuda_device)
+            else:
+                X = Variable(torch.from_numpy(X).long())
+
+            score_arr = []
+
+            for itr in range(nsamp):
+
+                if model_name == 'BiLSTM':
+                    # output = model(words_q, words_a, wordslen_q, wordslen_a)
+                    pass
+                elif model_name == 'CNN':
+                    output = model(X)
+
+                score = torch.sigmoid(output).data.cpu().numpy()
+                # score = torch.sigmoid(output).data.cpu().numpy().tolist()
+
+                score_arr.append(score)
+
+                # evidence level , using confidence stratgy
+                # score_arr.append(torch.abs(score-0.5))
+
+            # size: btach_size * nsample * nlabel
+            new_score_seq = np.stack(score_arr, axis=1)
+
+
+            # print("new_score_seq:",len(new_score_seq),len(new_score_seq[0]),len(new_score_seq[0][0]))
+            all_score_arr.extend(new_score_seq.tolist())
+
+            for index, item in enumerate(new_score_seq):
+                # new_xxx shape: batch_size * nsample * nlabel
+                # item    shape: nsample * nlabel
+                obj = {}
+                obj["id"] = pt
+                obj["el"] = rkl(item,sample_score_generated[new_dataset[index][3]]
+                                ) if rklMod==-1 else rkl(item,sample_score_generated[new_dataset[index][3]],mod=rklMod)
 
                 if obj["el"] < -1e-10:
                     elo_count += 1
@@ -2283,7 +2629,10 @@ class Acquisition(object):
                 else:
                     self.get_dete(data,model_path,acquire_num,model_name,dete_method=sub_method,thisround=round)
             elif method == 'no-dete': # Bayesian neural network based method
-                if sub_method == 'DAL':
+                if sub_method[0] == 'G':
+                    pass
+                    self.get_GRKL(data, model_path, acquire_num, rklNo=sub_method[1:], model_name=model_name, thisround=round)
+                elif sub_method == 'DAL':
                     # 普通DAL
                     self.get_DAL(data, model_path, acquire_num, model_name=model_name)
 
