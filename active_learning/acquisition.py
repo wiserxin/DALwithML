@@ -206,9 +206,9 @@ class SubMod(object):
 
 
 
-        methodDic = {'vsd': varRatiosAndStandardDeviation,
-                     'vrs': varRatios,
-                     'msd': maxStandardDeviation,
+        methodDic = {'VSD': varRatiosAndStandardDeviation,
+                     'VRS': varRatios,
+                     'MSD': maxStandardDeviation,
                      }
         method = methodDic[methodNick]
         print("Choose method", method, end="\t")
