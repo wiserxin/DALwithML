@@ -134,6 +134,54 @@ class SubMod(object):
 
             return res
 
+        def varRatiosAndStandardDeviationDouble(item0,item1):
+            '''
+
+            :param item0:
+            :param item1:
+            :param mod:
+                using s1 and s2
+                ......
+            :return:
+            '''
+
+            a_ori = item0
+            a_gen = item1
+            _, l_ori = getPredictLabels(item0)
+            _, l_gen = getPredictLabels(item1)
+
+            # pos label of all: both ori and gen
+            l_all = list((set(l_ori).union(set(l_gen))))
+            # pos label of all: both ori and gen
+            l_les = list(set(l_ori) - (set(l_ori) - set(l_gen)))
+
+            # arr of l_all columns in ori
+            a_la_ori = a_ori[:, l_all]
+            # arr of l_all columns in gen
+            a_la_gen = a_gen[:, l_all]
+
+            a_ll_gen = a_gen[:, l_les]
+            a_ll_ori = a_ori[:, l_les]
+
+            # 把原始数据和生成数据的结果结合成一个新矩阵
+            score_arr = np.zeros((a_la_gen.shape[1], 3))
+            for index, i in enumerate(zip(a_la_gen.T, a_la_ori.T)):
+                one_label_arr = np.vstack(i).T
+
+                # s1 and mean
+                score_arr[index, :2] = variance_analysis(one_label_arr)
+                score_arr[index, 2] =  np.mean(one_label_arr)
+                pass
+
+            # Max Standard Deviation with generated data
+            msd = np.sqrt(np.max(score_arr[:, :2]))
+            # Var Ratios with Generated data
+            vrg = 1 - np.mean(score_arr[:, 2])
+            res = msd + vrg
+
+            return res
+
+
         def varRatios(item0, item1,):
             '''
 
@@ -207,6 +255,7 @@ class SubMod(object):
 
 
         methodDic = {'VSD': varRatiosAndStandardDeviation,
+                     'VSDD':varRatiosAndStandardDeviationDouble,
                      'VRS': varRatios,
                      'MSD': maxStandardDeviation,
                      }
@@ -2630,7 +2679,6 @@ class Acquisition(object):
                     self.get_dete(data,model_path,acquire_num,model_name,dete_method=sub_method,thisround=round)
             elif method == 'no-dete': # Bayesian neural network based method
                 if sub_method[0] == 'G':
-                    pass
                     self.get_GRKL(data, model_path, acquire_num, rklNo=sub_method[1:], model_name=model_name, thisround=round)
                 elif sub_method == 'DAL':
                     # 普通DAL
