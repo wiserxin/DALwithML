@@ -141,6 +141,7 @@ class SubMod(object):
             :param item1:
             :param mod:
                 using s1 and s2
+                max(s1,s2)
                 ......
             :return:
             '''
@@ -181,6 +182,8 @@ class SubMod(object):
 
             return res
 
+        def varRatiosAndStandardDeviationSum(item0,item1):
+            return varRatiosAndStandardDeviation(item0,item1,mod="100")
 
         def varRatios(item0, item1,):
             '''
@@ -256,6 +259,7 @@ class SubMod(object):
 
         methodDic = {'VSD': varRatiosAndStandardDeviation,
                      'VSDD':varRatiosAndStandardDeviationDouble,
+                     'VSDS':varRatiosAndStandardDeviationSum,
                      'VRS': varRatios,
                      'MSD': maxStandardDeviation,
                      }
