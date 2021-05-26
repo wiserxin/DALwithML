@@ -148,7 +148,7 @@ class CNN(nn.Module):
         x2 = self.conv_and_pool(x, self.conv14)
         x3 = self.conv_and_pool(x, self.conv15)
         x = torch.cat((x1, x2, x3), 1)
-        return (x,self.linear(self.dropout(x))) if with_forward else x
+        return (x,self.linear(self.dropout(x))) if with_forward else (x,None)
 
     def features_with_pred(self,x,usecuda=True):
         x = self.features(x,usecuda)
