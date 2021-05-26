@@ -43,6 +43,7 @@ class SubMod(object):
             item_arr = np.array(item)
             res = list()
             if mod[0] == "1":
+                # S / n / m = (S_e + S_A) / n / m
                 s = np.var(item_arr)
                 res.append(s)
 
@@ -85,7 +86,7 @@ class SubMod(object):
             predictLabels = posLabel(predictScore)
             return predictScore, predictLabels
 
-        def varRatiosAndStandardDeviation(item0,item1, mod="010"):
+        def varRatiosAndMaxStandardDeviation(item0,item1, mod="010"):
             '''
 
             :param item0:
@@ -94,7 +95,7 @@ class SubMod(object):
                 "100": using s
                 "010": using s1
                 "001": using s2
-                "011": ~
+                max( s? )
                 ......
             :return:
             '''
@@ -134,7 +135,56 @@ class SubMod(object):
 
             return res
 
-        def varRatiosAndStandardDeviationDouble(item0,item1):
+        def varRatiosAndMeanStandardDeviation(item0,item1, mod="010"):
+            '''
+            :param item0:
+            :param item1:
+            :param mod:
+                "100": using s
+                "010": using s1
+                "001": using s2
+                max( s? )
+                ......
+            :return:
+            '''
+
+            a_ori = item0
+            a_gen = item1
+            _, l_ori = getPredictLabels(item0)
+            _, l_gen = getPredictLabels(item1)
+
+            # pos label of all: both ori and gen
+            l_all = list((set(l_ori).union(set(l_gen))))
+            # pos label of all: both ori and gen
+            l_les = list(set(l_ori) - (set(l_ori) - set(l_gen)))
+
+            # arr of l_all columns in ori
+            a_la_ori = a_ori[:, l_all]
+            # arr of l_all columns in gen
+            a_la_gen = a_gen[:, l_all]
+
+            a_ll_gen = a_gen[:, l_les]
+            a_ll_ori = a_ori[:, l_les]
+
+            # 把原始数据和生成数据的结果结合成一个新矩阵
+            score_arr = np.zeros((a_la_gen.shape[1], 2))
+            for index, i in enumerate(zip(a_la_gen.T, a_la_ori.T)):
+                one_label_arr = np.vstack(i).T
+
+                # s1 and mean
+                score_arr[index, :] = [variance_analysis(one_label_arr, mod=mod)[0], np.mean(one_label_arr)]
+                pass
+
+            # Max Standard Deviation with generated data
+            msd = np.sqrt(np.mean(score_arr[:, 0]))
+            # Var Ratios with Generated data
+            vrg = 1 - np.mean(score_arr[:, 1])
+            res = msd + vrg
+
+            return res
+
+
+        def varRatiosAndMaxStandardDeviationDouble(item0,item1):
             '''
 
             :param item0:
@@ -182,8 +232,8 @@ class SubMod(object):
 
             return res
 
-        def varRatiosAndStandardDeviationSum(item0,item1):
-            return varRatiosAndStandardDeviation(item0,item1,mod="100")
+        def varRatiosAndMaxStandardDeviationSum(item0,item1):
+            return varRatiosAndMaxStandardDeviation(item0,item1,mod="100")
 
         def varRatios(item0, item1,):
             '''
@@ -257,11 +307,15 @@ class SubMod(object):
 
 
 
-        methodDic = {'VSD': varRatiosAndStandardDeviation,
-                     'VSDD':varRatiosAndStandardDeviationDouble,
-                     'VSDS':varRatiosAndStandardDeviationSum,
-                     'VRS': varRatios,
+        methodDic = {'VRS': varRatios,
                      'MSD': maxStandardDeviation,
+
+                     'VSD': varRatiosAndMaxStandardDeviation,
+                     'VSDD':varRatiosAndMaxStandardDeviationDouble,
+                     'VSDS':varRatiosAndMaxStandardDeviationSum,
+
+                     'VND':varRatiosAndMeanStandardDeviation,
+
                      }
         method = methodDic[methodNick]
         print("Choose method", method, end="\t")
