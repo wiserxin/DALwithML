@@ -700,7 +700,8 @@ class Loader(object):
             pickle.dump(r,f)
         return r
 
-    def load_aapd(self, datapath, sents_max_len=300, vocab_size=50000, generate_per_sample=3):
+    def load_aapd(self, datapath, sents_max_len=300, vocab_size=50000,
+                  generate_per_sample = "3", generate_percentage = "0.1", generate_method = "embedding"):
 
         # 读取已缓存数据
         if os.path.exists(os.path.join(datapath, 'aapdLoaded.pkl')):

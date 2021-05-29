@@ -199,9 +199,9 @@ def main(args):
             # "sample_method": "Deterministic+PDVRS3+16",
 
             "model_name": "CNN",
-            "group_name": "[mlabs]TA+nodete+stack+F1",
+            "group_name": "[mlabs]TA+nodete+aapd+F1",
             "max_performance": 0.90,
-            "data_path": "../../datasets/stack/",
+            "data_path": "../../datasets/aapd/",
             "acquire_method": "dete",
             "sub_acquire_method": "SIM",
             "using_generated_data": True,
@@ -216,9 +216,9 @@ def main(args):
             "sample_method": "Deterministic+KIM_SIM_EM1+0",
         },{
             "model_name": "CNN",
-            "group_name": "[mlabs]TA+nodete+stack+F1",
+            "group_name": "[mlabs]TA+nodete+aapd+F1",
             "max_performance": 0.90,
-            "data_path": "../../datasets/stack/",
+            "data_path": "../../datasets/aapd/",
             "acquire_method": "dete",
             "sub_acquire_method": "SIM",
             "using_generated_data": True,
@@ -233,9 +233,9 @@ def main(args):
             "sample_method": "Deterministic+KIM_SIM_EM1+16",
         },{
             "model_name": "CNN",
-            "group_name": "[mlabs]TA+nodete+stack+F1",
+            "group_name": "[mlabs]TA+nodete+aapd+F1",
             "max_performance": 0.90,
-            "data_path": "../../datasets/stack/",
+            "data_path": "../../datasets/aapd/",
             "acquire_method": "dete",
             "sub_acquire_method": "SIM",
             "using_generated_data": True,
@@ -250,9 +250,9 @@ def main(args):
             "sample_method": "Deterministic+KIM_SIM_EM1+32",
         },{
             "model_name": "CNN",
-            "group_name": "[mlabs]TA+nodete+stack+F1",
+            "group_name": "[mlabs]TA+nodete+aapd+F1",
             "max_performance": 0.90,
-            "data_path": "../../datasets/stack/",
+            "data_path": "../../datasets/aapd/",
             "acquire_method": "dete",
             "sub_acquire_method": "SIM",
             "using_generated_data": True,
@@ -365,7 +365,9 @@ def main(args):
                 val_data = val_data[-2000:]
             else:
                 # "../../datasets/aapd/"
-                data = loader.load_aapd(data_path)
+                data = loader.load_stack(data_path, generate_per_sample=generated_per_sample,
+                                         generate_percentage=generated_percentage,
+                                         generate_method=generated_method)
                 args.target_size = 54
                 train_data = data['train_points']
                 val_data = data['test_points']
