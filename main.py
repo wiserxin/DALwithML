@@ -205,16 +205,16 @@ def main(args):
             "acquire_method": "dete",
             "sub_acquire_method": "SIM",
             "using_generated_data": True,
-            "generated_per_sample":3,
-            "generated_percentage":0.1,
-            "generated_method":"embedding",
+            "generated_per_sample": 3,
+            "generated_percentage": 0.1,
+            "generated_method": "embedding",
             "generated_used_per_sample": 1,
             "num_acquisitions_round": 25,
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 0,
             "sample_method": "Deterministic+KIM_SIM_EM1+0",
-        },{
+        }, {
             "model_name": "CNN",
             "group_name": "[mlabs]TA+nodete+aapd+F1",
             "max_performance": 0.90,
@@ -222,16 +222,16 @@ def main(args):
             "acquire_method": "dete",
             "sub_acquire_method": "SIM",
             "using_generated_data": True,
-            "generated_per_sample":3,
-            "generated_percentage":0.1,
-            "generated_method":"embedding",
+            "generated_per_sample": 3,
+            "generated_percentage": 0.1,
+            "generated_method": "embedding",
             "generated_used_per_sample": 1,
             "num_acquisitions_round": 25,
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 16,
             "sample_method": "Deterministic+KIM_SIM_EM1+16",
-        },{
+        }, {
             "model_name": "CNN",
             "group_name": "[mlabs]TA+nodete+aapd+F1",
             "max_performance": 0.90,
@@ -239,16 +239,16 @@ def main(args):
             "acquire_method": "dete",
             "sub_acquire_method": "SIM",
             "using_generated_data": True,
-            "generated_per_sample":3,
-            "generated_percentage":0.1,
-            "generated_method":"embedding",
+            "generated_per_sample": 3,
+            "generated_percentage": 0.1,
+            "generated_method": "embedding",
             "generated_used_per_sample": 1,
             "num_acquisitions_round": 25,
             "init_question_num": 1200,
             "acquire_question_num_per_round": 1200,
             "warm_start_random_seed": 32,
             "sample_method": "Deterministic+KIM_SIM_EM1+32",
-        },{
+        }, {
             "model_name": "CNN",
             "group_name": "[mlabs]TA+nodete+aapd+F1",
             "max_performance": 0.90,
@@ -256,9 +256,9 @@ def main(args):
             "acquire_method": "dete",
             "sub_acquire_method": "SIM",
             "using_generated_data": True,
-            "generated_per_sample":3,
-            "generated_percentage":0.1,
-            "generated_method":"embedding",
+            "generated_per_sample": 3,
+            "generated_percentage": 0.1,
+            "generated_method": "embedding",
             "generated_used_per_sample": 1,
             "num_acquisitions_round": 25,
             "init_question_num": 1200,
@@ -365,7 +365,7 @@ def main(args):
                 val_data = val_data[-2000:]
             else:
                 # "../../datasets/aapd/"
-                data = loader.load_stack(data_path, generate_per_sample=generated_per_sample,
+                data = loader.load_aapd(data_path, generate_per_sample=generated_per_sample,
                                          generate_percentage=generated_percentage,
                                          generate_method=generated_method)
                 args.target_size = 54
@@ -398,9 +398,14 @@ def main(args):
                                             target_size=args.target_size)
 
         if using_generated_data:
-            acquire_pkl_name = '{}_{}_{}_{}.pkl'.format('generated_stack', str(generated_per_sample),str(generated_percentage), generated_method)
-            generated_train_data = data["generated_data"][acquire_pkl_name]['train_points_g']
-            acquisition_function.generated_train_data = generated_train_data
+            if "stack" in data_path:
+                acquire_pkl_name = 'generated_{}_{}_{}_{}.pkl'.format('stack', str(generated_per_sample),str(generated_percentage), generated_method)
+                generated_train_data = data["generated_data"][acquire_pkl_name]['train_points_g']
+                acquisition_function.generated_train_data = generated_train_data
+            elif "aapd" in data_path:
+                # 20210529 aapd这部分先凑合着用，以后做对比试验要重新改写Loader，然后这一段的逻辑也要改成stack一样的
+                generated_train_data = data['train_points_g']
+                acquisition_function.generated_train_data = generated_train_data
 
         checkpoint_path = os.path.join(args.result_path, 'active_checkpoint', config["group_name"], sample_method)
         if not os.path.exists(checkpoint_path):
