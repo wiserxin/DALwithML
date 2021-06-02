@@ -1364,6 +1364,8 @@ class Acquisition(object):
         model = torch.load(model_path)
         model.train(True) # 保持 dropout 开启
         tm = time.time()
+
+        sample_feature_generated, sample_score_generated = (0,0)
         if self.using_generated_data:
             using_generated_data = [self.generated_train_data[i*self.generated_per_sample+j]
                                     # for i in range(int(len(self.generated_train_data)/self.generated_per_sample))
